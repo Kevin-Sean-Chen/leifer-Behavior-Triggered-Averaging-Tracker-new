@@ -69,7 +69,7 @@ for MN = 1:length(MovieNames)
         end
         
         % Identify all objects
-        [L,NUM] = BWLABEL(BW);
+        [L,NUM] = bwlabel(BW);
         STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity'});
         
         % Identify all worms by size, get their centroid coordinates
