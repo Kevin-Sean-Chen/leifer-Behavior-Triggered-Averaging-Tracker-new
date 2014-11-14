@@ -22,7 +22,7 @@ function varargout = WormTracker(varargin)
 
 % Edit the above text to modify the response to help WormTracker
 
-% Last Modified by GUIDE v2.5 11-Feb-2008 14:12:08
+% Last Modified by GUIDE v2.5 13-Nov-2014 18:05:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -306,5 +306,3 @@ function PLOT_FRAME_RATE_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
