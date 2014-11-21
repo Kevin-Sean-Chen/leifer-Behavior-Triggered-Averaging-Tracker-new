@@ -1,7 +1,7 @@
-function PlotFrame(FigH, Mov, Tracks, RGB)
+function PlotFrame(FigH, Frame, Tracks, RGB)
 
 figure(FigH)
-imshow(Mov);
+imshow(Frame);
 hold on;
 
 % figure(FigH+1)
