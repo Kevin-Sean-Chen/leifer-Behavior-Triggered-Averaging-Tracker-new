@@ -6,3 +6,4 @@ for file_index = 1: length(allFiles)
         ProcessImageDirectory(strcat(folder_name, '\', allFiles(file_index).name))
     end
 end 
+

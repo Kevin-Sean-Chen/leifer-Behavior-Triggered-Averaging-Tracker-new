@@ -23,7 +23,7 @@ PirThresh = Prefs.PirThresh;
 % Find Pirouettes
 % ---------------
 PirI = find(abs(Track.AngSpeed) > PirThresh);
-PirI = PirI(find(PirI > 8 & PirI < length(Track.Frames) - 8));            % Disregard first and last second of movie
+PirI = PirI(find(PirI > Prefs.SampleRate & PirI < length(Track.Frames) - Prefs.SampleRate));            % Disregard first and last second of movie
 if isempty(PirI)
     Pirouettes = [];
 else

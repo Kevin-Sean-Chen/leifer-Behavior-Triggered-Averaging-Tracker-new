@@ -26,7 +26,8 @@ function success = ProcessImageDirectory(curDir)
     WormTrackerPrefs.PlotRGB = N(10);
     WormTrackerPrefs.PauseDuringPlot = N(11);
     WormTrackerPrefs.PlotObjectSizeHistogram = N(12);
-
+    mask = imread(T{13,2});
+    
     global Prefs;
 
     WorkSheet = 'Analysis Prefs';
@@ -46,7 +47,7 @@ function success = ProcessImageDirectory(curDir)
     Prefs.P_MaxSpeed = N(13);
     Prefs.P_TrackFraction = N(14);
     Prefs.P_WriteExcel = N(15);
-
+    
     % Set Matlab's current directory
     Prefs.DefaultPath = T{16,2};
     
@@ -74,14 +75,19 @@ function success = ProcessImageDirectory(curDir)
     % Start Tracker
     % -------------
     Tracks = [];
-
+    
+    % Load Voltages
+    fid = fopen('LEDVoltages.txt');
+    LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+    fclose(fid);
+    
     % Analyze Movie
     % -------------
     for frame_index = 1:length(image_files) - 1
 
         % Get Frame
         curImage = imread(image_files(frame_index).name);
-        subtractedImage = curImage - minProj; %subtract min projection
+        subtractedImage = curImage - minProj - mask; %subtract min projection
         writeVideo(outputVideo, subtractedImage)
 
         % Convert frame to a binary image 
@@ -244,6 +250,9 @@ function success = ProcessImageDirectory(curDir)
 
         % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
         Tracks(TN).Pirouettes = IdentifyPirouettes(Tracks(TN));
+        
+        %Save the LED Voltages for this track
+        Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
     end
     
     % Save Tracks
