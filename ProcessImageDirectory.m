@@ -1,4 +1,10 @@
-function success = ProcessImageDirectory(curDir)
+function success = ProcessImageDirectory(curDir, plotting)
+    if nargin < 1
+        curDir = uigetdir
+    end
+    if nargin < 2
+        plotting = 1;
+    end
     cd(curDir) %open the directory of image sequence
     image_files=dir('*.tif'); %get all the tif files
 
@@ -58,13 +64,15 @@ function success = ProcessImageDirectory(curDir)
 
     % Setup figure for plotting tracker results
     % -----------------------------------------
-    WTFigH = findobj('Tag', 'WTFIG');
-    if isempty(WTFigH)
-        WTFigH = figure('Name', 'Tracking Results', ...
-            'NumberTitle', 'off', ...
-            'Tag', 'WTFIG');
-    else
-        figure(WTFigH);
+    if plotting
+        WTFigH = findobj('Tag', 'WTFIG');
+        if isempty(WTFigH)
+            WTFigH = figure('Name', 'Tracking Results', ...
+                'NumberTitle', 'off', ...
+                'Tag', 'WTFIG');
+        else
+            figure(WTFigH);
+        end
     end
 
     %save subtracted avi
@@ -168,7 +176,7 @@ function success = ProcessImageDirectory(curDir)
         end
 
         % Display every PlotFrameRate'th frame
-        if ~mod(frame_index, PlotFrameRate)
+        if (plotting && ~mod(frame_index, PlotFrameRate))
             PlotFrame(WTFigH, subtractedImage, Tracks);
             FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
             set(WTFigH, 'Name', FigureName);
