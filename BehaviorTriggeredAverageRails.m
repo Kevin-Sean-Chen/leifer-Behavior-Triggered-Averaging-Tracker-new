@@ -2,12 +2,16 @@ folder_name = uigetdir
 cd(folder_name) %open the directory of image sequence
 allFiles = dir(); %get all the tif files
 allTracks = struct([]);
+fps = 14;
+
 for file_index = 1: length(allFiles)
     if allFiles(file_index).isdir && ~strcmp(allFiles(file_index).name, '.') && ~strcmp(allFiles(file_index).name, '..')
         cd(strcat(folder_name, '\', allFiles(file_index).name))
         load('tracks.mat')
         if length(allTracks) == 0
             allTracks = Tracks;
+        elseif length(Tracks) == 0
+            %do nothing
         else
             allTracks = [allTracks, Tracks];
         end
@@ -15,7 +19,7 @@ for file_index = 1: length(allFiles)
 end 
 
 tracksByVoltage = struct('voltage', {}, 'pirouette_centered_LEDVoltages', {});
-
+pirouetteCount = 0;
 
 for track = 1:length(allTracks)
     pirouettes = allTracks(track).Pirouettes;
@@ -39,6 +43,7 @@ for track = 1:length(allTracks)
         else
             tracksByVoltage(trackByVoltageIndex).pirouette_centered_LEDVoltages = cat(1, tracksByVoltage(trackByVoltageIndex).pirouette_centered_LEDVoltages, LEDVoltages(:, pirouetteStart-49:pirouetteStart+5));
         end
+        pirouetteCount = pirouetteCount + 1;
     end
 end
 
@@ -48,10 +53,12 @@ mymarkers = {'+','o','*','.','x','s','d','^','v','>','<','p','h'};
 mycolors = jet(length(tracksByVoltage));
 hold on;
 for voltage_index = 2:length(tracksByVoltage)
-    plot(-49:5, mean(tracksByVoltage(voltage_index).pirouette_centered_LEDVoltages,1)/tracksByVoltage(voltage_index).voltage, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', num2str(tracksByVoltage(voltage_index).voltage))
+    plot(-49/fps:1/fps:5/fps, mean(tracksByVoltage(voltage_index).pirouette_centered_LEDVoltages,1)/tracksByVoltage(voltage_index).voltage, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).voltage*0.13756+0.000378), ' mW/mm^2'));
     %legend(num2str(tracksByVoltage(voltage_index).voltage));
 end
-xlabel('frame number (worm reverses at 0)') % x-axis label
-ylabel('probability of stimulus is on') % y-axis label
+
+
+xlabel(strcat('time in seconds (worm reverses at 0) (', num2str(pirouetteCount), ' reversals analyzed)')) % x-axis label
+ylabel('probability that stimulus is on') % y-axis label
 legend('show');
 hold off;

@@ -7,9 +7,11 @@ function success = ProcessImageDirectory(curDir, plotting)
     end
     cd(curDir) %open the directory of image sequence
     image_files=dir('*.tif'); %get all the tif files
+    %image_files=dir('*.jpg'); %get all the jpg files
 
     %get min z projection
     minProj = imread(image_files(1).name);
+    
     for frame_index = 2:min(200, length(image_files) - 1)
         curImage = imread(image_files(frame_index).name);
         minProj = min(minProj, curImage);
@@ -77,7 +79,7 @@ function success = ProcessImageDirectory(curDir, plotting)
 
     %save subtracted avi
     outputVideo = VideoWriter(fullfile('processed.avi'),'Grayscale AVI');
-    outputVideo.FrameRate = 10;
+    outputVideo.FrameRate = 14;
     open(outputVideo)
 
     % Start Tracker
