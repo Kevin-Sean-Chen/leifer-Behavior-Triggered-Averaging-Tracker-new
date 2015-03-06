@@ -46,8 +46,8 @@ ylabel('voltage change') % y-axis label
 
 load('LEDVoltages.txt')
 
-figure
-plot(0:1/fps:(size(LEDVoltages,2)-1)/fps, LEDVoltages)
-xlabel(strcat('time (s)')) % x-axis label
-ylabel('voltage') % y-axis label
+% figure
+% plot(0:1/fps:(size(LEDVoltages,2)-1)/fps, LEDVoltages)
+% xlabel(strcat('time (s)')) % x-axis label
+% ylabel('voltage') % y-axis label
 

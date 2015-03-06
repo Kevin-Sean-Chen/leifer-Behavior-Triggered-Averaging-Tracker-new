@@ -5,18 +5,28 @@ function success = ProcessImageDirectory(curDir, plotting)
     if nargin < 2
         plotting = 1;
     end
+    
     cd(curDir) %open the directory of image sequence
+%     load('tracks.mat')
+    %cd('F:\Data\20150226\Data20150226_164542')
     image_files=dir('*.tif'); %get all the tif files
     %image_files=dir('*.jpg'); %get all the jpg files
 
-    %get min z projection
-    minProj = imread(image_files(1).name);
-    
-    for frame_index = 2:min(200, length(image_files) - 1)
-        curImage = imread(image_files(frame_index).name);
-        minProj = min(minProj, curImage);
+    %get median z projection
+    medianProj = imread(image_files(1).name);
+    medianProjCount = min(20, length(image_files) - 1);
+    medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
+    %medianIntensities = zeros(medianProjCount,1);
+    for frame_index = 1:medianProjCount
+        curImage = imread(image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name);
+        medianProj(:,:,frame_index) = curImage;
+        %curImage = curImage(872:1072,1196:1396);
+        %medianIntensities(frame_index,1) = median(curImage(:));
     end
 
+    medianProj = median(medianProj, 3);
+    %meanBackground = mean(medianIntensities); %used to account for non-uniform light intensities over time
+    
     global WormTrackerPrefs
     % Get Tracker default Prefs from Excel file
     ExcelFileName = 'Worm Tracker Preferences';
@@ -55,11 +65,12 @@ function success = ProcessImageDirectory(curDir, plotting)
     Prefs.P_MaxSpeed = N(13);
     Prefs.P_TrackFraction = N(14);
     Prefs.P_WriteExcel = N(15);
+    Prefs.MinDisplacement = N(17);
     
     % Set Matlab's current directory
     Prefs.DefaultPath = T{16,2};
     
-    PlotFrameRate = 10;    
+    PlotFrameRate = 7;    
     % Display tracking results every 'PlotFrameRate' frames - increase
     % this value (in GUI) to get faster tracking performance
 
@@ -77,11 +88,6 @@ function success = ProcessImageDirectory(curDir, plotting)
         end
     end
 
-    %save subtracted avi
-    outputVideo = VideoWriter(fullfile('processed.avi'),'Grayscale AVI');
-    outputVideo.FrameRate = 14;
-    open(outputVideo)
-
     % Start Tracker
     % -------------
     Tracks = [];
@@ -97,8 +103,10 @@ function success = ProcessImageDirectory(curDir, plotting)
 
         % Get Frame
         curImage = imread(image_files(frame_index).name);
-        subtractedImage = curImage - minProj - mask; %subtract min projection
-        writeVideo(outputVideo, subtractedImage)
+        %subImage = curImage(872:1072,1196:1396);
+        %imageBackground = median(subImage(:)) - meanBackground
+        subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
+        %writeVideo(outputVideo, subtractedImage)
 
         % Convert frame to a binary image 
         if WormTrackerPrefs.AutoThreshold       % use auto thresholding
@@ -113,6 +121,9 @@ function success = ProcessImageDirectory(curDir, plotting)
             BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
         end
 
+        %imwrite(subtractedImage, 'test.tif', 'tif');
+        %writeVideo(outputVideo, double(BW))
+        
         % Identify all objects
         [L,NUM] = bwlabel(BW);
         STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity'});
@@ -178,10 +189,13 @@ function success = ProcessImageDirectory(curDir, plotting)
         end
 
         % Display every PlotFrameRate'th frame
-        if (plotting && ~mod(frame_index, PlotFrameRate))
-            PlotFrame(WTFigH, subtractedImage, Tracks);
-            FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
-            set(WTFigH, 'Name', FigureName);
+        if (0 && plotting && ~mod(frame_index, PlotFrameRate))
+            
+%             RGB = label2rgb(L, @jet, 'k');
+            
+%             PlotFrame(WTFigH, RGB, Tracks);
+%             FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
+%             set(WTFigH, 'Name', FigureName);
 
             if WormTrackerPrefs.PlotRGB
                 RGB = label2rgb(L, @jet, 'k');
@@ -213,18 +227,28 @@ function success = ProcessImageDirectory(curDir, plotting)
             if WormTrackerPrefs.PauseDuringPlot
                 pause;
             end
+            
+%             writeVideo(outputVideo, getframe(WTFigH));
         end
 
     end    % END for Frame = 1:FileInfo.NumFrames
 
-    close(outputVideo)
+
 
     % Get rid of invalid tracks
     DeleteTracks = [];
     for i = 1:length(Tracks)
         if length(Tracks(i).Frames) < WormTrackerPrefs.MinTrackLength
             DeleteTracks = [DeleteTracks, i];
-        end
+        else
+            %find the maximum displacement from the first time point.
+            %correct for dirts that don't move
+            position_relative_to_start = transpose(Tracks(i).Path - repmat(Tracks(i).Path(1,:),size(Tracks(i).Path,1),1));
+            euclideian_distances_relative_to_start = sqrt(sum(position_relative_to_start.^2,1)); %# The two-norm of each column
+            if max(euclideian_distances_relative_to_start) < Prefs.MinDisplacement
+                DeleteTracks = [DeleteTracks, i];
+            end
+        end        
     end
     Tracks(DeleteTracks) = [];
 
@@ -264,6 +288,41 @@ function success = ProcessImageDirectory(curDir, plotting)
         %Save the LED Voltages for this track
         Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
     end
+    
+    
+%     %save subtracted avi
+    outputVideo = VideoWriter(fullfile('processed.avi'),'Uncompressed AVI');
+    outputVideo.FrameRate = 14;
+    open(outputVideo)
+    
+    %plotting reversals
+    for frame_index = 1:length(image_files) - 1
+
+        % Get Frame
+        curImage = imread(image_files(frame_index).name);
+        subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
+
+        % Convert frame to a binary image 
+        if WormTrackerPrefs.AutoThreshold       % use auto thresholding
+            Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
+            Level = max(min(Level,1) ,0);
+        else
+            Level = WormTrackerPrefs.ManualSetLevel;
+        end
+        if WormTrackerPrefs.DarkObjects
+            BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
+        else
+            BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
+        end
+        
+        PlotFrame(WTFigH, double(BW), Tracks, frame_index);
+        FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
+        set(WTFigH, 'Name', FigureName);
+
+        writeVideo(outputVideo, getframe(WTFigH));
+        
+    end
+    close(outputVideo) 
     
     % Save Tracks
     SaveFileName = [curDir '\tracks.mat'];
