@@ -27,15 +27,15 @@ PirI = PirI(find(PirI > Prefs.SampleRate & PirI < length(Track.Frames) - Prefs.S
 if isempty(PirI)
     Pirouettes = [];
 else
-    PirEndI = find(diff(PirI) > Prefs.MaxShortRun*Prefs.SampleRate);
+    PirEndI = find(diff(PirI) > Prefs.MaxShortRun*Prefs.SampleRate); %remove reversals detected for the next MaxShortRun seconds
     if isempty(PirEndI)
         Pirouettes = [PirI(1), PirI(length(PirI))];
     else
         Pirouettes = [PirI(1), PirI(PirEndI(1))];
         for j = 1:length(PirEndI)-1
-            Pirouettes = [Pirouettes; PirI(PirEndI(j)+1), PirI(PirEndI(j+1))];
+            Pirouettes = [Pirouettes; PirI(PirEndI(j)+1), PirI(PirEndI(j+1))]; %the beginning of reversals are spaced by at least 6 seconds. The end is the very next time the worm changes directions from the start
         end
-        Pirouettes = [Pirouettes; PirI(PirEndI(length(PirEndI))+1), PirI(length(PirI))];
+        Pirouettes = [Pirouettes; PirI(PirEndI(length(PirEndI))+1), PirI(length(PirI))]; 
     end
     if Track.NumFrames - PirI(length(PirI)) < Prefs.MaxShortRun*Prefs.SampleRate
         Pirouettes(length(Pirouettes(:,2)), 2) = Track.NumFrames;

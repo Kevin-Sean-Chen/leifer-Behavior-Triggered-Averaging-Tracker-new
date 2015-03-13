@@ -32,7 +32,7 @@ else
         track_indecies_in_frame = find([Tracks.Frames] == frame_index);
         frameSum = 0;
         currentActiveTrack = 1; %keeps the index of the track_indecies_in_frame
-        myColors = jet(length(track_indecies_in_frame));
+        myColors = lines(length(track_indecies_in_frame));
         for i = 1:length(Tracks)
             if currentActiveTrack > length(track_indecies_in_frame)
                 %all active tracks found
@@ -56,7 +56,7 @@ else
                     if in_track_index >= pirouetteEnd
                         plot(Tracks(i).Path(pirouetteStart:pirouetteEnd,1), Tracks(i).Path(pirouetteStart:pirouetteEnd,2), 'x', 'Color', myColors(currentActiveTrack,:));
                     elseif in_track_index >= pirouetteStart && in_track_index < pirouetteEnd
-                        plot(Tracks(i).Path(pirouetteStart:in_track_index,1), Tracks(i).Path(pirouetteStart:in_track_index,2), 'x', 'Color', myColors(currentActiveTrack,:));
+                        plot(Tracks(i).Path(pirouetteStart:in_track_index,1), Tracks(i).Path(pirouetteStart:in_track_index,2), 'rx');
                     end
                 end
                 
@@ -67,7 +67,10 @@ else
                 else
                     plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'Marker', 'o', 'Color', myColors(currentActiveTrack,:));
                 end
-                text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index))], 'Color', myColors(currentActiveTrack,:))
+                
+                %plot the track number and size
+                text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).Speed(in_track_index))], 'Color', myColors(currentActiveTrack,:))
+                
                 if abs(Tracks(i).AngSpeed(in_track_index)) < Prefs.PirThresh
                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+80, num2str(Tracks(i).AngSpeed(in_track_index)), 'Color', myColors(currentActiveTrack,:))
                 else
