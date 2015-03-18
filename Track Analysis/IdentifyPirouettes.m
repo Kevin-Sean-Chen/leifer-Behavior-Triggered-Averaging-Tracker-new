@@ -12,17 +12,18 @@ global Prefs;
 
 % Calculate Angular velocity pirouette threshold
 % ----------------------------------------------
-Esqr = mean((Track.AngSpeed).^2);
+% Esqr = mean((Track.AngSpeed).^2);
 % E = mean(abs(Track.AngSpeed));
-AverageAngSpeed = sqrt(Esqr);
+% AverageAngSpeed = sqrt(Esqr);
 % PirThreshMult = 1.5;
 % AngSpeedSTD = sqrt(Esqr - E^2);
 % PirThresh = max(AverageAngSpeed * PirThreshMult, Prefs.PirThresh);
 PirThresh = Prefs.PirThresh;
+PirSpeedThresh = Prefs.PirSpeedThresh;
 
 % Find Pirouettes
 % ---------------
-PirI = find(abs(Track.AngSpeed) > PirThresh);
+PirI = find(abs(Track.AngSpeed) > PirThresh & Track.SmoothSpeed > PirSpeedThresh);
 PirI = PirI(find(PirI > Prefs.SampleRate & PirI < length(Track.Frames) - Prefs.SampleRate));            % Disregard first and last second of movie
 if isempty(PirI)
     Pirouettes = [];

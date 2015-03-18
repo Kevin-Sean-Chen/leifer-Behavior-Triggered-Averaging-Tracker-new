@@ -10,6 +10,7 @@ global Prefs;
 % imshow(RGB);
 % hold on;
 if nargin < 4
+    %plot during tracking
     if ~isempty(Tracks)
         ActiveTracks = find([Tracks.Active]);
     else
@@ -27,12 +28,12 @@ if nargin < 4
        text(Tracks(ActiveTracks(i)).LastCoordinates(1)+10, Tracks(ActiveTracks(i)).LastCoordinates(2)+10, num2str(ActiveTracks(i)), 'color', 'g')
     end
 else
-    %plot reversals
+    %plot reversals after analysis
     if ~isempty(Tracks)
         track_indecies_in_frame = find([Tracks.Frames] == frame_index);
         frameSum = 0;
         currentActiveTrack = 1; %keeps the index of the track_indecies_in_frame
-        myColors = lines(length(track_indecies_in_frame));
+        myColors = winter(length(track_indecies_in_frame));
         for i = 1:length(Tracks)
             if currentActiveTrack > length(track_indecies_in_frame)
                 %all active tracks found
@@ -64,17 +65,19 @@ else
                 if pirouetting
                     %worm is reversing
                     plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'ro', 'LineWidth', 1);
+                     %plot the track number and size
+                    text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', 'r')
                 else
                     plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'Marker', 'o', 'Color', myColors(currentActiveTrack,:));
-                end
+                     %plot the track number and size
+                    text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', myColors(currentActiveTrack,:))
+               end
                 
-                %plot the track number and size
-                text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).Speed(in_track_index))], 'Color', myColors(currentActiveTrack,:))
                 
                 if abs(Tracks(i).AngSpeed(in_track_index)) < Prefs.PirThresh
-                    text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+80, num2str(Tracks(i).AngSpeed(in_track_index)), 'Color', myColors(currentActiveTrack,:))
+                    text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+90, num2str(Tracks(i).AngSpeed(in_track_index)), 'Color', myColors(currentActiveTrack,:))
                 else
-                    text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+80, num2str(Tracks(i).AngSpeed(in_track_index)), 'Color', 'r', 'FontWeight', 'bold')
+                    text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+90, num2str(Tracks(i).AngSpeed(in_track_index)), 'Color', 'r', 'FontWeight', 'bold')
                 end
 
                 

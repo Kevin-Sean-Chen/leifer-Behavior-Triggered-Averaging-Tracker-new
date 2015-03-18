@@ -1,4 +1,4 @@
-function success = ProcessImageDirectory(curDir, plotting, plotting_index)
+function success = ProcessImageDirectory(curDir, plotting, plotting_index, analysis_only)
     if nargin < 1
         curDir = uigetdir
     end
@@ -8,8 +8,13 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index)
     if nargin < 3
         plotting_index = 1;
     end
+    if nargin < 4
+        analysis_only = 1;
+    end
     cd(curDir) %open the directory of image sequence
-    %load('tracks.mat')
+    if analysis_only
+        load('tracks.mat')
+    end
     %cd('F:\Data\20150226\Data20150226_164542')
     image_files=dir('*.tif'); %get all the tif files
     %image_files=dir('*.jpg'); %get all the jpg files
@@ -55,6 +60,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index)
     Prefs.P_TrackFraction = N(14);
     Prefs.P_WriteExcel = N(15);
     Prefs.MinDisplacement = N(17);
+    Prefs.PirSpeedThresh = N(18);
     
     % Set Matlab's current directory
     Prefs.DefaultPath = T{16,2};
@@ -92,158 +98,161 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index)
             figure(WTFigH);
         end
     end
-
-    % Start Tracker
-    % -------------
-    Tracks = [];
     
     % Load Voltages
     fid = fopen('LEDVoltages.txt');
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     
-    % Analyze Movie
-    % -------------
-    for frame_index = 1:length(image_files) - 1
+    if ~analysis_only
+        % Start Tracker
+        % -------------
+        Tracks = [];
 
-        % Get Frame
-        curImage = imread(image_files(frame_index).name);
-        %subImage = curImage(872:1072,1196:1396);
-        %imageBackground = uint8(median(subImage(:)) - WormTrackerPrefs.ManualThresholdMedian);
-        subtractedImage = curImage - medianProj - mask; %subtract median projection   - imageBackground
-        %writeVideo(outputVideo, subtractedImage)
+        % Analyze Movie
+        % -------------
+        for frame_index = 1:length(image_files) - 1
 
-        % Convert frame to a binary image 
-        if WormTrackerPrefs.AutoThreshold       % use auto thresholding
-            Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
-            Level = max(min(Level,1) ,0);
-        else
-            Level = WormTrackerPrefs.ManualSetLevel;
-        end
-        NUM = WormTrackerPrefs.MaxObjects + 1;
-        while (NUM > WormTrackerPrefs.MaxObjects)
-            if WormTrackerPrefs.DarkObjects
-                BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
+            % Get Frame
+            curImage = imread(image_files(frame_index).name);
+            %subImage = curImage(872:1072,1196:1396);
+            %imageBackground = uint8(median(subImage(:)) - WormTrackerPrefs.ManualThresholdMedian);
+            subtractedImage = curImage - medianProj - mask; %subtract median projection   - imageBackground
+            %writeVideo(outputVideo, subtractedImage)
+
+            % Convert frame to a binary image 
+            if WormTrackerPrefs.AutoThreshold       % use auto thresholding
+                Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
+                Level = max(min(Level,1) ,0);
             else
-                BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
+                Level = WormTrackerPrefs.ManualSetLevel;
             end
-
-            %imwrite(subtractedImage, 'test.tif', 'tif');
-            %writeVideo(outputVideo, double(BW))
-
-            % Identify all objects
-            [L,NUM] = bwlabel(BW);
-            Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
-        end
-        STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity'});
-
-        % Identify all worms by size, get their centroid coordinates
-        WormIndices = find([STATS.Area] > WormTrackerPrefs.MinWormArea & ...
-            [STATS.Area] < WormTrackerPrefs.MaxWormArea);
-        NumWorms = length(WormIndices);
-        WormCentroids = [STATS(WormIndices).Centroid];
-        WormCoordinates = [WormCentroids(1:2:2*NumWorms)', WormCentroids(2:2:2*NumWorms)'];
-        WormSizes = [STATS(WormIndices).Area];
-        WormFilledAreas = [STATS(WormIndices).FilledArea];
-        WormEccentricities = [STATS(WormIndices).Eccentricity];
-
-        % Track worms 
-        % ----------- 
-        if ~isempty(Tracks)
-            ActiveTracks = find([Tracks.Active]);
-        else
-            ActiveTracks = [];
-        end
-
-        % Update active tracks with new coordinates
-        for i = 1:length(ActiveTracks)
-            DistanceX = WormCoordinates(:,1) - Tracks(ActiveTracks(i)).LastCoordinates(1);
-            DistanceY = WormCoordinates(:,2) - Tracks(ActiveTracks(i)).LastCoordinates(2);
-            Distance = sqrt(DistanceX.^2 + DistanceY.^2);
-            [MinVal, MinIndex] = min(Distance);
-            if (MinVal <= WormTrackerPrefs.MaxDistance) & ...
-                    (abs(WormSizes(MinIndex) - Tracks(ActiveTracks(i)).LastSize) < WormTrackerPrefs.SizeChangeThreshold)
-                Tracks(ActiveTracks(i)).Path = [Tracks(ActiveTracks(i)).Path; WormCoordinates(MinIndex, :)];
-                Tracks(ActiveTracks(i)).LastCoordinates = WormCoordinates(MinIndex, :);
-                Tracks(ActiveTracks(i)).Frames = [Tracks(ActiveTracks(i)).Frames, frame_index];
-                Tracks(ActiveTracks(i)).Size = [Tracks(ActiveTracks(i)).Size, WormSizes(MinIndex)];
-                Tracks(ActiveTracks(i)).LastSize = WormSizes(MinIndex);
-                Tracks(ActiveTracks(i)).FilledArea = [Tracks(ActiveTracks(i)).FilledArea, WormFilledAreas(MinIndex)];
-                Tracks(ActiveTracks(i)).Eccentricity = [Tracks(ActiveTracks(i)).Eccentricity, WormEccentricities(MinIndex)];
-                WormCoordinates(MinIndex,:) = [];
-                WormSizes(MinIndex) = [];
-                WormFilledAreas(MinIndex) = [];
-                WormEccentricities(MinIndex) = [];
-            else
-                Tracks(ActiveTracks(i)).Active = 0;
-                if length(Tracks(ActiveTracks(i)).Frames) < WormTrackerPrefs.MinTrackLength
-                    Tracks(ActiveTracks(i)) = [];
-                    ActiveTracks = ActiveTracks - 1;
-                end
-            end
-        end
-
-        % Start new tracks for coordinates not assigned to existing tracks
-        NumTracks = length(Tracks);
-        for i = 1:length(WormCoordinates(:,1))
-            Index = NumTracks + i;
-            Tracks(Index).Active = 1;
-            Tracks(Index).Path = WormCoordinates(i,:);
-            Tracks(Index).LastCoordinates = WormCoordinates(i,:);
-            Tracks(Index).Frames = frame_index;
-            Tracks(Index).Size = WormSizes(i);
-            Tracks(Index).LastSize = WormSizes(i);
-            Tracks(Index).FilledArea = WormFilledAreas(i);
-            Tracks(Index).Eccentricity = WormEccentricities(i);
-        end
-
-        % Display every PlotFrameRate'th frame
-        if (0 && plotting && ~mod(frame_index, PlotFrameRate))
-            
-%             RGB = label2rgb(L, @jet, 'k');
-            
-%             PlotFrame(WTFigH, RGB, Tracks);
-%             FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
-%             set(WTFigH, 'Name', FigureName);
-
-            if WormTrackerPrefs.PlotRGB
-                RGB = label2rgb(L, @jet, 'k');
-                figure(6)
-                set(6, 'Name', FigureName);
-                imshow(RGB);
-                hold on
-                if ~isempty(Tracks)
-                    ActiveTracks = find([Tracks.Active]);
+            NUM = WormTrackerPrefs.MaxObjects + 1;
+            while (NUM > WormTrackerPrefs.MaxObjects)
+                if WormTrackerPrefs.DarkObjects
+                    BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
                 else
-                    ActiveTracks = [];
+                    BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
                 end
-                for i = 1:length(ActiveTracks)
-                    plot(Tracks(ActiveTracks(i)).LastCoordinates(1), ...
-                        Tracks(ActiveTracks(i)).LastCoordinates(2), 'wo');
+
+                %imwrite(subtractedImage, 'test.tif', 'tif');
+                %writeVideo(outputVideo, double(BW))
+
+                % Identify all objects
+                [L,NUM] = bwlabel(BW);
+                Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
+            end
+            STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity'});
+
+            % Identify all worms by size, get their centroid coordinates
+            WormIndices = find([STATS.Area] > WormTrackerPrefs.MinWormArea & ...
+                [STATS.Area] < WormTrackerPrefs.MaxWormArea);
+            NumWorms = length(WormIndices);
+            WormCentroids = [STATS(WormIndices).Centroid];
+            WormCoordinates = [WormCentroids(1:2:2*NumWorms)', WormCentroids(2:2:2*NumWorms)'];
+            WormSizes = [STATS(WormIndices).Area];
+            WormFilledAreas = [STATS(WormIndices).FilledArea];
+            WormEccentricities = [STATS(WormIndices).Eccentricity];
+
+            % Track worms 
+            % ----------- 
+            if ~isempty(Tracks)
+                ActiveTracks = find([Tracks.Active]);
+            else
+                ActiveTracks = [];
+            end
+
+            % Update active tracks with new coordinates
+            for i = 1:length(ActiveTracks)
+                DistanceX = WormCoordinates(:,1) - Tracks(ActiveTracks(i)).LastCoordinates(1);
+                DistanceY = WormCoordinates(:,2) - Tracks(ActiveTracks(i)).LastCoordinates(2);
+                Distance = sqrt(DistanceX.^2 + DistanceY.^2);
+                [MinVal, MinIndex] = min(Distance);
+                if (MinVal <= WormTrackerPrefs.MaxDistance) & ...
+                        (abs(WormSizes(MinIndex) - Tracks(ActiveTracks(i)).LastSize) < WormTrackerPrefs.SizeChangeThreshold)
+                    Tracks(ActiveTracks(i)).Path = [Tracks(ActiveTracks(i)).Path; WormCoordinates(MinIndex, :)];
+                    Tracks(ActiveTracks(i)).LastCoordinates = WormCoordinates(MinIndex, :);
+                    Tracks(ActiveTracks(i)).Frames = [Tracks(ActiveTracks(i)).Frames, frame_index];
+                    Tracks(ActiveTracks(i)).Size = [Tracks(ActiveTracks(i)).Size, WormSizes(MinIndex)];
+                    Tracks(ActiveTracks(i)).LastSize = WormSizes(MinIndex);
+                    Tracks(ActiveTracks(i)).FilledArea = [Tracks(ActiveTracks(i)).FilledArea, WormFilledAreas(MinIndex)];
+                    Tracks(ActiveTracks(i)).Eccentricity = [Tracks(ActiveTracks(i)).Eccentricity, WormEccentricities(MinIndex)];
+                    WormCoordinates(MinIndex,:) = [];
+                    WormSizes(MinIndex) = [];
+                    WormFilledAreas(MinIndex) = [];
+                    WormEccentricities(MinIndex) = [];
+                else
+                    Tracks(ActiveTracks(i)).Active = 0;
+                    if length(Tracks(ActiveTracks(i)).Frames) < WormTrackerPrefs.MinTrackLength
+                        Tracks(ActiveTracks(i)) = [];
+                        ActiveTracks = ActiveTracks - 1;
+                    end
                 end
-                hold off
             end
 
-            if WormTrackerPrefs.PlotObjectSizeHistogram
-                figure(7)
-                hist([STATS.Area],300)
-                set(7, 'Name', FigureName);
-                title('Histogram of Object Sizes Identified by Tracker')
-                xlabel('Object Size (pixels')
-                ylabel('Number of Occurrences')
+            % Start new tracks for coordinates not assigned to existing tracks
+            NumTracks = length(Tracks);
+            for i = 1:length(WormCoordinates(:,1))
+                Index = NumTracks + i;
+                Tracks(Index).Active = 1;
+                Tracks(Index).Path = WormCoordinates(i,:);
+                Tracks(Index).LastCoordinates = WormCoordinates(i,:);
+                Tracks(Index).Frames = frame_index;
+                Tracks(Index).Size = WormSizes(i);
+                Tracks(Index).LastSize = WormSizes(i);
+                Tracks(Index).FilledArea = WormFilledAreas(i);
+                Tracks(Index).Eccentricity = WormEccentricities(i);
             end
 
-            if WormTrackerPrefs.PauseDuringPlot
-                pause;
+            % Display every PlotFrameRate'th frame
+            if (0 && plotting && ~mod(frame_index, PlotFrameRate))
+
+    %             RGB = label2rgb(L, @jet, 'k');
+
+    %             PlotFrame(WTFigH, RGB, Tracks);
+    %             FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
+    %             set(WTFigH, 'Name', FigureName);
+
+                if WormTrackerPrefs.PlotRGB
+                    RGB = label2rgb(L, @jet, 'k');
+                    figure(6)
+                    set(6, 'Name', FigureName);
+                    imshow(RGB);
+                    hold on
+                    if ~isempty(Tracks)
+                        ActiveTracks = find([Tracks.Active]);
+                    else
+                        ActiveTracks = [];
+                    end
+                    for i = 1:length(ActiveTracks)
+                        plot(Tracks(ActiveTracks(i)).LastCoordinates(1), ...
+                            Tracks(ActiveTracks(i)).LastCoordinates(2), 'wo');
+                    end
+                    hold off
+                end
+
+                if WormTrackerPrefs.PlotObjectSizeHistogram
+                    figure(7)
+                    hist([STATS.Area],300)
+                    set(7, 'Name', FigureName);
+                    title('Histogram of Object Sizes Identified by Tracker')
+                    xlabel('Object Size (pixels')
+                    ylabel('Number of Occurrences')
+                end
+
+                if WormTrackerPrefs.PauseDuringPlot
+                    pause;
+                end
+
+    %             writeVideo(outputVideo, getframe(WTFigH));
             end
-            
-%             writeVideo(outputVideo, getframe(WTFigH));
-        end
 
-    end    % END for Frame = 1:FileInfo.NumFrames
+        end    % END for Frame = 1:FileInfo.NumFrames
 
 
 
+
+    end
     % Get rid of invalid tracks
     DeleteTracks = [];
     for i = 1:length(Tracks)
@@ -259,9 +268,8 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index)
             end
         end        
     end
-    Tracks(DeleteTracks) = [];
-
-    %go through all the tracks and analyze them
+    Tracks(DeleteTracks) = [];    %go through all the tracks and analyze them
+    
     NumTracks = length(Tracks);
     for TN = 1:NumTracks
         Tracks(TN).Time = Tracks(TN).Frames/Prefs.SampleRate;		% Calculate time of each frame
@@ -287,9 +295,15 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index)
         Tracks(TN).Direction(NegYdifIndexes(Index2)) = Tracks(TN).Direction(NegYdifIndexes(Index2)) - 180;
 
         Tracks(TN).Speed = sqrt(Xdif.^2 + Ydif.^2) * Prefs.PixelSize;		% In mm/sec
-
+        
+        Tracks(TN).SmoothSpeed = smoothts(Tracks(TN).Speed, 'g', Prefs.StepSize, Prefs.StepSize);		% In mm/sec
+        %AngleChanges = CalcAngleDif(Tracks(TN).Direction, Prefs.StepSize);
+        AngleChanges = CalcAngleDif(Tracks(TN).Direction, Prefs.StepSize);
+        
         % Calculate angular speed
-        Tracks(TN).AngSpeed = CalcAngleDif(Tracks(TN).Direction, Prefs.StepSize) * Prefs.SampleRate;		% in deg/sec
+        Tracks(TN).AngSpeed = AngleChanges * Prefs.SampleRate;		% in deg/sec
+        
+        Tracks(TN).BackwardAcc = CalcBackwardAcc(Tracks(TN).Speed, AngleChanges, Prefs.StepSize);		% in mm/sec^2
 
         % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
         Tracks(TN).Pirouettes = IdentifyPirouettes(Tracks(TN));
