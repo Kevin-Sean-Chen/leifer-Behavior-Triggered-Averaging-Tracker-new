@@ -2,7 +2,7 @@
 N = transpose(hist3([transpose([Tracks.SmoothSpeed]), transpose(abs([Tracks.AngSpeed]))], {0:.025:1,0:80:3200})); %count up the frequencies for this bivariate histogram
 %N = N / sum(sum(N)); %normalize so that N is a proper probability distribution
 figure
-imagesc(N) %plot these frequencies as colors
+imagesc(log(N)) %plot these frequencies as colors
 colorbar %show the scale
 axis xy
 set(gca, 'XTick',1:41,'XTickLabel',0:.025:1)

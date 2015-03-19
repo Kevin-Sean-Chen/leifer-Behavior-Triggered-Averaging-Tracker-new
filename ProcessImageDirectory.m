@@ -314,16 +314,21 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     
     
 %     %save subtracted avi
-    outputVideo = VideoWriter(fullfile('processed.avi'),'Uncompressed AVI');
-    outputVideo.FrameRate = 14;
-    open(outputVideo)
+%     outputVideo = VideoWriter(fullfile('processed.avi'),'Uncompressed AVI');
+%     outputVideo.FrameRate = 14;
+%     open(outputVideo)
     
+%     individual_worm_video = VideoWriter(fullfile('worm1.avi'),'Grayscale AVI');
+%     individual_worm_video.FrameRate = 14;
+%     open(individual_worm_video)
+%     
     %plotting reversals
-    for frame_index = 1:length(image_files) - 1
+    for frame_index = 1:200%length(image_files) - 1
 
         % Get Frame
         curImage = imread(image_files(frame_index).name);
         subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
+        paddedSubtractedImage = padarray(subtractedImage, [14, 14], 'both');
         if WormTrackerPrefs.AutoThreshold       % use auto thresholding
             Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
             Level = max(min(Level,1) ,0);
@@ -347,15 +352,47 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
             Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
         end
         
-        PlotFrame(WTFigH, double(BW), Tracks, frame_index);
-        FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
-        set(WTFigH, 'Name', FigureName);
-
-        writeVideo(outputVideo, getframe(WTFigH));
+%         PlotFrame(WTFigH, double(BW), Tracks, frame_index);
+%         FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
+%         set(WTFigH, 'Name', FigureName);
+% 
+%         writeVideo(outputVideo, getframe(WTFigH));
         
+        if ~isempty(Tracks)
+            track_indecies_in_frame = find([Tracks.Frames] == frame_index);
+            frameSum = 0;
+            currentActiveTrack = 1; %keeps the index of the track_indecies_in_frame
+            for i = 1:length(Tracks)
+                if currentActiveTrack > length(track_indecies_in_frame)
+                    %all active tracks found
+                    break;
+                end
+                if track_indecies_in_frame(currentActiveTrack) - frameSum <= Tracks(i).NumFrames 
+                    %active track found
+                    in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
+
+                    centroid_x = round(Tracks(i).Path(in_track_index,1));
+                    centroid_y = round(Tracks(i).Path(in_track_index,2));
+                    
+                    worm_frame = paddedSubtractedImage(centroid_y:centroid_y+29,centroid_x:centroid_x+29);
+                    
+                    %save it as an img file
+                    if ~exist('worm1', 'dir')
+                        mkdir('worm1');
+                    end
+                    imwrite(worm_frame, ['worm1/frame_', num2str(frame_index) ,'.tif'], 'tif')
+                    
+%                     writeVideo(individual_worm_video, worm_frame)
+
+                    currentActiveTrack = currentActiveTrack + 1;
+                    break;
+                end
+                frameSum = frameSum + Tracks(i).NumFrames;
+            end
+        end        
     end
-    close(outputVideo) 
-    
+   % close(outputVideo) 
+%     close(individual_worm_video)
     % Save Tracks
     SaveFileName = [curDir '\tracks.mat'];
     save(SaveFileName, 'Tracks');
