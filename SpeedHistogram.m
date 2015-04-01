@@ -1,7 +1,7 @@
 fps = 14;
 
 allTracks = struct([]);
-reversal_counts = [];
+speed_sum = [];
 
 while true
     folder_name = uigetdir
@@ -12,20 +12,19 @@ while true
         allFiles = dir(); %get all the tif files
         load('tracks.mat')
         load('parameters.txt')
-        if isempty(reversal_counts)
+        if isempty(speed_sum)
             %divide bins by minute
-            reversal_counts = zeros(1, ceil(parameters(length(parameters)) / fps / 60));
+            speed_sum = zeros(1, ceil(parameters(length(parameters)) / fps / 60));
             frame_count = zeros(1, ceil(parameters(length(parameters)) / fps / 60));
             tracksCentered = [];
             pirouetteCount = 0;
         end
         allTracks = Tracks;
         for track = 1:length(allTracks)
-            pirouettes = allTracks(track).Pirouettes;
-            frames = allTracks(track).Frames;
-            for pirouette_index = 1:size(pirouettes,1)
-                pirouetteStart = pirouettes(pirouette_index,1);
-                reversal_counts(ceil(frames(pirouetteStart) / fps / 60)) = reversal_counts(ceil(frames(pirouetteStart) / fps / 60)) + 1;
+            speeds = transpose(allTracks(track).Speed);
+            frames = transpose(allTracks(track).Frames);
+            for speed_index = 1:length(speeds)
+                speed_sum(ceil(frames(speed_index) / fps / 60)) = speed_sum(ceil(frames(speed_index) / fps / 60)) + speeds(speed_index);
             end
             for frame_index = 1:length(frames)
                 frame_count(ceil(frames(frame_index) / fps / 60)) = frame_count(ceil(frames(frame_index) / fps / 60)) + 1;
@@ -34,8 +33,8 @@ while true
     end
 end
 
-plot(reversal_counts./frame_count * fps * 60, 'bo-')
+plot(speed_sum./frame_count, 'bo-')
 %legend(num2str(tracksByVoltage(voltage_index).voltage));
-xlabel(['minutes (', num2str(sum(reversal_counts)), ' reversals analyzed) average reversal rate = ', num2str(sum(reversal_counts)/sum(frame_count)* fps * 60)]) % x-axis label
-ylabel('reversals per worm per min') % y-axis label
-axis([1 30 0 3])
+xlabel(['minutes (average speed = ', num2str(sum(speed_sum)/sum(frame_count)),')']) % x-axis label
+ylabel('speed (mm/s)') % y-axis label
+axis([1 30 0 0.3])

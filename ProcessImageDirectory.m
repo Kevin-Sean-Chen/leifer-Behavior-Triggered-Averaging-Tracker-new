@@ -1,4 +1,8 @@
-function success = ProcessImageDirectory(curDir, plotting, plotting_index, analysis_only)
+%%
+% analysis_mode 'all' does tracking, analysis and saves eigen_worms
+% analysis_mode 'analysis' only plots the tracked
+% analysis_mode 'track_plot' tracks and plots (no eigen worms)
+function success = ProcessImageDirectory(curDir, plotting, plotting_index, analysis_mode)
     if nargin < 1
         curDir = uigetdir
     end
@@ -9,10 +13,10 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         plotting_index = 1;
     end
     if nargin < 4
-        analysis_only = 1;
+        analysis_mode = 'track_plot';
     end
     cd(curDir) %open the directory of image sequence
-    if analysis_only
+    if strcmp(analysis_mode, 'analysis')
         load('tracks.mat')
     end
     %cd('F:\Data\20150226\Data20150226_164542')
@@ -104,7 +108,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     
-    if ~analysis_only
+    if ~strcmp(analysis_mode, 'analysis')
         % Start Tracker
         % -------------
         Tracks = [];
@@ -164,10 +168,12 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
 
             % Update active tracks with new coordinates
             for i = 1:length(ActiveTracks)
+                %find the closest worm still being tracked
                 DistanceX = WormCoordinates(:,1) - Tracks(ActiveTracks(i)).LastCoordinates(1);
                 DistanceY = WormCoordinates(:,2) - Tracks(ActiveTracks(i)).LastCoordinates(2);
                 Distance = sqrt(DistanceX.^2 + DistanceY.^2);
                 [MinVal, MinIndex] = min(Distance);
+                
                 if (MinVal <= WormTrackerPrefs.MaxDistance) & ...
                         (abs(WormSizes(MinIndex) - Tracks(ActiveTracks(i)).LastSize) < WormTrackerPrefs.SizeChangeThreshold)
                     Tracks(ActiveTracks(i)).Path = [Tracks(ActiveTracks(i)).Path; WormCoordinates(MinIndex, :)];
@@ -177,6 +183,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
                     Tracks(ActiveTracks(i)).LastSize = WormSizes(MinIndex);
                     Tracks(ActiveTracks(i)).FilledArea = [Tracks(ActiveTracks(i)).FilledArea, WormFilledAreas(MinIndex)];
                     Tracks(ActiveTracks(i)).Eccentricity = [Tracks(ActiveTracks(i)).Eccentricity, WormEccentricities(MinIndex)];
+                    Tracks(ActiveTracks(i)).WormIndex = [Tracks(ActiveTracks(i)).WormIndex, WormIndices(MinIndex)];
                     WormCoordinates(MinIndex,:) = [];
                     WormSizes(MinIndex) = [];
                     WormFilledAreas(MinIndex) = [];
@@ -202,6 +209,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
                 Tracks(Index).LastSize = WormSizes(i);
                 Tracks(Index).FilledArea = WormFilledAreas(i);
                 Tracks(Index).Eccentricity = WormEccentricities(i);
+                Tracks(Index).WormIndex = WormIndices(i);
             end
 
             % Display every PlotFrameRate'th frame
@@ -312,86 +320,93 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
     end
     
-    
-%     %save subtracted avi
-%     outputVideo = VideoWriter(fullfile('processed.avi'),'Uncompressed AVI');
-%     outputVideo.FrameRate = 14;
-%     open(outputVideo)
-    
-%     individual_worm_video = VideoWriter(fullfile('worm1.avi'),'Grayscale AVI');
-%     individual_worm_video.FrameRate = 14;
-%     open(individual_worm_video)
-%     
-    %plotting reversals
-    for frame_index = 1:200%length(image_files) - 1
+    if plotting    
+        %save subtracted avi
+        outputVideo = VideoWriter(fullfile('processed'),'MPEG-4');
+        outputVideo.FrameRate = 14;
+        open(outputVideo)
 
-        % Get Frame
-        curImage = imread(image_files(frame_index).name);
-        subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
-        paddedSubtractedImage = padarray(subtractedImage, [14, 14], 'both');
-        if WormTrackerPrefs.AutoThreshold       % use auto thresholding
-            Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
-            Level = max(min(Level,1) ,0);
-        else
-            Level = WormTrackerPrefs.ManualSetLevel;
-        end
-        % Convert frame to a binary image 
-        NUM = WormTrackerPrefs.MaxObjects + 1;
-        while (NUM > WormTrackerPrefs.MaxObjects)
-            if WormTrackerPrefs.DarkObjects
-                BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
+    %     individual_worm_video = VideoWriter(fullfile('worm1.avi'),'Grayscale AVI');
+    %     individual_worm_video.FrameRate = 14;
+    %     open(individual_worm_video)
+    %     
+        %plotting reversals
+
+        for frame_index = 1:length(image_files) - 1
+
+            % Get Frame
+            curImage = imread(image_files(frame_index).name);
+            subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
+            if WormTrackerPrefs.AutoThreshold       % use auto thresholding
+                Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
+                Level = max(min(Level,1) ,0);
             else
-                BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
+                Level = WormTrackerPrefs.ManualSetLevel;
+            end
+            % Convert frame to a binary image 
+            NUM = WormTrackerPrefs.MaxObjects + 1;
+            while (NUM > WormTrackerPrefs.MaxObjects)
+                if WormTrackerPrefs.DarkObjects
+                    BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
+                else
+                    BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
+                end
+
+                %imwrite(subtractedImage, 'test.tif', 'tif');
+                %writeVideo(outputVideo, double(BW))
+
+                % Identify all objects
+                [L,NUM] = bwlabel(BW);
+                Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
             end
 
-            %imwrite(subtractedImage, 'test.tif', 'tif');
-            %writeVideo(outputVideo, double(BW))
+            PlotFrame(WTFigH, double(BW), Tracks, frame_index);
+            FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
+            set(WTFigH, 'Name', FigureName);
 
-            % Identify all objects
-            [L,NUM] = bwlabel(BW);
-            Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
-        end
-        
-%         PlotFrame(WTFigH, double(BW), Tracks, frame_index);
-%         FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
-%         set(WTFigH, 'Name', FigureName);
-% 
-%         writeVideo(outputVideo, getframe(WTFigH));
-        
-        if ~isempty(Tracks)
-            track_indecies_in_frame = find([Tracks.Frames] == frame_index);
-            frameSum = 0;
-            currentActiveTrack = 1; %keeps the index of the track_indecies_in_frame
-            for i = 1:length(Tracks)
-                if currentActiveTrack > length(track_indecies_in_frame)
-                    %all active tracks found
-                    break;
-                end
-                if track_indecies_in_frame(currentActiveTrack) - frameSum <= Tracks(i).NumFrames 
-                    %active track found
-                    in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
+            writeVideo(outputVideo, getframe(WTFigH));
 
-                    centroid_x = round(Tracks(i).Path(in_track_index,1));
-                    centroid_y = round(Tracks(i).Path(in_track_index,2));
-                    
-                    worm_frame = paddedSubtractedImage(centroid_y:centroid_y+29,centroid_x:centroid_x+29);
-                    
-                    %save it as an img file
-                    if ~exist('worm1', 'dir')
-                        mkdir('worm1');
+            if strcmp(analysis_mode, 'all') && ~isempty(Tracks)
+                %get the images of individaul worms
+                track_indecies_in_frame = find([Tracks.Frames] == frame_index);
+                frameSum = 0;
+                currentActiveTrack = 1; %keeps the index of the track_indecies_in_frame
+                for i = 1:length(Tracks)
+                    if currentActiveTrack > length(track_indecies_in_frame)
+                        %all active tracks found
+                        break;
                     end
-                    imwrite(worm_frame, ['worm1/frame_', num2str(frame_index) ,'.tif'], 'tif')
-                    
-%                     writeVideo(individual_worm_video, worm_frame)
+                    if track_indecies_in_frame(currentActiveTrack) - frameSum <= Tracks(i).NumFrames 
+                        %active track found
+                        in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
 
-                    currentActiveTrack = currentActiveTrack + 1;
-                    break;
+                        region_index = Tracks(i).WormIndex(in_track_index);
+                        single_worm = L == region_index; %get an binary image of only where the worm is
+
+                        centroid_x = round(Tracks(i).Path(in_track_index,1));
+                        centroid_y = round(Tracks(i).Path(in_track_index,2));
+
+                        single_worm_subtractedImage = uint8(single_worm) .* subtractedImage; %get only the worm
+                        paddedSubtractedImage = padarray(single_worm_subtractedImage, [14, 14], 'both'); %pad the image so that there is no chance that the index is out of range
+                        worm_frame = paddedSubtractedImage(centroid_y:centroid_y+29,centroid_x:centroid_x+29);
+
+                        %save it as an img file
+                        if ~exist('worm1', 'dir')
+                            mkdir('worm1');
+                        end
+                        imwrite(worm_frame, ['worm1/frame_', num2str(frame_index) ,'.tif'], 'tif')
+
+    %                     writeVideo(individual_worm_video, worm_frame)
+
+                        currentActiveTrack = currentActiveTrack + 1;
+                        break;
+                    end
+                    frameSum = frameSum + Tracks(i).NumFrames;
                 end
-                frameSum = frameSum + Tracks(i).NumFrames;
-            end
-        end        
+            end        
+        end
+        close(outputVideo) 
     end
-   % close(outputVideo) 
 %     close(individual_worm_video)
     % Save Tracks
     SaveFileName = [curDir '\tracks.mat'];

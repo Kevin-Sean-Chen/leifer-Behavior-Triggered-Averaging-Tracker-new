@@ -29,7 +29,7 @@ for track = 1:length(allTracks)
         pirouetteStart = pirouettes(pirouette_index,1);
         LEDVoltages = allTracks(track).LEDVoltages;
         if pirouetteStart - (fps*seconds_before) < 1 || pirouetteStart + (fps*seconds_after) > length(LEDVoltages)
-            %pad voltages with 0s if needed
+            %pad voltages with 0s if needed, but otherwise just ignore it
 %             buffer = zeros(1, 50 - pirouetteStart);
 %             tracksCentered = cat(1, tracksCentered, cat(2, buffer, LEDVoltages(:, 1:pirouetteStart+5)));
         else
