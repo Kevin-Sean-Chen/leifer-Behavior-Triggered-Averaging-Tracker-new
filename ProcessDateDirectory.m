@@ -16,7 +16,7 @@ for folder_index = 1:folder_count
     for file_index = 1:length(allFiles)
         if allFiles(file_index).isdir && ~strcmp(allFiles(file_index).name, '.') && ~strcmp(allFiles(file_index).name, '..')
             strcat(folder_name, '\', allFiles(file_index).name)
-            ProcessImageDirectory(strcat(folder_name, '\', allFiles(file_index).name), 0, file_index, 'analysis');
+            ProcessImageDirectory(strcat(folder_name, '\', allFiles(file_index).name), 1, file_index, 'track_plot');
             file_index/length(allFiles)
         end
     end

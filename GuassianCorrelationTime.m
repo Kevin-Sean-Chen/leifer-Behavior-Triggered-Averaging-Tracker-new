@@ -1,5 +1,5 @@
 fps = 14;
-frame_count = 300;
+frame_count = 25200;
 correlationTime = .5;
 sigma = 1; %the standard deviation
 minVoltage = 0;
@@ -23,6 +23,7 @@ voltages = voltages + currentVoltage;
 voltages(voltages<minVoltage) = minVoltage;
 voltages(voltages>maxVoltage) = maxVoltage;
 
+figure
 plot(0:1/fps:(frame_count-1)/fps, voltages, 'bo-')
 xlabel('time (s)') % x-axis label
 ylabel('voltage') % y-axis label
