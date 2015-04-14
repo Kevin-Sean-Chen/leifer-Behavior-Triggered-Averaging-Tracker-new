@@ -42,12 +42,12 @@ function [Speed, speed_sum, frame_count] = SpeedHistogram(folders)
     
     Speed = speed_sum./frame_count;
     
-%    if nargin < 1
+    if nargin < 1
         figure
         plot(Speed, 'bo-')
         %legend(num2str(tracksByVoltage(voltage_index).voltage));
         xlabel(['minutes (average speed = ', num2str(sum(speed_sum)/sum(frame_count)),')']) % x-axis label
         ylabel('speed (mm/s)') % y-axis label
         axis([1 30 0 0.3])
-%    end
+    end
 end

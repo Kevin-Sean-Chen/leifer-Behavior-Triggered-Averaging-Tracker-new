@@ -52,7 +52,7 @@ function [BTA, pirouetteCount] = BehaviorTriggeredAverage(folders, allTracks)
     BTA = mean(tracksCentered,1);
     if nargin < 1
         %plot(-seconds_before:1/fps:seconds_after, mean(diff(tracksCentered,1)))
-        figure
+        %figure
         shadedErrorBar(-seconds_before:1/fps:seconds_after, BTA, 2/sqrt(pirouetteCount)*ones(1,length(BTA)));
         %plot(-seconds_before:1/fps:seconds_after, mean(tracksCentered,1))
         %legend(num2str(tracksByVoltage(voltage_index).voltage));

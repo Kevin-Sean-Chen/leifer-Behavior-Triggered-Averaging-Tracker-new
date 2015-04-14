@@ -1,4 +1,4 @@
-function Rate = ReversalRate(folders, bin_size)
+function [Rate, reversal_counts, frame_count]= ReversalRate(folders, bin_size)
     fps = 14;
     reversal_counts = [];
    

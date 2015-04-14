@@ -409,7 +409,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     end
 %     close(individual_worm_video)
     % Save Tracks
-    SaveFileName = [curDir '\tracks.mat'];
-    save(SaveFileName, 'Tracks');
+    saveFileName = [curDir '\tracks.mat'];
+    save(saveFileName, 'Tracks');
     success = true;
 end
