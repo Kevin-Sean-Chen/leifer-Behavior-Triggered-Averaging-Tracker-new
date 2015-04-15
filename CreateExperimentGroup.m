@@ -84,7 +84,8 @@ function Experiments = CreateExperimentGroup()
             shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, Experiments(folder_index).BTA, 2/sqrt(Experiments(folder_index).pirouetteCount)*ones(1,length(Experiments(folder_index).BTA)));
             xlabel(strcat('second (', num2str(Experiments(folder_index).pirouetteCount), ' reversals analyzed)')) % x-axis label
             ylabel('voltage') % y-axis label
-            axis([-10 2 0.64 0.84])
+            %axis([-10 2 0.64 0.84])
+            axis([-10 2 0 5])
         end
         
         %plot speed
@@ -116,7 +117,8 @@ function Experiments = CreateExperimentGroup()
         shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, Experiments(length(folders)+1).BTA, 2/sqrt(Experiments(length(folders)+1).pirouetteCount)*ones(1,length(Experiments(length(folders)+1).BTA)));
         xlabel(strcat('second (', num2str(Experiments(length(folders)+1).pirouetteCount), ' reversals analyzed)')) % x-axis label
         ylabel('voltage') % y-axis label
-        axis([-10 2 0.64 0.84])
+        %axis([-10 2 0.64 0.84])
+        axis([-10 2 0 5])
     end
     
     [Experiments(length(folders)+1).Speed, speed_sum, frame_count]  = SpeedHistogram(folders);

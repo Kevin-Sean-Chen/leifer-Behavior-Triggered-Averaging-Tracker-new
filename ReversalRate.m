@@ -23,11 +23,18 @@ function [Rate, reversal_counts, frame_count]= ReversalRate(folders, bin_size)
         folder_name = folders{folder_index};
         cd(folder_name) %open the directory of image sequence
         load('tracks.mat')
-        load('parameters.txt')
+        try
+            load('parameters.txt')
+            frames = parameters(length(parameters));
+        catch
+            parameters = readtable('parameters.txt', 'Delimiter', '\t');
+            frames = parameters{1,{'FrameCount'}};
+        end
+
         if isempty(reversal_counts)
             %divide bins by minute
-            reversal_counts = zeros(1, ceil(parameters(length(parameters)) / bin_size));
-            frame_count = zeros(1, ceil(parameters(length(parameters)) / bin_size));
+            reversal_counts = zeros(1, ceil(frames) / bin_size);
+            frame_count = zeros(1, ceil(frames) / bin_size);
             tracksCentered = [];
             pirouetteCount = 0;
         end
@@ -52,6 +59,6 @@ function [Rate, reversal_counts, frame_count]= ReversalRate(folders, bin_size)
         %legend(num2str(tracksByVoltage(voltage_index).voltage));
         xlabel(['minutes (', num2str(sum(reversal_counts)), ' reversals analyzed) average reversal rate = ', num2str(sum(reversal_counts)/sum(frame_count)* bin_size)]) % x-axis label
         ylabel('reversals per worm per min') % y-axis label
-        axis([1 parameters(length(parameters))/bin_size 0 3])
+        axis([1 frames/bin_size 0 3])
     end
 end

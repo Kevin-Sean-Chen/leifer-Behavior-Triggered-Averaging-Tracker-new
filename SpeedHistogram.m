@@ -19,11 +19,18 @@ function [Speed, speed_sum, frame_count] = SpeedHistogram(folders)
         folder_name = folders{folder_index};
         cd(folder_name) %open the directory of image sequence
         load('tracks.mat')
-        load('parameters.txt')
+        try
+            load('parameters.txt')
+            frames = parameters(length(parameters));
+        catch
+            parameters = readtable('parameters.txt', 'Delimiter', '\t');
+            frames = parameters{1,{'FrameCount'}};
+        end
+
         if isempty(speed_sum)
             %divide bins by minute
-            speed_sum = zeros(1, ceil(parameters(length(parameters)) / fps / 60));
-            frame_count = zeros(1, ceil(parameters(length(parameters)) / fps / 60));
+            speed_sum = zeros(1, ceil(frames) / fps / 60);
+            frame_count = zeros(1, ceil(frames) / fps / 60);
             tracksCentered = [];
             pirouetteCount = 0;
         end
