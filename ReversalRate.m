@@ -16,7 +16,7 @@ function [Rate, reversal_counts, frame_count]= ReversalRate(folders, bin_size)
     end
     
     if nargin < 2 %no bin number specified
-        bin_size = fps * 60; %default bin size is one bin per min
+        bin_size = fps; %default bin size is one bin per min
     end
     
     for folder_index = 1:length(folders)
@@ -51,13 +51,14 @@ function [Rate, reversal_counts, frame_count]= ReversalRate(folders, bin_size)
             end
         end
     end
-    Rate = reversal_counts./frame_count * bin_size;
-    
+    Rate = reversal_counts./frame_count * fps * 60;
+    Rate(isnan(Rate)) = 0; %replace nan with 0
+
     if nargin < 1
         figure
         plot(Rate, 'bo-')
         %legend(num2str(tracksByVoltage(voltage_index).voltage));
-        xlabel(['minutes (', num2str(sum(reversal_counts)), ' reversals analyzed) average reversal rate = ', num2str(sum(reversal_counts)/sum(frame_count)* bin_size)]) % x-axis label
+        xlabel(['minutes (', num2str(sum(reversal_counts)), ' reversals analyzed) average reversal rate = ', num2str(sum(reversal_counts)/sum(frame_count)* fps * 60)]) % x-axis label
         ylabel('reversals per worm per min') % y-axis label
         axis([1 frames/bin_size 0 3])
     end

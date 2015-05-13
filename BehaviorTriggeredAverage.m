@@ -50,6 +50,7 @@ function [BTA, pirouetteCount] = BehaviorTriggeredAverage(folders, allTracks)
     end
 
     BTA = mean(tracksCentered,1);
+    %BTA = [0, mean(diff(tracksCentered,1,2),1)];
     if nargin < 1
         %plot(-seconds_before:1/fps:seconds_after, mean(diff(tracksCentered,1)))
         %figure
@@ -58,7 +59,7 @@ function [BTA, pirouetteCount] = BehaviorTriggeredAverage(folders, allTracks)
         %legend(num2str(tracksByVoltage(voltage_index).voltage));
         xlabel(strcat('second (', num2str(pirouetteCount), ' reversals analyzed)')) % x-axis label
         ylabel('voltage') % y-axis label
-        axis([-10 2 0.64 0.84])
+        %axis([-10 2 0.64 0.84])
     end
     %load('LEDVoltages.txt')
 

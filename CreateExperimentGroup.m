@@ -6,7 +6,7 @@ function Experiments = CreateExperimentGroup()
     fps = 14;
     BTA_seconds_before = 10;
     BTA_seconds_after = 1;
-    kernal_seconds_before = 4;
+    kernel_seconds_before = 6;
     folders = {};
     Experiments = [];
     
@@ -21,6 +21,10 @@ function Experiments = CreateExperimentGroup()
           % File exists.  Load the folders
           load(saveFileName)
           folders = {Experiments(1:end-1).Folder};
+          Experiments = [];
+          for i = 1:length(folders)
+              Experiments(i).Folder = folders{i};
+          end
         else
           % File does not exist. Ask for experiment folders
             while true
@@ -43,7 +47,7 @@ function Experiments = CreateExperimentGroup()
 
     figure
     plot_BTA = 1;
-    plot_linear_filter = 0;
+    plot_linear_filter = 1;
     plot_speed = 0;
     plot_LED_voltage = 0;
     plot_filtered_signal = 0;
@@ -77,15 +81,21 @@ function Experiments = CreateExperimentGroup()
             allTracks = [allTracks, Tracks];
         end
         
+        meanLEDVoltage = mean(LEDVoltages);
         %plot BTA
         [Experiments(folder_index).BTA, Experiments(folder_index).pirouetteCount] = BehaviorTriggeredAverage([], Tracks);
         if plot_BTA
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(folder_index-1) + BTA_plot_number);
-            shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, Experiments(folder_index).BTA, 2/sqrt(Experiments(folder_index).pirouetteCount)*ones(1,length(Experiments(folder_index).BTA)));
+            hold on
+                shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, Experiments(folder_index).BTA, 2/sqrt(Experiments(folder_index).pirouetteCount)*ones(1,length(Experiments(folder_index).BTA)));
+                meanLEDVoltageY = zeros(1,length(Experiments(folder_index).BTA));
+                meanLEDVoltageY(:) = meanLEDVoltage;
+                plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r')
+            hold off
             xlabel(strcat('second (', num2str(Experiments(folder_index).pirouetteCount), ' reversals analyzed)')) % x-axis label
             ylabel('voltage') % y-axis label
-            %axis([-10 2 0.64 0.84])
-            axis([-10 2 0 5])
+            axis([-10 2 0.64 0.84])
+            %axis([-10 2 0 5])
         end
         
         %plot speed
@@ -110,15 +120,22 @@ function Experiments = CreateExperimentGroup()
         end
     end
     
+    meanLEDVoltage = mean([Experiments.LEDVoltages]);
+    
     %the very last entry in Experiments is the average of all experiments
     [Experiments(length(folders)+1).BTA, Experiments(length(folders)+1).pirouetteCount] = BehaviorTriggeredAverage(folders);
     if plot_BTA
         scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*length(folders) + BTA_plot_number);
+        meanLEDVoltageY = zeros(1,length(Experiments(folder_index).BTA));
+        meanLEDVoltageY(:) = meanLEDVoltage;
+        hold on
         shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, Experiments(length(folders)+1).BTA, 2/sqrt(Experiments(length(folders)+1).pirouetteCount)*ones(1,length(Experiments(length(folders)+1).BTA)));
+        plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r')
+        hold off
         xlabel(strcat('second (', num2str(Experiments(length(folders)+1).pirouetteCount), ' reversals analyzed)')) % x-axis label
         ylabel('voltage') % y-axis label
-        %axis([-10 2 0.64 0.84])
-        axis([-10 2 0 5])
+        axis([-10 2 0.64 0.84])
+        %axis([-10 2 0 5])
     end
     
     [Experiments(length(folders)+1).Speed, speed_sum, frame_count]  = SpeedHistogram(folders);
@@ -132,32 +149,31 @@ function Experiments = CreateExperimentGroup()
     %Experiments(length(folders)+1).ReversalRate = ReversalRate(folders,1);
     
     
-    %get the linear kernal from BTA
-    %meanLEDVoltage = mean([Experiments.LEDVoltages]);
+    %get the linear kernel from BTA
     BTA = Experiments(length(folders)+1).BTA;
     pirouetteCount = Experiments(folder_index+1).pirouetteCount;
-    BTA = BTA((BTA_seconds_before-kernal_seconds_before)*fps+1:length(BTA)-(BTA_seconds_after*fps)); %will have size fps*kernal_seconds_before+1 because frame at 0 is also counted
-    %linear_kernal = fliplr(BTA - meanLEDVoltage); %time in BTA is reversed in linear kernal
+    BTA = BTA((BTA_seconds_before-kernel_seconds_before)*fps+1:length(BTA)-(BTA_seconds_after*fps)); %will have size fps*kernel_seconds_before+1 because frame at 0 is also counted
+    linear_kernel = fliplr(BTA - meanLEDVoltage); %time in BTA is reversed in linear kernel
     
-    linear_kernal = fliplr(BTA - min(BTA)); %time in BTA is reversed in linear kernal
-    %smooth the linear_kernal? Approximate by gaussian and exponential?
+    %linear_kernel = fliplr(BTA - min(BTA)); %time in BTA is reversed in linear kernel
+    %smooth the linear_kernel? Approximate by gaussian and exponential?
     
-    %plot linear kernal
+    %plot linear kernel
     if plot_linear_filter
         scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*length(folders) + linear_filter_plot_number);
-        shadedErrorBar(0:1/fps:kernal_seconds_before, linear_kernal, 2/sqrt(pirouetteCount)*ones(1,length(linear_kernal)));
+        shadedErrorBar(0:1/fps:kernel_seconds_before, linear_kernel, 2/sqrt(pirouetteCount)*ones(1,length(linear_kernel)));
         xlabel(strcat('second (', num2str(pirouetteCount), ' reversals analyzed)')) % x-axis label
         ylabel('voltage') % y-axis label
     end
     
     for folder_index = 1:length(folders)+1
-        %convolve the linear kernals with the input signal of LED voltages
+        %convolve the linear kernels with the input signal of LED voltages
         if folder_index > length(folders)
             %the average case, concatenate all the filtered signals found
             %before
             Experiments(folder_index).FilteredSignal = [Experiments.FilteredSignal];
         else
-            filtered_signal = conv(Experiments(folder_index).LEDVoltages, linear_kernal);
+            filtered_signal = conv(Experiments(folder_index).LEDVoltages, linear_kernel);
             Experiments(folder_index).FilteredSignal = filtered_signal(1:length(Experiments(folder_index).LEDVoltages)); %cut off the tail
         end
         
@@ -183,7 +199,7 @@ function Experiments = CreateExperimentGroup()
             Experiments(folder_index).ReversalRate = [Experiments.ReversalRate];
         end
         %get histogram of filtered_signal given a reversal
-        filtered_signal_given_reversal_histogram = accumarray(bin_indecies', Experiments(folder_index).ReversalRate')';
+        filtered_signal_given_reversal_histogram = accumarray(bin_indecies', Experiments(folder_index).ReversalRate / fps / 60')';
         if plot_filtered_signal_given_reversal_histogram
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(folder_index-1) + filtered_signal_given_reversal_histogram_plot_number);
             bar(bin_edges(1:end-1), filtered_signal_given_reversal_histogram');
@@ -191,9 +207,17 @@ function Experiments = CreateExperimentGroup()
         end
         
         non_linearity = filtered_signal_given_reversal_histogram ./ filtered_signal_histogram;
+        bin_centers = bin_edges(1:end-1)+(diff(bin_edges(1:2)/2));
+        non_linearity_fit = fit(bin_centers',non_linearity','exp1');
+        Experiments(folder_index).exp_fit_a = non_linearity_fit.a;
+        Experiments(folder_index).exp_fit_b = non_linearity_fit.b;
         if plot_non_linearity
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(folder_index-1) + non_linearity_plot_number);
-            plot(non_linearity)
+            hold on
+            plot(non_linearity_fit,bin_centers,non_linearity)
+            hold off
+            xlabel('filtered signal (a.u.)') % x-axis label
+            ylabel('reversal rate (reversals/worm/min)') % y-axis label
         end
         
         %plot it along along with the rate of reversals
@@ -206,6 +230,6 @@ function Experiments = CreateExperimentGroup()
         end
     end
     
-    save(saveFileName, 'Experiments', 'linear_kernal');
+    save(saveFileName, 'Experiments', 'linear_kernel');
     
  end

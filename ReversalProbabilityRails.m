@@ -56,7 +56,7 @@ ylabel('cumulative reversal count') % y-axis label
 legend('show');
 hold off;
 
-%plot cumulative reversals
+%plot reversal probability
 scrollsubplot(3,1,3)
 hold on;
 for voltage_index = 1:length(tracksByVoltage)
