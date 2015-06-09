@@ -7,13 +7,13 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         curDir = uigetdir
     end
     if nargin < 2
-        plotting = 1;
+        plotting = 0;
     end
     if nargin < 3
         plotting_index = 1;
     end
     if nargin < 4
-        analysis_mode = 'track_plot';
+        analysis_mode = 'analysis';
     end
     cd(curDir) %open the directory of image sequence
     if strcmp(analysis_mode, 'analysis')
@@ -65,7 +65,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     Prefs.P_WriteExcel = N(15);
     Prefs.MinDisplacement = N(17);
     Prefs.PirSpeedThresh = N(18);
-    
+    Prefs.EccentricityThresh = N(19);
     % Set Matlab's current directory
     Prefs.DefaultPath = T{16,2};
     
@@ -315,6 +315,9 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
 
         % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
         Tracks(TN).Pirouettes = IdentifyPirouettes(Tracks(TN));
+ 
+        % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
+        Tracks(TN).OmegaTurns = IdentifyOmegaTurns(Tracks(TN));
         
         %Save the LED Voltages for this track
         Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));

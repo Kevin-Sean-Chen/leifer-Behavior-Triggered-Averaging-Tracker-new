@@ -21,7 +21,7 @@ function []= AnalyzeGaussianCorrelationTime(folders, bin_size)
     end
     
     if nargin < 2 %no bin number specified
-        bin_size = 1; %default bin size is one bin per second
+        bin_size = 1; %default bin size is one bin per frame
     end
     
     
@@ -41,11 +41,7 @@ function []= AnalyzeGaussianCorrelationTime(folders, bin_size)
         reversal_rate= ReversalRate(folders, bin_size);
         
         %get the filtered signal
-        filtered_signal = conv(LEDVoltages, linear_kernel);
-        filtered_signal = filtered_signal(1:length(LEDVoltages)); %cut off the tail
-        predicted_reversal_rate = exp_fit_a*exp(exp_fit_b*filtered_signal);
-        predicted_reversal_rate = reshape(predicted_reversal_rate, [], bin_size);
-        predicted_reversal_rate = mean(predicted_reversal_rate, 2)' .* fps * 60;
+        predicted_reversal_rate = PredictLNP(LEDVoltages, linear_kernel, exp_fit_a, exp_fit_b, bin_size);
         
         figure
         hold all

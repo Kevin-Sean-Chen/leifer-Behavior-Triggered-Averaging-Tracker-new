@@ -1,10 +1,10 @@
 fps = 14;
 frame_count = 25200;
 correlationTime = .5;
-sigma = 1; %the standard deviation
+sigma = 2; %the standard deviation
 minVoltage = 0;
 maxVoltage = 5;
-currentVoltage = 0.5; %in this case, the average voltage
+currentVoltage = 2.5; %in this case, the average voltage
 
 
 voltages = zeros(1,frame_count);
