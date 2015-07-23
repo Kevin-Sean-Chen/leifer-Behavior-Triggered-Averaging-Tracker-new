@@ -7,7 +7,7 @@ tracksByVoltage = struct('maxVoltage', {}, 'LEDVoltages', {}, 'reversalCounts', 
 
 for file_index = 1:length(allFiles)
     if allFiles(file_index).isdir && ~strcmp(allFiles(file_index).name, '.') && ~strcmp(allFiles(file_index).name, '..')
-        folder = strcat(folder_name, '\', allFiles(file_index).name);
+        folder = strcat(folder_name, '\', allFiles(file_index).name)
         cd(folder)
         load('LEDVoltages.txt')
         maxVoltage = max(LEDVoltages);

@@ -78,7 +78,7 @@ function Experiments = CreateExperimentGroup()
             %get speed
             [Experiments(folder_index).Speed, Experiments(folder_index).speed_sum, Experiments(folder_index).frame_count] = SpeedHistogram([],fps*60,Tracks,frames);
             %get reversal rate
-            Experiments(folder_index).ReversalRate = ReversalRate([],1,Tracks,frames);
+            [Experiments(folder_index).ReversalRate, Experiments(folder_index).ReversalCounts, Experiments(folder_index).FrameCounts] = ReversalRate([],fps*60,Tracks,frames);
             %save LEDVoltages
             Experiments(folder_index).LEDVoltages = LEDVoltages;
             %find the filtered signal (not used in LNP fitting)
@@ -91,7 +91,7 @@ function Experiments = CreateExperimentGroup()
             %get speed
             [Experiments(folder_index).Speed, Experiments(folder_index).speed_sum, Experiments(folder_index).frame_count] = SpeedHistogram([],fps*60,allTracks,frames);
             %the average case, concatenate all the behaviors
-            Experiments(folder_index).ReversalRate = [Experiments.ReversalRate];
+            [Experiments(folder_index).ReversalRate, Experiments(folder_index).ReversalCounts, Experiments(folder_index).FrameCounts] = ReversalRate([],fps*60,allTracks,frames);
             %save LEDVoltages
             Experiments(folder_index).LEDVoltages = [Experiments.LEDVoltages];
             %the average case, concatenate all the filtered signals found

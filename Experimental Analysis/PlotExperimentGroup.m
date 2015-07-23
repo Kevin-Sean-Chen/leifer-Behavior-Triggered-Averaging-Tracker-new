@@ -5,17 +5,17 @@ function [] = PlotExperimentGroup (Experiments)
     BTA_seconds_before = 10;
     BTA_seconds_after = 1;
     rows_per_page = 3;
-
+    
     figure
     plot_BTA = 1;
     plot_linear_filter = 0;
-    plot_speed = 1;
+    plot_speed = 0;
     plot_LED_voltage = 0;
     plot_filtered_signal = 0;
     plot_filtered_signal_histogram = 1;
     plot_filtered_signal_given_reversal_histogram = 1;
     plot_non_linearity = 1;
-    plot_reversal_rate = 1;
+    plot_reversal_rate = 0;
     
     BTA_plot_number = plot_BTA;
     linear_filter_plot_number = BTA_plot_number+plot_linear_filter;
@@ -40,7 +40,7 @@ function [] = PlotExperimentGroup (Experiments)
             hold off
             xlabel(strcat('second (', num2str(Experiments(experiment_index).pirouetteCount), ' behaviors analyzed)')) % x-axis label
             ylabel('voltage') % y-axis label
-            axis([-10 2 0.64 0.84])
+            %axis([-10 2 0.64 0.84])
             %axis([-10 2 0 5])
         end
         
@@ -110,9 +110,13 @@ function [] = PlotExperimentGroup (Experiments)
         if plot_reversal_rate
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(experiment_index-1) + reversal_rate_plot_number);
             hold on
-            plot(Experiments(experiment_index).FilteredSignal/max(Experiments(experiment_index).FilteredSignal));
-            plot(Experiments(experiment_index).ReversalRate/max(Experiments(experiment_index).ReversalRate));
-            hold off
+            %plot(Experiments(experiment_index).FilteredSignal/max(Experiments(experiment_index).FilteredSignal));
+            %plot(Experiments(experiment_index).ReversalRate/max(Experiments(experiment_index).ReversalRate));
+            
+            plot(Experiments(experiment_index).ReversalRate, 'bo-')
+            xlabel(['minutes (', num2str(sum(Experiments(experiment_index).ReversalCounts)), ' reversals analyzed) average reversal rate = ', num2str(sum(Experiments(experiment_index).ReversalCounts)/sum(Experiments(experiment_index).FrameCounts)*fps*60)]) % x-axis label
+            ylabel('reversals per worm per min') % y-axis label
+            axis([1 length(Experiments(experiment_index).ReversalRate) 0 3])
         end
     end
 

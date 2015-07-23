@@ -2,23 +2,33 @@
 % analysis_mode 'all' does tracking, analysis and saves eigen_worms
 % analysis_mode 'analysis' only plots the tracked
 % analysis_mode 'track_plot' tracks and plots (no eigen worms)
+% analysis_mode 'continue' tracks and plots (no eigen worms) the folders without tracks.mat
 function success = ProcessImageDirectory(curDir, plotting, plotting_index, analysis_mode)
     if nargin < 1
         curDir = uigetdir
     end
     if nargin < 2
-        plotting = 0;
+        plotting = 1;
     end
     if nargin < 3
-        plotting_index = 1;
+        plotting_index = 0;
     end
     if nargin < 4
         analysis_mode = 'analysis';
     end
     cd(curDir) %open the directory of image sequence
-    if strcmp(analysis_mode, 'analysis')
-        load('tracks.mat')
+    
+    if exist('tracks.mat', 'file') == 2
+%     if strcmp(analysis_mode, 'analysis')
+        if strcmp(analysis_mode, 'continue')
+            %track already exists, skip analysis
+            success = true;
+            return
+        elseif strcmp(analysis_mode, 'analysis')
+            load('tracks.mat')
+        end
     end
+    
     %cd('F:\Data\20150226\Data20150226_164542')
     image_files=dir('*.tif'); %get all the tif files
     %image_files=dir('*.jpg'); %get all the jpg files
@@ -66,25 +76,11 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     Prefs.MinDisplacement = N(17);
     Prefs.PirSpeedThresh = N(18);
     Prefs.EccentricityThresh = N(19);
+    Prefs.PauseSpeedThresh = N(20);
+    Prefs.MinPauseDuration = N(21);    
     % Set Matlab's current directory
     Prefs.DefaultPath = T{16,2};
     
-    %get median z projection
-    medianProj = imread(image_files(1).name);
-    medianProjCount = min(20, length(image_files) - 1);
-    medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
-    %medianIntensities = zeros(medianProjCount,1);
-    for frame_index = 1:medianProjCount
-        curImage = imread(image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name);
-        medianProj(:,:,frame_index) = curImage;
-        %curImage = curImage(872:1072,1196:1396);
-        %medianIntensities(frame_index,1) = median(curImage(:));
-    end
-
-    medianProj = median(medianProj, 3);
-    %medianIntensities = median(medianIntensities); %used to account for non-uniform light intensities over time
-    medianProj = uint8(medianProj);
-
     PlotFrameRate = 7;    
     % Display tracking results every 'PlotFrameRate' frames - increase
     % this value (in GUI) to get faster tracking performance
@@ -113,6 +109,22 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         % -------------
         Tracks = [];
 
+        %get median z projection
+        medianProj = imread(image_files(1).name);
+        medianProjCount = min(20, length(image_files) - 1);
+        medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
+        %medianIntensities = zeros(medianProjCount,1);
+        for frame_index = 1:medianProjCount
+            curImage = imread(image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name);
+            medianProj(:,:,frame_index) = curImage;
+            %curImage = curImage(872:1072,1196:1396);
+            %medianIntensities(frame_index,1) = median(curImage(:));
+        end
+
+        medianProj = median(medianProj, 3);
+        %medianIntensities = median(medianIntensities); %used to account for non-uniform light intensities over time
+        medianProj = uint8(medianProj);
+        
         % Analyze Movie
         % -------------
         for frame_index = 1:length(image_files) - 1
@@ -313,22 +325,49 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         
         Tracks(TN).BackwardAcc = CalcBackwardAcc(Tracks(TN).Speed, AngleChanges, Prefs.StepSize);		% in mm/sec^2
 
+        %Find Pauses
+        Tracks(TN).Pauses = IdentifyPauses(Tracks(TN));
+                
         % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
         Tracks(TN).Pirouettes = IdentifyPirouettes(Tracks(TN));
  
-        % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
+        % Identify Omegas (Store as indices in Tracks(TN).OmegaTurns)
         Tracks(TN).OmegaTurns = IdentifyOmegaTurns(Tracks(TN));
-        
+ 
+        % Identify Runs (Store as indices in Tracks(TN).Runs)
+        Tracks(TN).Runs = IdentifyRuns(Tracks(TN));
+
         %Save the LED Voltages for this track
         Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
     end
+    
+    % Save Tracks
+    saveFileName = [curDir '\tracks.mat'];
+    save(saveFileName, 'Tracks');
+    AutoSave(curDir, Prefs.DefaultPath)
     
     if plotting    
         %save subtracted avi
         outputVideo = VideoWriter(fullfile('processed'),'MPEG-4');
         outputVideo.FrameRate = 14;
         open(outputVideo)
+        
+        %get median z projection
+        medianProj = imread(image_files(1).name);
+        medianProjCount = min(20, length(image_files) - 1);
+        medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
+        %medianIntensities = zeros(medianProjCount,1);
+        for frame_index = 1:medianProjCount
+            curImage = imread(image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name);
+            medianProj(:,:,frame_index) = curImage;
+            %curImage = curImage(872:1072,1196:1396);
+            %medianIntensities(frame_index,1) = median(curImage(:));
+        end
 
+        medianProj = median(medianProj, 3);
+        %medianIntensities = median(medianIntensities); %used to account for non-uniform light intensities over time
+        medianProj = uint8(medianProj);
+        
     %     individual_worm_video = VideoWriter(fullfile('worm1.avi'),'Grayscale AVI');
     %     individual_worm_video.FrameRate = 14;
     %     open(individual_worm_video)
@@ -363,7 +402,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
                 Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
             end
 
-            PlotFrame(WTFigH, double(BW), Tracks, frame_index);
+            PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDVoltages(frame_index));
             FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
             set(WTFigH, 'Name', FigureName);
 
@@ -411,8 +450,6 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         close(outputVideo) 
     end
 %     close(individual_worm_video)
-    % Save Tracks
-    saveFileName = [curDir '\tracks.mat'];
-    save(saveFileName, 'Tracks');
+
     success = true;
 end

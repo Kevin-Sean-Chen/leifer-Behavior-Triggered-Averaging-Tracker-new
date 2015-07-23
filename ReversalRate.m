@@ -50,13 +50,24 @@ function [Rate, reversal_counts, frame_count]= ReversalRate(folders, bin_size, T
         frames = allTracks(track).Frames;
         for pirouette_index = 1:size(pirouettes,1)
             pirouetteStart = pirouettes(pirouette_index,1);
-            reversal_counts(ceil(frames(pirouetteStart) / bin_size)) = reversal_counts(ceil(frames(pirouetteStart) / bin_size)) + 1;
+            if pirouetteStart <= length(frames)
+                %the cut tracks still holds information beyond the filtered
+                %time points, so check for it
+                reversal_counts(ceil(frames(pirouetteStart) / bin_size)) = reversal_counts(ceil(frames(pirouetteStart) / bin_size)) + 1;
+            end
         end
         for frame_index = 1:length(frames)
             frame_count(ceil(frames(frame_index) / bin_size)) = frame_count(ceil(frames(frame_index) / bin_size)) + 1;
         end
     end
 
+    %remove all reversals that are counted outside of the frames
+    for frame_count_index = 1:length(frame_count)
+        if frame_count(frame_count_index) == 0
+            reversal_counts(frame_count_index) = 0;
+        end
+    end
+    
     Rate = reversal_counts./frame_count * fps * 60;
     Rate(isnan(Rate)) = 0; %replace nan with 0
 

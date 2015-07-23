@@ -3,7 +3,7 @@
 %   Detailed explanation goes here
     fps = 14;
     allTracks = [];
-    trial_number = 2500;
+    trial_number = 1000;
     dt = 1/(fps*60);
     
     [filename,pathname] = uigetfile('*.mat','Select Experiment Group');
@@ -106,21 +106,5 @@
     end
 %     figure
 %     hist(ShuffleScore)
-    
-    p = ranksum(LNPScore,ShuffleScore, 'tail', 'right')
-    
-    edges = linspace(min([LNPScore, ShuffleScore]), max([LNPScore, ShuffleScore]),30);
-    
-    figure
-    hist(LNPScore,edges)
-    h = findobj(gca,'Type','patch');
-    set(h,'FaceColor','r','EdgeColor','w','facealpha',0.75)
-    hold on;
-    hist(ShuffleScore,edges)
-    h1 = findobj(gca,'Type','patch');
-    set(h1,'facealpha',0.75);
-    xlabel('Scores')
-    ylabel('Count')
-    legend('show')
-    title(['Wilcoxon Rank Sum p = ', num2str(p)])
+    p = CompareTwoHistograms(LNPScore, ShuffleScore, 'LNP Score', 'Shuffled Score')
     % end
