@@ -53,12 +53,12 @@ mymarkers = {'+','o','*','.','x','s','d','^','v','>','<','p','h'};
 mycolors = jet(length(tracksByVoltage));
 hold on;
 for voltage_index = 2:length(tracksByVoltage)
-    plot(-49/fps:1/fps:5/fps, mean(tracksByVoltage(voltage_index).pirouette_centered_LEDVoltages,1)/tracksByVoltage(voltage_index).voltage, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).voltage*0.13756+0.000378), ' mW/mm^2 (', num2str(size(tracksByVoltage(voltage_index).pirouette_centered_LEDVoltages,1)), ' reversals analyzed)'));
+    plot(-49/fps:1/fps:5/fps, mean(tracksByVoltage(voltage_index).pirouette_centered_LEDVoltages,1)/tracksByVoltage(voltage_index).voltage, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).voltage*0.013756+0.000378), ' mW/mm^2 (', num2str(size(tracksByVoltage(voltage_index).pirouette_centered_LEDVoltages,1)), ' reversals analyzed)'));
     %legend(num2str(tracksByVoltage(voltage_index).voltage));
 end
 
 
 xlabel(strcat('time in seconds (worm reverses at 0) (', num2str(pirouetteCount), ' reversals analyzed)')) % x-axis label
 ylabel('probability that stimulus is on') % y-axis label
-legend('show');
+l = legend('show');
 hold off;

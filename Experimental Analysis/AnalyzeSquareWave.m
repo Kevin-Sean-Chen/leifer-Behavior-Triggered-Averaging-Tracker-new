@@ -78,7 +78,7 @@ function [reversalsByVoltage]= AnalyzeSquareWave(folders)
     subplot(1,2,1);
     hold on;
     for voltage_index = 1:length(reversalsByVoltage)
-        plot(-analyze_seconds_before:1/fps:analyze_seconds_after, reversalsByVoltage(voltage_index).reversal_counts./reversalsByVoltage(voltage_index).frame_counts, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(reversalsByVoltage(voltage_index).voltage*0.13756+0.000378), ' mW/mm^2 (', num2str(sum(reversalsByVoltage(voltage_index).reversal_counts)), ' reversals analyzed)'));
+        plot(-analyze_seconds_before:1/fps:analyze_seconds_after, reversalsByVoltage(voltage_index).reversal_counts./reversalsByVoltage(voltage_index).frame_counts, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(reversalsByVoltage(voltage_index).voltage*0.013756+0.000378), ' mW/mm^2 (', num2str(sum(reversalsByVoltage(voltage_index).reversal_counts)), ' reversals analyzed)'));
     end
 
 
@@ -91,7 +91,7 @@ function [reversalsByVoltage]= AnalyzeSquareWave(folders)
     hold on;
     for voltage_index = 1:length(reversalsByVoltage)
         reversalsByVoltage(voltage_index).predicted_reversal_rate = exp_fit_a*exp(exp_fit_b*reversalsByVoltage(voltage_index).filtered_signal);
-        plot(-analyze_seconds_before:1/fps:analyze_seconds_after, reversalsByVoltage(voltage_index).predicted_reversal_rate, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(reversalsByVoltage(voltage_index).voltage*0.13756+0.000378), ' mW/mm^2'))
+        plot(-analyze_seconds_before:1/fps:analyze_seconds_after, reversalsByVoltage(voltage_index).predicted_reversal_rate, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(reversalsByVoltage(voltage_index).voltage*0.013756+0.000378), ' mW/mm^2'))
     end
 
 

@@ -36,7 +36,7 @@ mycolors = jet(length(tracksByVoltage));
 scrollsubplot(3,1,1)
 hold on;
 for voltage_index = 1:length(tracksByVoltage)
-    plot(1/fps:1/fps:length(tracksByVoltage(voltage_index).LEDVoltages)/fps, tracksByVoltage(voltage_index).LEDVoltages, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).maxVoltage*0.13756+0.000378), ' mW/mm^2'));
+    plot(1/fps:1/fps:length(tracksByVoltage(voltage_index).LEDVoltages)/fps, tracksByVoltage(voltage_index).LEDVoltages, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).maxVoltage*0.013756+0.000378), ' mW/mm^2'));
     %legend(num2str(tracksByVoltage(voltage_index).voltage));
 end
 xlabel('time (s)') % x-axis label
@@ -48,7 +48,7 @@ hold off;
 scrollsubplot(3,1,2)
 hold on;
 for voltage_index = 1:length(tracksByVoltage)
-    plot(1/fps:1/fps:length(tracksByVoltage(voltage_index).reversalCounts)/fps, cumsum(tracksByVoltage(voltage_index).reversalCounts), 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).maxVoltage*0.13756+0.000378), ' mW/mm^2'));
+    plot(1/fps:1/fps:length(tracksByVoltage(voltage_index).reversalCounts)/fps, cumsum(tracksByVoltage(voltage_index).reversalCounts), 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).maxVoltage*0.013756+0.000378), ' mW/mm^2'));
     %legend(num2str(tracksByVoltage(voltage_index).voltage));
 end
 xlabel(strcat('time in seconds (', num2str(pirouetteCount), ' reversals analyzed)')) % x-axis label
@@ -60,7 +60,7 @@ hold off;
 scrollsubplot(3,1,3)
 hold on;
 for voltage_index = 1:length(tracksByVoltage)
-    plot(1/fps:1/fps:length(tracksByVoltage(voltage_index).reversalCounts)/fps, tracksByVoltage(voltage_index).reversalCounts./tracksByVoltage(voltage_index).frameCounts, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).maxVoltage*0.13756+0.000378), ' mW/mm^2'));
+    plot(1/fps:1/fps:length(tracksByVoltage(voltage_index).reversalCounts)/fps, tracksByVoltage(voltage_index).reversalCounts./tracksByVoltage(voltage_index).frameCounts, 'color', mycolors(voltage_index,:), 'marker', mymarkers{mod(voltage_index,numel(mymarkers))+1}, 'DisplayName', strcat(num2str(tracksByVoltage(voltage_index).maxVoltage*0.013756+0.000378), ' mW/mm^2'));
     %legend(num2str(tracksByVoltage(voltage_index).voltage));
 end
 xlabel(strcat('time in seconds (', num2str(pirouetteCount), ' reversals analyzed)')) % x-axis label

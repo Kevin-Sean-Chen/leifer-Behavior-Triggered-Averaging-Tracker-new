@@ -15,7 +15,7 @@ function [] = PlotExperimentGroup (Experiments)
     plot_filtered_signal_histogram = 1;
     plot_filtered_signal_given_reversal_histogram = 1;
     plot_non_linearity = 1;
-    plot_reversal_rate = 0;
+    plot_reversal_rate = 1;
     
     BTA_plot_number = plot_BTA;
     linear_filter_plot_number = BTA_plot_number+plot_linear_filter;

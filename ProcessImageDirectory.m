@@ -1,20 +1,20 @@
 %%
-% analysis_mode 'all' does tracking, analysis and saves eigen_worms
-% analysis_mode 'analysis' only plots the tracked
+% analysis_mode 'all' does tracking, analysis and saves centerlines
+% analysis_mode 'analysis' skips the tracking, does analysis and saves centerlines
 % analysis_mode 'track_plot' tracks and plots (no eigen worms)
-% analysis_mode 'continue' tracks and plots (no eigen worms) the folders without tracks.mat
+% analysis_mode 'continue' tracks (no eigen worms) the folders without tracks.mat
 function success = ProcessImageDirectory(curDir, plotting, plotting_index, analysis_mode)
     if nargin < 1
         curDir = uigetdir
     end
     if nargin < 2
-        plotting = 1;
+        plotting = 0;
     end
     if nargin < 3
         plotting_index = 0;
     end
     if nargin < 4
-        analysis_mode = 'analysis';
+        analysis_mode = 'track_plot';
     end
     cd(curDir) %open the directory of image sequence
     
@@ -29,57 +29,80 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         end
     end
     
-    %cd('F:\Data\20150226\Data20150226_164542')
     image_files=dir('*.tif'); %get all the tif files
     %image_files=dir('*.jpg'); %get all the jpg files
+    
+    [~, ComputerName] = system('hostname');
     
     global WormTrackerPrefs
     % Get Tracker default Prefs from Excel file
     ExcelFileName = 'Worm Tracker Preferences';
     WorkSheet = 'Tracker Prefs';
     [N, T, D] = xlsread(ExcelFileName, WorkSheet);
-    WormTrackerPrefs.MinWormArea = N(1);
-    WormTrackerPrefs.MaxWormArea = N(2);
-    WormTrackerPrefs.MaxDistance = N(3);
-    WormTrackerPrefs.SizeChangeThreshold = N(4);
-    WormTrackerPrefs.MinTrackLength = N(5);
-    WormTrackerPrefs.AutoThreshold = N(6);
-    WormTrackerPrefs.CorrectFactor = N(7);
-    WormTrackerPrefs.ManualSetLevel = N(8);
-    WormTrackerPrefs.DarkObjects = N(9);
-    WormTrackerPrefs.PlotRGB = N(10);
-    WormTrackerPrefs.PauseDuringPlot = N(11);
-    WormTrackerPrefs.PlotObjectSizeHistogram = N(12);
-    mask = imread(T{13,2});
-    %WormTrackerPrefs.ManualThresholdMedian = N(14);
-    WormTrackerPrefs.MaxObjects = N(14);
+    
+    for computer_index = 1:size(T,2)
+        if strcmp(T{1,computer_index}, strtrim(ComputerName))
+            break
+        end
+    end
+    computer_index = computer_index - 1; % the first column does not count
+    
+    WormTrackerPrefs.MinWormArea = N(1,computer_index);
+    WormTrackerPrefs.MaxWormArea = N(2,computer_index);
+    WormTrackerPrefs.MaxDistance = N(3,computer_index);
+    WormTrackerPrefs.SizeChangeThreshold = N(4,computer_index);
+    WormTrackerPrefs.MinTrackLength = N(5,computer_index);
+    WormTrackerPrefs.AutoThreshold = N(6,computer_index);
+    WormTrackerPrefs.CorrectFactor = N(7,computer_index);
+    WormTrackerPrefs.ManualSetLevel = N(8,computer_index);
+    WormTrackerPrefs.DarkObjects = N(9,computer_index);
+    WormTrackerPrefs.PlotRGB = N(10,computer_index);
+    WormTrackerPrefs.PauseDuringPlot = N(11,computer_index);
+    WormTrackerPrefs.PlotObjectSizeHistogram = N(12,computer_index);
+    
+    if exist(T{14,computer_index+1}, 'file')
+       mask = imread(T{14,computer_index+1}); 
+    else
+       mask = 0;
+    end
+    
+    %WormTrackerPrefs.ManualThresholdMedian = N(14,computer_index);
+    WormTrackerPrefs.MaxObjects = N(14,computer_index);
     
     global Prefs;
 
     WorkSheet = 'Analysis Prefs';
     [N, T, D] = xlsread(ExcelFileName, WorkSheet);
-    Prefs.SampleRate = N(1);
-    Prefs.SmoothWinSize = N(2);
-    Prefs.StepSize = N(3);
-    Prefs.PlotDirection = N(4);
-    Prefs.PlotSpeed = N(5);
-    Prefs.PlotAngSpeed = N(6);
-    Prefs.PirThresh = N(7);
-    Prefs.MaxShortRun = N(8);
-    Prefs.FFSpeed = N(9);
-    Prefs.PixelSize = 1/N(10);
-    Prefs.BinSpacing = N(11);
-    Prefs.MaxSpeedBin = N(12);
-    Prefs.P_MaxSpeed = N(13);
-    Prefs.P_TrackFraction = N(14);
-    Prefs.P_WriteExcel = N(15);
-    Prefs.MinDisplacement = N(17);
-    Prefs.PirSpeedThresh = N(18);
-    Prefs.EccentricityThresh = N(19);
-    Prefs.PauseSpeedThresh = N(20);
-    Prefs.MinPauseDuration = N(21);    
+        
+    for computer_index = 1:size(T,2)
+        if strcmp(T{1,computer_index}, strtrim(ComputerName))
+            break
+        end
+    end
+    computer_index = computer_index - 1; % the first column does not count
+    
+    Prefs.SampleRate = N(1,computer_index);
+    Prefs.SmoothWinSize = N(2,computer_index);
+    Prefs.StepSize = N(3,computer_index);
+    Prefs.PlotDirection = N(4,computer_index);
+    Prefs.PlotSpeed = N(5,computer_index);
+    Prefs.PlotAngSpeed = N(6,computer_index);
+    Prefs.PirThresh = N(7,computer_index);
+    Prefs.MaxShortRun = N(8,computer_index);
+    Prefs.FFSpeed = N(9,computer_index);
+    Prefs.PixelSize = 1/N(10,computer_index);
+    Prefs.BinSpacing = N(11,computer_index);
+    Prefs.MaxSpeedBin = N(12,computer_index);
+    Prefs.P_MaxSpeed = N(13,computer_index);
+    Prefs.P_TrackFraction = N(14,computer_index);
+    Prefs.P_WriteExcel = N(15,computer_index);
+    Prefs.MinDisplacement = N(17,computer_index);
+    Prefs.PirSpeedThresh = N(18,computer_index);
+    Prefs.EccentricityThresh = N(19,computer_index);
+    Prefs.PauseSpeedThresh = N(20,computer_index);
+    Prefs.MinPauseDuration = N(21,computer_index);    
     % Set Matlab's current directory
-    Prefs.DefaultPath = T{16,2};
+    Prefs.DefaultPath = T{17,computer_index+1};
     
     PlotFrameRate = 7;    
     % Display tracking results every 'PlotFrameRate' frames - increase
@@ -104,26 +127,25 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     
+    %get median z projection
+    medianProj = imread(image_files(1).name);
+    medianProjCount = min(20, length(image_files) - 1);
+    medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
+    %medianIntensities = zeros(medianProjCount,1);
+    for frame_index = 1:medianProjCount
+        curImage = imread(image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name);
+        medianProj(:,:,frame_index) = curImage;
+        %curImage = curImage(872:1072,1196:1396);
+        %medianIntensities(frame_index,1) = median(curImage(:));
+    end
+    medianProj = median(medianProj, 3);
+    %medianIntensities = median(medianIntensities); %used to account for non-uniform light intensities over time
+    medianProj = uint8(medianProj);
+    
     if ~strcmp(analysis_mode, 'analysis')
         % Start Tracker
         % -------------
         Tracks = [];
-
-        %get median z projection
-        medianProj = imread(image_files(1).name);
-        medianProjCount = min(20, length(image_files) - 1);
-        medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
-        %medianIntensities = zeros(medianProjCount,1);
-        for frame_index = 1:medianProjCount
-            curImage = imread(image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name);
-            medianProj(:,:,frame_index) = curImage;
-            %curImage = curImage(872:1072,1196:1396);
-            %medianIntensities(frame_index,1) = median(curImage(:));
-        end
-
-        medianProj = median(medianProj, 3);
-        %medianIntensities = median(medianIntensities); %used to account for non-uniform light intensities over time
-        medianProj = uint8(medianProj);
         
         % Analyze Movie
         % -------------
@@ -196,6 +218,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
                     Tracks(ActiveTracks(i)).FilledArea = [Tracks(ActiveTracks(i)).FilledArea, WormFilledAreas(MinIndex)];
                     Tracks(ActiveTracks(i)).Eccentricity = [Tracks(ActiveTracks(i)).Eccentricity, WormEccentricities(MinIndex)];
                     Tracks(ActiveTracks(i)).WormIndex = [Tracks(ActiveTracks(i)).WormIndex, WormIndices(MinIndex)];
+                    WormIndices(MinIndex) = [];
                     WormCoordinates(MinIndex,:) = [];
                     WormSizes(MinIndex) = [];
                     WormFilledAreas(MinIndex) = [];
@@ -266,13 +289,11 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
 
     %             writeVideo(outputVideo, getframe(WTFigH));
             end
-
         end    % END for Frame = 1:FileInfo.NumFrames
-
-
-
-
     end
+    
+    
+    %%%%%% Analysis %%%%%%
     % Get rid of invalid tracks
     DeleteTracks = [];
     for i = 1:length(Tracks)
@@ -288,8 +309,9 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
             end
         end        
     end
-    Tracks(DeleteTracks) = [];    %go through all the tracks and analyze them
+    Tracks(DeleteTracks) = [];
     
+    %go through all the tracks and analyze them
     NumTracks = length(Tracks);
     for TN = 1:NumTracks
         Tracks(TN).Time = Tracks(TN).Frames/Prefs.SampleRate;		% Calculate time of each frame
@@ -344,34 +366,22 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     % Save Tracks
     saveFileName = [curDir '\tracks.mat'];
     save(saveFileName, 'Tracks');
-    AutoSave(curDir, Prefs.DefaultPath)
+    AutoSave(curDir, Prefs.DefaultPath);
     
-    if plotting    
+    Tracks = Find_Centerlines(Tracks, image_files, medianProj, mask);
+    
+    % Save Tracks
+    saveFileName = [curDir '\tracks.mat'];
+    save(saveFileName, 'Tracks');
+    AutoSave(curDir, Prefs.DefaultPath);
+    
+    if plotting
         %save subtracted avi
         outputVideo = VideoWriter(fullfile('processed'),'MPEG-4');
         outputVideo.FrameRate = 14;
         open(outputVideo)
         
-        %get median z projection
-        medianProj = imread(image_files(1).name);
-        medianProjCount = min(20, length(image_files) - 1);
-        medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
-        %medianIntensities = zeros(medianProjCount,1);
-        for frame_index = 1:medianProjCount
-            curImage = imread(image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name);
-            medianProj(:,:,frame_index) = curImage;
-            %curImage = curImage(872:1072,1196:1396);
-            %medianIntensities(frame_index,1) = median(curImage(:));
-        end
 
-        medianProj = median(medianProj, 3);
-        %medianIntensities = median(medianIntensities); %used to account for non-uniform light intensities over time
-        medianProj = uint8(medianProj);
-        
-    %     individual_worm_video = VideoWriter(fullfile('worm1.avi'),'Grayscale AVI');
-    %     individual_worm_video.FrameRate = 14;
-    %     open(individual_worm_video)
-    %     
         %plotting reversals
 
         for frame_index = 1:length(image_files) - 1
@@ -394,9 +404,6 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
                     BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
                 end
 
-                %imwrite(subtractedImage, 'test.tif', 'tif');
-                %writeVideo(outputVideo, double(BW))
-
                 % Identify all objects
                 [L,NUM] = bwlabel(BW);
                 Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
@@ -407,49 +414,10 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
             set(WTFigH, 'Name', FigureName);
 
             writeVideo(outputVideo, getframe(WTFigH));
-
-            if strcmp(analysis_mode, 'all') && ~isempty(Tracks)
-                %get the images of individaul worms
-                track_indecies_in_frame = find([Tracks.Frames] == frame_index);
-                frameSum = 0;
-                currentActiveTrack = 1; %keeps the index of the track_indecies_in_frame
-                for i = 1:length(Tracks)
-                    if currentActiveTrack > length(track_indecies_in_frame)
-                        %all active tracks found
-                        break;
-                    end
-                    if track_indecies_in_frame(currentActiveTrack) - frameSum <= Tracks(i).NumFrames 
-                        %active track found
-                        in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
-
-                        region_index = Tracks(i).WormIndex(in_track_index);
-                        single_worm = L == region_index; %get an binary image of only where the worm is
-
-                        centroid_x = round(Tracks(i).Path(in_track_index,1));
-                        centroid_y = round(Tracks(i).Path(in_track_index,2));
-
-                        single_worm_subtractedImage = uint8(single_worm) .* subtractedImage; %get only the worm
-                        paddedSubtractedImage = padarray(single_worm_subtractedImage, [14, 14], 'both'); %pad the image so that there is no chance that the index is out of range
-                        worm_frame = paddedSubtractedImage(centroid_y:centroid_y+29,centroid_x:centroid_x+29);
-
-                        %save it as an img file
-                        if ~exist('worm1', 'dir')
-                            mkdir('worm1');
-                        end
-                        imwrite(worm_frame, ['worm1/frame_', num2str(frame_index) ,'.tif'], 'tif')
-
-    %                     writeVideo(individual_worm_video, worm_frame)
-
-                        currentActiveTrack = currentActiveTrack + 1;
-                        break;
-                    end
-                    frameSum = frameSum + Tracks(i).NumFrames;
-                end
-            end        
         end
         close(outputVideo) 
     end
-%     close(individual_worm_video)
+
 
     success = true;
 end
