@@ -1,12 +1,12 @@
- function [certain_head, certain_tail, uncertain_tips, region_props, thin_image]  = find_tips_centerline_image(I, prev_head, prev_tail, worm_radius)
+ function [certain_head, certain_tail, uncertain_tips, has_ring, thin_image]  = find_tips_centerline_image(I, prev_head, prev_tail, worm_radius)
     %loop through threholds to see if there is a hole in the image, if so,
     %get the branching tips when the hole is the biggest
     
     max_tip_displacement_per_frame = 10; %pixels the tips are allowed to move
     prev_tips = [prev_head; prev_tail];
 
-    %%%STEP 1: use mexican hat filter to find tips%%%
-    [mex_tips, labeled_filtered_image, BW, region_props] = tip_filter(I, 0);
+    %% STEP 1: use mexican hat filter to find tips %%
+    [mex_tips, labeled_filtered_image, BW] = tip_filter(I, 0);
     labeled_filtered_image = imdilate(labeled_filtered_image, ones(3)); %dilate the tips
     
     %%%STEP 2: thin for end points%%%
@@ -49,11 +49,11 @@
         %tail is found
         certain_tail = matched_tips(2,:);
     end
-    if matched_tips(1,1) > 0 && matched_tips(2,1) > 0
-        %Special case: both head and tail are found right now, we are done!
-        uncertain_tips = [leftover_endpoints; mex_tips];
-        return;
-    end
+%     if matched_tips(1,1) > 0 && matched_tips(2,1) > 0
+%         %Special case: both head and tail are found right now, we are done!
+%         uncertain_tips = [leftover_endpoints; mex_tips];
+%         return;
+%     end
     endpoints(endpoints_accounted_for, :) = []; %remove all the endpoints that were pulled
     endpoints = [endpoints; leftover_endpoints]; %put them back sans the certain tip
 
@@ -65,8 +65,10 @@
         possible_branchpoint_image = thin_branchpoint_image .* bwmorph(possible_ring_image, 'dilate');
         [possible_branchpoint_x, possible_branchpoint_y] = ind2sub(size(possible_branchpoint_image),find(possible_branchpoint_image));
         branching_points = [possible_branchpoint_x, possible_branchpoint_y];
+        has_ring = true;
     else
         branching_points = [];
+        has_ring = false;
     end
         
     %%%STEP 5: return the uncertain tips%%%

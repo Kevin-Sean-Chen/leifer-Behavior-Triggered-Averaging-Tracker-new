@@ -32,7 +32,6 @@ function K = relax2tip(P, tips, kappa, Fline, gamma, B, ConCrit, cd, mu, l0, nu,
             Fext = zeros(nPoints,2);
             Fext(2:nPoints-1,1) = -kappa*(interp2(Fline(:,:,1),P(2:nPoints-1,2),P(2:nPoints-1,1)));                
             Fext(2:nPoints-1,2) = -kappa*(interp2(Fline(:,:,2),P(2:nPoints-1,2),P(2:nPoints-1,1)));
-            Fext(isnan(Fext)) = 0;
 
             %get the total forces
             Ftot = Fspring + Ftips + Fext + Frepel;
@@ -47,12 +46,9 @@ function K = relax2tip(P, tips, kappa, Fline, gamma, B, ConCrit, cd, mu, l0, nu,
 
             % Resample to make uniform points
             dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
-            try
-                J(:,1) = interp1(dis,P(:,1),linspace(0,dis(end),nPoints));
-                J(:,2) = interp1(dis,P(:,2),linspace(0,dis(end),nPoints));
-            catch
-                break
-            end
+            J(:,1) = interp1(dis,P(:,1),linspace(0,dis(end),nPoints));
+            J(:,2) = interp1(dis,P(:,2),linspace(0,dis(end),nPoints));
+
             P = J;
             Pdis = (Pold - J).^2;
             Pdiff = (sum(sqrt(Pdis(2:nPoints-1,1)+Pdis(2:nPoints-1,2))))/nPoints;

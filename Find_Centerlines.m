@@ -78,7 +78,7 @@ function Tracks = Find_Centerlines(Tracks, image_files, medianProj, mask)
                 track_index = tracks_that_end_in_this_frame(ending_track_index);
                 image_stack_index = find([current_image_stacks.TrackIndex] == track_index);
                 image_stack_indecies = [image_stack_indecies, image_stack_index];
-                [Tracks(track_index).Centerlines, Tracks(track_index).CenterlineProperties] = initial_sweep(current_image_stacks(image_stack_index).Images, Tracks(track_index));
+                [Tracks(track_index).Centerlines, Tracks(track_index).CenterlineProperties] = initial_sweep(current_image_stacks(image_stack_index).Images, Tracks(track_index), track_index);
             end
             saved_image_stacks = [saved_image_stacks, current_image_stacks(image_stack_indecies)];
             current_image_stacks(image_stack_indecies) = []; %clear the memory of these images

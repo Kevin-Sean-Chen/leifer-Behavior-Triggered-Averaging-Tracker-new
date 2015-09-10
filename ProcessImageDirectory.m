@@ -8,13 +8,13 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         curDir = uigetdir
     end
     if nargin < 2
-        plotting = 0;
+        plotting = 1;
     end
     if nargin < 3
         plotting_index = 0;
     end
     if nargin < 4
-        analysis_mode = 'track_plot';
+        analysis_mode = 'analysis';
     end
     cd(curDir) %open the directory of image sequence
     
@@ -380,12 +380,9 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         outputVideo = VideoWriter(fullfile('processed'),'MPEG-4');
         outputVideo.FrameRate = 14;
         open(outputVideo)
-        
 
         %plotting reversals
-
         for frame_index = 1:length(image_files) - 1
-
             % Get Frame
             curImage = imread(image_files(frame_index).name);
             subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground

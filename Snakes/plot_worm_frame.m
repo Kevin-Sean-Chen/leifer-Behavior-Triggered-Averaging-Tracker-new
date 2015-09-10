@@ -1,11 +1,11 @@
-function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricity, direction, speed, centroid, debugimage)
+function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricity, direction, speed, predicte_tips, debugimage)
     %used for debugging
     hold off;
     if nargin > 7
         %debugimage inputted
-        imshow(I + debugimage, []);
+        imshow(I + debugimage, [], 'InitialMagnification', 300, 'Border','tight');
     else
-        imshow(I, []);
+        imshow(I, [], 'InitialMagnification', 300, 'Border','tight');
     end
 
     hold on
@@ -19,10 +19,17 @@ function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricit
     %tail
     plot(center_lines(end,2), center_lines(end,1), 'ob')
 
+    %head
+    plot(predicte_tips(1,2), predicte_tips(1,1), 'xg')
+    %tail
+    plot(predicte_tips(end,2), predicte_tips(end,1), 'xb')
+
+    
     %direction
     quiver(size(I,2)/2, size(I,1)/2, sind(direction)*speed*100, -cosd(direction)*speed*100, 'AutoScale','off');
     %title (['Eccentricity = ', num2str(eccentricity)]);    
-    title (['( ', num2str(centroid(1,1)),' , ', num2str(centroid(1,1)),' )']);
+%     title (['( ', num2str(centroid(1,1)),' , ', num2str(centroid(1,1)),' )']);
     text(20, 20, num2str(CenterlineProperties(1).Score), 'Color', 'y');
     hold off;
+
 end
