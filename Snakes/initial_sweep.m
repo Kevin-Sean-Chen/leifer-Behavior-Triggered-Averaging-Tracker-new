@@ -362,14 +362,14 @@ function [all_center_lines, CenterlineProperties] = initial_sweep(image_stack, T
         end
     end    
     
-    %% DEBUG: plot from beginning to finish%%%%%%
-    outputVideo = VideoWriter(fullfile(['worm_', num2str(plot_index)]),'MPEG-4');
-    outputVideo.FrameRate = 14;
-    open(outputVideo)
-    for index = 1:number_of_images
-        I = reshape(image_stack(:,:,index),image_size);
-        plot_worm_frame(I, reshape(all_center_lines(:,:,index),nPoints,2), CenterlineProperties(index), Track.Eccentricity(index), Track.Direction(index), Track.Speed(index), Track.Path(index, :));
-        writeVideo(outputVideo, getframe(gcf));
-    end
-    close(outputVideo) 
+%     %% DEBUG: plot from beginning to finish%%%%%%
+%     outputVideo = VideoWriter(fullfile(['worm_', num2str(plot_index)]),'MPEG-4');
+%     outputVideo.FrameRate = 14;
+%     open(outputVideo)
+%     for index = 1:number_of_images
+%         I = reshape(image_stack(:,:,index),image_size);
+%         plot_worm_frame(I, reshape(all_center_lines(:,:,index),nPoints,2), CenterlineProperties(index), Track.Eccentricity(index), Track.Direction(index), Track.Speed(index), Track.Path(index, :));
+%         writeVideo(outputVideo, getframe(gcf));
+%     end
+%     close(outputVideo) 
 end

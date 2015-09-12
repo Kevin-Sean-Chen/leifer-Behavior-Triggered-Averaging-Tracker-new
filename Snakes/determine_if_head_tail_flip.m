@@ -1,16 +1,22 @@
 function [flip_needed]  = determine_if_head_tail_flip(head_direction_dot_product, tail_direction_dot_product)
     %determines if a head/tail flip is needed
-    time_threshold = 14*10; %number of frames to make a call, hard coded for now, use global var later
+    global Prefs
+    
+    if isfield(Prefs, 'MaxBackwardsFrames')
+        time_threshold = Prefs.MaxBackwardsFrames;
+    else
+        time_threshold = 14*10; %number of frames to make a call
+    end
+        
     flip_needed = false;
             
     if length(head_direction_dot_product) < time_threshold
         return
     else
-        mean_head_direction_dot_product = mean(head_direction_dot_product);
-        mean_tail_direction_dot_product = mean(tail_direction_dot_product);
-        if mean_tail_direction_dot_product > mean_head_direction_dot_product
-            flip_needed = true;
+        upper_quantile_head_direction_dot_product = quantile(head_direction_dot_product, 0.75);
+        lower_quantile_tail_direction_dot_product = quantile(tail_direction_dot_product, 0.25);
+        if lower_quantile_tail_direction_dot_product > upper_quantile_head_direction_dot_product
+            flip_needed = true;               
         end
     end
-    
 end

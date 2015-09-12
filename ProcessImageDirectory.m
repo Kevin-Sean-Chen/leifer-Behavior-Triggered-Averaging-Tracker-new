@@ -4,49 +4,40 @@
 % analysis_mode 'track_plot' tracks and plots (no eigen worms)
 % analysis_mode 'continue' tracks (no eigen worms) the folders without tracks.mat
 function success = ProcessImageDirectory(curDir, plotting, plotting_index, analysis_mode)
+% tracks and extracts the centerlines for all the images in a directory
+
+    %% STEP 1: initialize %%
+    number_of_images_for_median_projection = 20;
     if nargin < 1
+        %ask user to select a directory if it is not given
         curDir = uigetdir
     end
     if nargin < 2
-        plotting = 1;
+        %default is to plot
+        plotting = 0;
     end
     if nargin < 3
         plotting_index = 0;
     end
     if nargin < 4
+        %default mode
         analysis_mode = 'analysis';
     end
     cd(curDir) %open the directory of image sequence
     
-    if exist('tracks.mat', 'file') == 2
-%     if strcmp(analysis_mode, 'analysis')
-        if strcmp(analysis_mode, 'continue')
-            %track already exists, skip analysis
-            success = true;
-            return
-        elseif strcmp(analysis_mode, 'analysis')
-            load('tracks.mat')
-        end
-    end
-    
-    image_files=dir('*.tif'); %get all the tif files
-    %image_files=dir('*.jpg'); %get all the jpg files
-    
-    [~, ComputerName] = system('hostname');
-    
+    %% STEP 2: Load the analysis preferences from Excel %%
+    [~, ComputerName] = system('hostname'); %get the computer name
     global WormTrackerPrefs
     % Get Tracker default Prefs from Excel file
     ExcelFileName = 'Worm Tracker Preferences';
     WorkSheet = 'Tracker Prefs';
     [N, T, D] = xlsread(ExcelFileName, WorkSheet);
-    
     for computer_index = 1:size(T,2)
         if strcmp(T{1,computer_index}, strtrim(ComputerName))
             break
         end
     end
     computer_index = computer_index - 1; % the first column does not count
-    
     WormTrackerPrefs.MinWormArea = N(1,computer_index);
     WormTrackerPrefs.MaxWormArea = N(2,computer_index);
     WormTrackerPrefs.MaxDistance = N(3,computer_index);
@@ -59,28 +50,23 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     WormTrackerPrefs.PlotRGB = N(10,computer_index);
     WormTrackerPrefs.PauseDuringPlot = N(11,computer_index);
     WormTrackerPrefs.PlotObjectSizeHistogram = N(12,computer_index);
-    
     if exist(T{14,computer_index+1}, 'file')
+        %get the mask
        mask = imread(T{14,computer_index+1}); 
     else
        mask = 0;
     end
-    
-    %WormTrackerPrefs.ManualThresholdMedian = N(14,computer_index);
     WormTrackerPrefs.MaxObjects = N(14,computer_index);
     
     global Prefs;
-
     WorkSheet = 'Analysis Prefs';
     [N, T, D] = xlsread(ExcelFileName, WorkSheet);
-        
     for computer_index = 1:size(T,2)
         if strcmp(T{1,computer_index}, strtrim(ComputerName))
             break
         end
     end
     computer_index = computer_index - 1; % the first column does not count
-    
     Prefs.SampleRate = N(1,computer_index);
     Prefs.SmoothWinSize = N(2,computer_index);
     Prefs.StepSize = N(3,computer_index);
@@ -100,15 +86,25 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     Prefs.PirSpeedThresh = N(18,computer_index);
     Prefs.EccentricityThresh = N(19,computer_index);
     Prefs.PauseSpeedThresh = N(20,computer_index);
-    Prefs.MinPauseDuration = N(21,computer_index);    
-    % Set Matlab's current directory
+    Prefs.MinPauseDuration = N(21,computer_index);   
+    Prefs.MaxBackwardsFrames = N(22,computer_index) * Prefs.SampleRate;
     Prefs.DefaultPath = T{17,computer_index+1};
     
-    PlotFrameRate = 7;    
+    %% STEP 3: See if a track file exists, if it does, there are some options that use them %%
+    if exist('tracks.mat', 'file') == 2
+        if strcmp(analysis_mode, 'continue')
+            %track already exists, skip analysis
+            success = true;
+            return
+        elseif strcmp(analysis_mode, 'analysis')
+            load('tracks.mat')
+        end
+    end
+    
+    %% STEP 4: Set up plotting if we need to %%
     % Display tracking results every 'PlotFrameRate' frames - increase
     % this value (in GUI) to get faster tracking performance
-
-
+    PlotFrameRate = 7;  
     % Setup figure for plotting tracker results
     % -----------------------------------------
     if plotting
@@ -122,41 +118,36 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         end
     end
     
+    %% STEP 5: Load images and other properties from the directory %%
+    % Get all the tif file names (probably jpgs)
+    image_files=dir('*.tif'); 
     % Load Voltages
     fid = fopen('LEDVoltages.txt');
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     
-    %get median z projection
+    %% STEP 6: Get the median z projection %%
     medianProj = imread(image_files(1).name);
-    medianProjCount = min(20, length(image_files) - 1);
+    [x_resolution, y_resolution] = size(medianProj);
+    medianProjCount = min(number_of_images_for_median_projection, length(image_files) - 1); 
     medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
-    %medianIntensities = zeros(medianProjCount,1);
     for frame_index = 1:medianProjCount
         curImage = imread(image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name);
         medianProj(:,:,frame_index) = curImage;
-        %curImage = curImage(872:1072,1196:1396);
-        %medianIntensities(frame_index,1) = median(curImage(:));
     end
     medianProj = median(medianProj, 3);
-    %medianIntensities = median(medianIntensities); %used to account for non-uniform light intensities over time
     medianProj = uint8(medianProj);
     
+    %% STEP 7: TRACKING %%
     if ~strcmp(analysis_mode, 'analysis')
         % Start Tracker
-        % -------------
         Tracks = [];
         
         % Analyze Movie
-        % -------------
         for frame_index = 1:length(image_files) - 1
-
             % Get Frame
             curImage = imread(image_files(frame_index).name);
-            %subImage = curImage(872:1072,1196:1396);
-            %imageBackground = uint8(median(subImage(:)) - WormTrackerPrefs.ManualThresholdMedian);
-            subtractedImage = curImage - medianProj - mask; %subtract median projection   - imageBackground
-            %writeVideo(outputVideo, subtractedImage)
+            subtractedImage = curImage - medianProj - mask;
 
             % Convert frame to a binary image 
             if WormTrackerPrefs.AutoThreshold       % use auto thresholding
@@ -165,6 +156,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
             else
                 Level = WormTrackerPrefs.ManualSetLevel;
             end
+            
             NUM = WormTrackerPrefs.MaxObjects + 1;
             while (NUM > WormTrackerPrefs.MaxObjects)
                 if WormTrackerPrefs.DarkObjects
@@ -172,19 +164,37 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
                 else
                     BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
                 end
-
-                %imwrite(subtractedImage, 'test.tif', 'tif');
-                %writeVideo(outputVideo, double(BW))
-
+                
                 % Identify all objects
                 [L,NUM] = bwlabel(BW);
                 Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
             end
-            STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity'});
+            STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity', 'Extrema'});
 
-            % Identify all worms by size, get their centroid coordinates
+            % Identify all worms by size
             WormIndices = find([STATS.Area] > WormTrackerPrefs.MinWormArea & ...
                 [STATS.Area] < WormTrackerPrefs.MaxWormArea);
+            
+            % Find and ignore the blobs touching the edge
+            all_extrema = reshape([STATS.Extrema], 8, 2, []);
+            x_extrema = squeeze(all_extrema(:,2,:));
+            y_extrema = squeeze(all_extrema(:,1,:));
+            x_extrema_left_border = arrayfun(@(x) le(x,1), x_extrema);
+            x_extrema_right_border = arrayfun(@(x) ge(x,x_resolution), x_extrema);
+            y_extrema_top_border = arrayfun(@(y) le(y,1), y_extrema);          
+            y_extrema_bottom_border = arrayfun(@(y) ge(y,y_resolution), y_extrema);
+            
+            x_extrema_left_border = sum(x_extrema_left_border, 1);
+            x_extrema_right_border = sum(x_extrema_right_border, 1);
+            y_extrema_top_border = sum(y_extrema_top_border, 1) >= 1;
+            y_extrema_bottom_border = sum(y_extrema_bottom_border, 1);
+            frames_on_border = bsxfun(@or, x_extrema_left_border, x_extrema_right_border);
+            frames_on_border = bsxfun(@or, frames_on_border, y_extrema_top_border);
+            frames_on_border = bsxfun(@or, frames_on_border, y_extrema_bottom_border);
+            
+            WormIndices = intersect(WormIndices, find(~frames_on_border));
+            
+            % get their centroid coordinates
             NumWorms = length(WormIndices);
             WormCentroids = [STATS(WormIndices).Centroid];
             WormCoordinates = [WormCentroids(1:2:2*NumWorms)', WormCentroids(2:2:2*NumWorms)'];
@@ -193,22 +203,20 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
             WormEccentricities = [STATS(WormIndices).Eccentricity];
 
             % Track worms 
-            % ----------- 
-            if ~isempty(Tracks)
-                ActiveTracks = find([Tracks.Active]);
-            else
+            if isempty(Tracks)
                 ActiveTracks = [];
+            else
+                ActiveTracks = find([Tracks.Active]);
             end
 
             % Update active tracks with new coordinates
             for i = 1:length(ActiveTracks)
-                %find the closest worm still being tracked
+                %find the closest worm still being tracked, and update it
                 DistanceX = WormCoordinates(:,1) - Tracks(ActiveTracks(i)).LastCoordinates(1);
                 DistanceY = WormCoordinates(:,2) - Tracks(ActiveTracks(i)).LastCoordinates(2);
                 Distance = sqrt(DistanceX.^2 + DistanceY.^2);
                 [MinVal, MinIndex] = min(Distance);
-                
-                if (MinVal <= WormTrackerPrefs.MaxDistance) & ...
+                if ~isempty(MinVal) && (MinVal <= WormTrackerPrefs.MaxDistance) && ...
                         (abs(WormSizes(MinIndex) - Tracks(ActiveTracks(i)).LastSize) < WormTrackerPrefs.SizeChangeThreshold)
                     Tracks(ActiveTracks(i)).Path = [Tracks(ActiveTracks(i)).Path; WormCoordinates(MinIndex, :)];
                     Tracks(ActiveTracks(i)).LastCoordinates = WormCoordinates(MinIndex, :);
@@ -230,6 +238,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
                         ActiveTracks = ActiveTracks - 1;
                     end
                 end
+
             end
 
             % Start new tracks for coordinates not assigned to existing tracks
@@ -246,55 +255,11 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
                 Tracks(Index).Eccentricity = WormEccentricities(i);
                 Tracks(Index).WormIndex = WormIndices(i);
             end
-
-            % Display every PlotFrameRate'th frame
-            if (0 && plotting && ~mod(frame_index, PlotFrameRate))
-
-    %             RGB = label2rgb(L, @jet, 'k');
-
-    %             PlotFrame(WTFigH, RGB, Tracks);
-    %             FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
-    %             set(WTFigH, 'Name', FigureName);
-
-                if WormTrackerPrefs.PlotRGB
-                    RGB = label2rgb(L, @jet, 'k');
-                    figure(6)
-                    set(6, 'Name', FigureName);
-                    imshow(RGB);
-                    hold on
-                    if ~isempty(Tracks)
-                        ActiveTracks = find([Tracks.Active]);
-                    else
-                        ActiveTracks = [];
-                    end
-                    for i = 1:length(ActiveTracks)
-                        plot(Tracks(ActiveTracks(i)).LastCoordinates(1), ...
-                            Tracks(ActiveTracks(i)).LastCoordinates(2), 'wo');
-                    end
-                    hold off
-                end
-
-                if WormTrackerPrefs.PlotObjectSizeHistogram
-                    figure(7)
-                    hist([STATS.Area],300)
-                    set(7, 'Name', FigureName);
-                    title('Histogram of Object Sizes Identified by Tracker')
-                    xlabel('Object Size (pixels')
-                    ylabel('Number of Occurrences')
-                end
-
-                if WormTrackerPrefs.PauseDuringPlot
-                    pause;
-                end
-
-    %             writeVideo(outputVideo, getframe(WTFigH));
-            end
-        end    % END for Frame = 1:FileInfo.NumFrames
+            frame_index
+        end
     end
     
-    
-    %%%%%% Analysis %%%%%%
-    % Get rid of invalid tracks
+    %% STEP 8: Post-Track Filtering to get rid of invalid tracks %%
     DeleteTracks = [];
     for i = 1:length(Tracks)
         if length(Tracks(i).Frames) < WormTrackerPrefs.MinTrackLength
@@ -311,7 +276,8 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     end
     Tracks(DeleteTracks) = [];
     
-    %go through all the tracks and analyze them
+    %% STEP 9: Go through all the tracks and analyze them %% 
+    
     NumTracks = length(Tracks);
     for TN = 1:NumTracks
         Tracks(TN).Time = Tracks(TN).Frames/Prefs.SampleRate;		% Calculate time of each frame
@@ -339,26 +305,21 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         Tracks(TN).Speed = sqrt(Xdif.^2 + Ydif.^2) * Prefs.PixelSize;		% In mm/sec
         
         Tracks(TN).SmoothSpeed = smoothts(Tracks(TN).Speed, 'g', Prefs.StepSize, Prefs.StepSize);		% In mm/sec
-        %AngleChanges = CalcAngleDif(Tracks(TN).Direction, Prefs.StepSize);
+
         AngleChanges = CalcAngleDif(Tracks(TN).Direction, Prefs.StepSize);
         
         % Calculate angular speed
         Tracks(TN).AngSpeed = AngleChanges * Prefs.SampleRate;		% in deg/sec
-        
-        Tracks(TN).BackwardAcc = CalcBackwardAcc(Tracks(TN).Speed, AngleChanges, Prefs.StepSize);		% in mm/sec^2
 
+        Tracks(TN).BackwardAcc = CalcBackwardAcc(Tracks(TN).Speed, AngleChanges, Prefs.StepSize);		% in mm/sec^2
         %Find Pauses
         Tracks(TN).Pauses = IdentifyPauses(Tracks(TN));
-                
         % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
         Tracks(TN).Pirouettes = IdentifyPirouettes(Tracks(TN));
- 
         % Identify Omegas (Store as indices in Tracks(TN).OmegaTurns)
         Tracks(TN).OmegaTurns = IdentifyOmegaTurns(Tracks(TN));
- 
         % Identify Runs (Store as indices in Tracks(TN).Runs)
         Tracks(TN).Runs = IdentifyRuns(Tracks(TN));
-
         %Save the LED Voltages for this track
         Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
     end
@@ -368,13 +329,18 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     save(saveFileName, 'Tracks');
     AutoSave(curDir, Prefs.DefaultPath);
     
-    Tracks = Find_Centerlines(Tracks, image_files, medianProj, mask);
+    %% STEP 10: save each worms' images %%
+    %save_individual_worm_images(Tracks, image_files, medianProj, mask, curDir);
+        
+    %% STEP 11: get the worm's centerlines %%
+    Tracks = Find_Centerlines(Tracks, curDir);
     
-    % Save Tracks
+    %% STEP 12: Save the tracks %%
     saveFileName = [curDir '\tracks.mat'];
     save(saveFileName, 'Tracks');
     AutoSave(curDir, Prefs.DefaultPath);
     
+    %% STEP XX: plot the tracks
     if plotting
         %save subtracted avi
         outputVideo = VideoWriter(fullfile('processed'),'MPEG-4');
@@ -415,6 +381,6 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
         close(outputVideo) 
     end
 
-
+    %% STEP FINAL: return 
     success = true;
 end
