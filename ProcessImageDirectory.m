@@ -21,7 +21,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     end
     if nargin < 4
         %default mode
-        analysis_mode = 'analysis';
+        analysis_mode = 'all';
     end
     cd(curDir) %open the directory of image sequence
     
@@ -330,7 +330,7 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     AutoSave(curDir, Prefs.DefaultPath);
     
     %% STEP 10: save each worms' images %%
-    %save_individual_worm_images(Tracks, image_files, medianProj, mask, curDir);
+    save_individual_worm_images(Tracks, image_files, medianProj, mask, curDir);
         
     %% STEP 11: get the worm's centerlines %%
     Tracks = Find_Centerlines(Tracks, curDir);
@@ -341,6 +341,8 @@ function success = ProcessImageDirectory(curDir, plotting, plotting_index, analy
     AutoSave(curDir, Prefs.DefaultPath);
     
     %% STEP XX: plot the tracks
+    individual_worm_videos(Tracks, curDir);
+    
     if plotting
         %save subtracted avi
         outputVideo = VideoWriter(fullfile('processed'),'MPEG-4');

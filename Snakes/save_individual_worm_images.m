@@ -1,7 +1,7 @@
 function [] = save_individual_worm_images(Tracks, image_files, medianProj, mask, curDir)
     global WormTrackerPrefs
 
-    image_size = [60,60];
+    image_size = [70,70];
     frame_count = length(image_files)-1;
 %     frame_count = 1400;
     tracks_start_in_frame = logical(sparse(length(Tracks), frame_count));
