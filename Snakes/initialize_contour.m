@@ -1,7 +1,7 @@
-function [center_line_interp, thin_image_returned] = initialize_contour(Image, worm_radius, nPoints)
+function [center_line_interp, thin_image_returned] = initialize_contour(Image, worm_radius, nPoints, best_threshold)
     %Initializes the contour given a threshold value
 
-    BW = im2bw(Image,0);
+    BW = im2bw(Image,best_threshold);
     thin_image_returned = find_possible_centerline_image(BW, worm_radius);
     thin_image = thin_image_returned;
     endpoints = bwmorph(bwmorph(thin_image,'endpoints'),'shrink',Inf);

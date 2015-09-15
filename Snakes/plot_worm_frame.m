@@ -1,10 +1,10 @@
 function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricity, direction, speed, plotting_index, debugimage)
-    IWFig = findobj('Tag', ['IWFig', num2str(plotting_index)]);
-    if isempty(IWFig)
-        IWFig = figure('Tag', ['IWFig', num2str(plotting_index)]);
-    else
-        figure(IWFig);
-    end
+%     IWFig = findobj('Tag', ['IWFig', num2str(plotting_index)]);
+%     if isempty(IWFig)
+%         IWFig = figure('Tag', ['IWFig', num2str(plotting_index)]);
+%     else
+%         figure(IWFig);
+%     end
     %used for debugging
     hold off;
     if nargin > 7
@@ -30,6 +30,9 @@ function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricit
     quiver(size(I,2)/2, size(I,1)/2, sind(direction)*speed*100, -cosd(direction)*speed*100, 'AutoScale','off');
     %title (['Eccentricity = ', num2str(eccentricity)]);    
 %     title (['( ', num2str(centroid(1,1)),' , ', num2str(centroid(1,1)),' )']);
+    %score
     text(20, 20, num2str(CenterlineProperties(1).Score), 'Color', 'y');
+    %eccentricity
+    text(20, 60, num2str(eccentricity), 'Color', 'y');
     hold off;
 end

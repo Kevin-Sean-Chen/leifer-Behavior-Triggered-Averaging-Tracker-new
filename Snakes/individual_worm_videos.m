@@ -15,8 +15,9 @@ function [] = individual_worm_videos(Tracks, curDir, fps, plotting_fps)
                 Tracks(track_index).CenterlineProperties(worm_frame_index), ...
                 Tracks(track_index).Eccentricity(worm_frame_index), Tracks(track_index).Direction(worm_frame_index), ...
                 Tracks(track_index).Speed(worm_frame_index), plotting_index);
-            IWFig = findobj('Tag', ['IWFig', num2str(plotting_index)]);
-            writeVideo(outputVideo, getframe(IWFig));
+%             IWFig = findobj('Tag', ['IWFig', num2str(plotting_index)]);
+%             writeVideo(outputVideo, getframe(IWFig));
+             writeVideo(outputVideo, getframe(gcf));
         end
         close(outputVideo) 
     end

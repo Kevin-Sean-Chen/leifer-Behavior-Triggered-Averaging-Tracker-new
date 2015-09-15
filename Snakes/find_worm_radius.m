@@ -1,8 +1,9 @@
-function iteration = find_worm_radius(Image)
+function iteration = find_worm_radius(Image, best_threshold)
     % get the worm radius by looking at how many iterations it takes for
     % thinning to converge
-    BW = im2bw(Image, 0);
+    BW = im2bw(Image, best_threshold);
     BW = bwmorph(BW, 'fill');
+    
     last_thinned_image = false(size(Image));
     iteration = 1;
     

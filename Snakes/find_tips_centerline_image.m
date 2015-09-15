@@ -1,4 +1,4 @@
- function [certain_head, certain_tail, uncertain_tips, has_ring, thin_image]  = find_tips_centerline_image(I, prev_head, prev_tail, worm_radius)
+ function [certain_head, certain_tail, uncertain_tips, has_ring, thin_image]  = find_tips_centerline_image(I, prev_head, prev_tail, worm_radius, best_threshold)
     %loop through threholds to see if there is a hole in the image, if so,
     %get the branching tips when the hole is the biggest
     
@@ -6,7 +6,7 @@
     prev_tips = [prev_head; prev_tail];
 
     %% STEP 1: use mexican hat filter to find tips %%
-    [mex_tips, labeled_filtered_image, BW] = tip_filter(I, 0);
+    [mex_tips, labeled_filtered_image, BW] = tip_filter(I, best_threshold);
     labeled_filtered_image = imdilate(labeled_filtered_image, ones(3)); %dilate the tips
     
     %%%STEP 2: thin for end points%%%

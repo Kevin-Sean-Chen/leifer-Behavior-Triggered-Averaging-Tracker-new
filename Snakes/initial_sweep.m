@@ -7,18 +7,18 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
     nPoints = 20; % Numbers of points in the contour
     gamma = 15;    %Iteration time step
     ConCrit = .1; %Convergence criteria
-    kappa = 2.5;     % Weight of the image force as a whole
+    kappa = 100;     % Weight of the image force as a whole
     sigma = 1;   %Smoothing for the derivative calculations in the image, causes centerline to loose track
     alpha = 0; % Bending modulus
     beta = 2; %how local the deformation is
-    nu = 10;  %spring force
+    nu = 5;  %spring force
     mu = 5; %repel force
     cd = 3; %cutoff distance for repel force
     xi = 2.5; %the attraction to the found tips;
     l0 = 40; %the expected length of the worm
     sample_size = 10; %how many straight worm images we are measuring for initialization
 
-    image_stack = double(image_stack);
+    image_stack = double(image_stack) ./ 255;
     number_of_images = size(image_stack,3);
     image_size = [size(image_stack,1), size(image_stack,2)];
     if nargin < 3
@@ -34,22 +34,33 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
     
     %% STEP 2: get what a normal worm looks like by looking at the images with the highest eccentricities %%
     worm_radii = [];
+    best_thresholds = [];
     lengths = [];
     % Sort the eccentricities in descending order
-    [~,sortIndex] = sort(Track.Eccentricity,'descend');  
+    [~ ,sortIndex] = sort(Track.Eccentricity,'descend');  
     maxIndecies = sortIndex(1:sample_size);
+    if Track.Eccentricity(sortIndex(1)) > 0.97
+        best_thresholds = 0;
+    else
+        best_thresholds = [];
+    end
     good_frame_index = maxIndecies(1);    
     for max_index = 1:length(maxIndecies)
         %this is a pretty straight worm, sample it
         index = maxIndecies(max_index);
         I = reshape(image_stack(:,:,index),image_size);
-        worm_radii = [worm_radii, find_worm_radius(I)];
+        
+        best_thresholds = [best_thresholds, find_best_threshold(I)];
+        best_thresholds(best_thresholds == -1) = [];
+        best_threshold = min(best_thresholds);
+        
+        worm_radii = [worm_radii, find_worm_radius(I, best_threshold)];
         worm_radius = round(mean(worm_radii));
         
-        kappa = 2.5/worm_radius; % the image force is scale dependent
+        %kappa = 2.5*255/worm_radius; % the image force is scale dependent
         sigma = worm_radius/3; %the gaussian blurring is scale dependent
         cd = worm_radius; %repel distance is scale dependent
-        [initial_contour, thin_image] = initialize_contour(I, worm_radius, nPoints);
+        [initial_contour, thin_image] = initialize_contour(I, worm_radius, nPoints, best_threshold);
         
         tips = [initial_contour(1,:); initial_contour(end,:)];
         Fline = external_energy(I, sigma); %External energy from the image
@@ -84,12 +95,12 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
             index = good_frame_index;
             I = reshape(image_stack(:,:,index),image_size); %grab the image
             %STEP 4A-C: find initial contour, thin image, and tips%
-            [initial_contour, thin_image] = initialize_contour(I, worm_radius, nPoints);
+            [initial_contour, thin_image] = initialize_contour(I, worm_radius, nPoints, best_threshold);
             current_head = initial_contour(1,:);
             current_tail = initial_contour(end,:);
             centerline_has_ring(index) = false;
         case {5, 6, 9, 11}
-            %STEP 5/6/9/11A: find initial contour%
+            %STEP 5/6/9/11A: find initial contour by looking at the previous%
             initial_contour = reshape(all_center_lines(:,:,index),nPoints,2);
             if step_number == 5 || step_number == 11
                 %STEP 5/9B: go backwards%
@@ -104,7 +115,7 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
             %STEP 5/6/9/11C: find tips and thin image%
             [current_head, current_tail, CenterlineProperties(index).UncertainTips, ...
                 centerline_has_ring(index), thin_image] = ...
-                find_tips_centerline_image(I, prev_head, prev_tail, worm_radius);
+                find_tips_centerline_image(I, prev_head, prev_tail, worm_radius, best_threshold);
         case 7
             %STEP 7: prepare for going into Okazaki mode%%
             find_centerline = false; %skip active contour
@@ -214,7 +225,6 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
 %             index
 %             pause(0.1)
 
-            
             %STEP 4/5/6/9/11G: look for transitions%
             switch step_number
             case 4
@@ -364,14 +374,15 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
     end    
     
     %% STEP 16: store more centerline properties
-    
+    % TO DO
+%     
 %     %% DEBUG: plot from beginning to finish%%%%%%
 %     outputVideo = VideoWriter(fullfile(['worm_', num2str(plot_index)]),'MPEG-4');
 %     outputVideo.FrameRate = 14;
 %     open(outputVideo)
 %     for index = 1:number_of_images
 %         I = reshape(image_stack(:,:,index),image_size);
-%         plot_worm_frame(I, reshape(all_center_lines(:,:,index),nPoints,2), CenterlineProperties(index), Track.Eccentricity(index), Track.Direction(index), Track.Speed(index), Track.Path(index, :));
+%         plot_worm_frame(I, reshape(all_center_lines(:,:,index),nPoints,2), CenterlineProperties(index), Track.Eccentricity(index), Track.Direction(index), Track.Speed(index), Track.Path(index, :), 1);
 %         writeVideo(outputVideo, getframe(gcf));
 %     end
 %     close(outputVideo) 
