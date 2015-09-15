@@ -1,4 +1,4 @@
-function [all_center_lines, CenterlineProperties] = initial_sweep(image_stack, Track, plot_index)
+function [all_center_lines, CenterlineProperties, omega_turn_annotation, possible_head_switch_frames] = initial_sweep(image_stack, Track, plot_index)
     % given a sequence of worm images, this function finds the centerlines,
     % before smoothing
     
@@ -18,6 +18,7 @@ function [all_center_lines, CenterlineProperties] = initial_sweep(image_stack, T
     l0 = 40; %the expected length of the worm
     sample_size = 10; %how many straight worm images we are measuring for initialization
 
+    image_stack = double(image_stack);
     number_of_images = size(image_stack,3);
     image_size = [size(image_stack,1), size(image_stack,2)];
     if nargin < 3
@@ -361,6 +362,8 @@ function [all_center_lines, CenterlineProperties] = initial_sweep(image_stack, T
             end
         end
     end    
+    
+    %% STEP 16: store more centerline properties
     
 %     %% DEBUG: plot from beginning to finish%%%%%%
 %     outputVideo = VideoWriter(fullfile(['worm_', num2str(plot_index)]),'MPEG-4');

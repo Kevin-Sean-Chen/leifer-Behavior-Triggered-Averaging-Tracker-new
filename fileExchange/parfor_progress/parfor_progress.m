@@ -1,4 +1,4 @@
-function percent = parfor_progress(N)
+function percent = parfor_progress(dir, N)
 %PARFOR_PROGRESS Progress monitor (progress bar) that works with parfor.
 %   PARFOR_PROGRESS works by creating a file called parfor_progress.txt in
 %   your working directory, and then keeping track of the parfor loop's
@@ -33,17 +33,21 @@ function percent = parfor_progress(N)
 
 % By Jeremy Scheff - jdscheff@gmail.com - http://www.jeremyscheff.com/
 
-error(nargchk(0, 1, nargin, 'struct'));
+error(nargchk(0, 2, nargin, 'struct'));
 
-if nargin < 1
+if nargin < 2
     N = -1;
 end
-
+if isempty(dir);
+    text_file_location = 'parfor_progress.txt';
+else
+    text_file_location = [dir, '\', 'parfor_progress.txt'];
+end
 percent = 0;
 w = 50; % Width of progress bar
 
 if N > 0
-    f = fopen('parfor_progress.txt', 'w');
+    f = fopen(text_file_location, 'w');
     if f<0
         error('Do you have write permissions for %s?', pwd);
     end
@@ -54,22 +58,22 @@ if N > 0
         disp(['  0%[>', repmat(' ', 1, w), ']']);
     end
 elseif N == 0
-    delete('parfor_progress.txt');
+    delete(text_file_location);
     percent = 100;
     
     if nargout == 0
         disp([repmat(char(8), 1, (w+9)), char(10), '100%[', repmat('=', 1, w+1), ']']);
     end
 else
-    if ~exist('parfor_progress.txt', 'file')
+    if ~exist(text_file_location, 'file')
         error('parfor_progress.txt not found. Run PARFOR_PROGRESS(N) before PARFOR_PROGRESS to initialize parfor_progress.txt.');
     end
     
-    f = fopen('parfor_progress.txt', 'a');
+    f = fopen(text_file_location, 'a');
     fprintf(f, '1\n');
     fclose(f);
     
-    f = fopen('parfor_progress.txt', 'r');
+    f = fopen(text_file_location, 'r');
     progress = fscanf(f, '%d');
     fclose(f);
     percent = (length(progress)-1)/progress(1)*100;

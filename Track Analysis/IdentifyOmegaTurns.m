@@ -1,11 +1,8 @@
-function OmegaTurns = IdentifyOmegaTurns(Track)
+function OmegaTurns = IdentifyOmegaTurns(Track, Prefs)
 
 % This function receives a structure Track and automatically identifies the time of Omega turns  
 % in the track data. The results of this analysis are stored in the struct Track
 % (in the field track.OmegaTurns) and returned to the calling function.
-
-
-global Prefs;
 
 EccentricityThresh = Prefs.EccentricityThresh;
 %Pirouettes = Track.Pirouettes;

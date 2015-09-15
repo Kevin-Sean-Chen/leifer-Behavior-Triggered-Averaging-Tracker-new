@@ -1,4 +1,4 @@
-function Pirouettes = IdentifyPirouettes(Track)
+function Pirouettes = IdentifyPirouettes(Track, Prefs)
 
 % This function receives a structure Track and automatically identifies pirouettes  
 % in the track data. The results of this analysis are stored in the struct Track
@@ -7,8 +7,6 @@ function Pirouettes = IdentifyPirouettes(Track)
 % Identified pirouettes are stored in Track as two columns of indices - the first
 % indicating pirouette start indices, the second indicating corresponding
 % pirouette end indices. 
-
-global Prefs;
 
 % Calculate Angular velocity pirouette threshold
 % ----------------------------------------------

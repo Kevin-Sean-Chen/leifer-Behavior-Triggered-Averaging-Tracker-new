@@ -1,4 +1,4 @@
-function Runs = IdentifyRuns(Track)
+function Runs = IdentifyRuns(Track, Prefs)
 
 % This function receives a structure Track and automatically identifies runs  
 % in the track data. 
@@ -8,8 +8,6 @@ function Runs = IdentifyRuns(Track)
 % Identified run are stored in Track as two columns of indices - the first
 % indicating run start indices, the second indicating corresponding
 % run end indices. 
-
-global Prefs;
 
 MaxShortRun = Prefs.MaxShortRun;
 

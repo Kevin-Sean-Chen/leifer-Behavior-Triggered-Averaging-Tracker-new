@@ -1,11 +1,8 @@
-function Pauses = IdentifyPauses(Track)
+function Pauses = IdentifyPauses(Track, Prefs)
 
 % This function receives a structure Track and  identifies the time the worm
 % paused. The results of this analysis are stored in the struct Track
 % (in the field Track.Pauses) and returned to the calling function.
-
-
-global Prefs;
 
 PauseSpeedThresh = Prefs.PauseSpeedThresh;
 MinPauseDuration = Prefs.MinPauseDuration;

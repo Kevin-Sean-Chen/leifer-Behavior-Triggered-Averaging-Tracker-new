@@ -1,4 +1,10 @@
-function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricity, direction, speed, predicte_tips, debugimage)
+function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricity, direction, speed, plotting_index, debugimage)
+    IWFig = findobj('Tag', ['IWFig', num2str(plotting_index)]);
+    if isempty(IWFig)
+        IWFig = figure('Tag', ['IWFig', num2str(plotting_index)]);
+    else
+        figure(IWFig);
+    end
     %used for debugging
     hold off;
     if nargin > 7
@@ -19,11 +25,6 @@ function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricit
     %tail
     plot(center_lines(end,2), center_lines(end,1), 'ob')
 
-    %head
-    plot(predicte_tips(1,2), predicte_tips(1,1), 'xg')
-    %tail
-    plot(predicte_tips(end,2), predicte_tips(end,1), 'xb')
-
     
     %direction
     quiver(size(I,2)/2, size(I,1)/2, sind(direction)*speed*100, -cosd(direction)*speed*100, 'AutoScale','off');
@@ -31,5 +32,4 @@ function [] = plot_worm_frame(I, center_lines, CenterlineProperties, eccentricit
 %     title (['( ', num2str(centroid(1,1)),' , ', num2str(centroid(1,1)),' )']);
     text(20, 20, num2str(CenterlineProperties(1).Score), 'Color', 'y');
     hold off;
-
 end
