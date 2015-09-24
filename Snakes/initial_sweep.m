@@ -1,4 +1,4 @@
-function [all_center_lines, CenterlineProperties, omega_turn_annotation, possible_head_switch_frames] = initial_sweep(image_stack, Track, plot_index)
+function Track = initial_sweep(image_stack, Track, plot_index)
     % given a sequence of worm images, this function finds the centerlines,
     % before smoothing
     
@@ -7,14 +7,14 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
     nPoints = 20; % Numbers of points in the contour
     gamma = 15;    %Iteration time step
     ConCrit = .1; %Convergence criteria
-    kappa = 100;     % Weight of the image force as a whole
+    kappa = 50;     % Weight of the image force as a whole
     sigma = 1;   %Smoothing for the derivative calculations in the image, causes centerline to loose track
     alpha = 0; % Bending modulus
     beta = 2; %how local the deformation is
-    nu = 5;  %spring force
-    mu = 5; %repel force
+    nu = 30;  %spring force
+    mu = 2.5; %repel force
     cd = 3; %cutoff distance for repel force
-    xi = 2.5; %the attraction to the found tips;
+    xi = 2; %the attraction to the found tips
     l0 = 40; %the expected length of the worm
     sample_size = 10; %how many straight worm images we are measuring for initialization
 
@@ -33,8 +33,8 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
     end
     
     %% STEP 2: get what a normal worm looks like by looking at the images with the highest eccentricities %%
-    worm_radii = [];
-    best_thresholds = [];
+    thinning_iterations = [];
+    dilation_sizes = [];
     lengths = [];
     % Sort the eccentricities in descending order
     [~ ,sortIndex] = sort(Track.Eccentricity,'descend');  
@@ -44,23 +44,30 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
     else
         best_thresholds = [];
     end
-    good_frame_index = maxIndecies(1);    
+    good_frame_index = maxIndecies(1);
+    looking_for_good_frame = true; %make sure the best frame has only 2 tips
     for max_index = 1:length(maxIndecies)
         %this is a pretty straight worm, sample it
         index = maxIndecies(max_index);
         I = reshape(image_stack(:,:,index),image_size);
         
         best_thresholds = [best_thresholds, find_best_threshold(I)];
-        best_thresholds(best_thresholds == -1) = [];
         best_threshold = min(best_thresholds);
         
-        worm_radii = [worm_radii, find_worm_radius(I, best_threshold)];
-        worm_radius = round(mean(worm_radii));
+        [current_worm_radius, current_dilation_size] = find_worm_radius(I, best_threshold);
+        thinning_iterations = [thinning_iterations, current_worm_radius];
+        thinning_iteration = round(mean(thinning_iterations));
+        
+        dilation_sizes = [dilation_sizes, current_dilation_size];
         
         %kappa = 2.5*255/worm_radius; % the image force is scale dependent
-        sigma = worm_radius/3; %the gaussian blurring is scale dependent
-        cd = worm_radius; %repel distance is scale dependent
-        [initial_contour, thin_image] = initialize_contour(I, worm_radius, nPoints, best_threshold);
+        sigma = thinning_iteration/3; %the gaussian blurring is scale dependent
+        cd = thinning_iteration; %repel distance is scale dependent
+        [initial_contour, thin_image, ~, isGoodFrame] = initialize_contour(I, thinning_iteration, nPoints, best_threshold);
+        if looking_for_good_frame && isGoodFrame
+            good_frame_index = index;
+            looking_for_good_frame = false;
+        end
         
         tips = [initial_contour(1,:); initial_contour(end,:)];
         Fline = external_energy(I, sigma); %External energy from the image
@@ -68,14 +75,24 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
         lengths = [lengths, sum(sqrt(sum((center_line(2:end,:)-center_line(1:end-1,:)).^2,2)))];
     end
     l0 = mean(lengths)*0.95; %the length is generally smaller than when the worm is fully extended
-  
+    dilation_size = round(mean(dilation_sizes));
+    
     %% STEP 3: preallocate memory for speed %%
-    CenterlineProperties = {};
-    CenterlineProperties(number_of_images).UncertainTips = [];
+    UncertainTips = struct();
+    UncertainTips(number_of_images).Tips = [];
     all_center_lines = zeros(nPoints,2,number_of_images);
-    CenterlineProperties(number_of_images).Score = [];
-    CenterlineProperties(number_of_images).Length = [];
+    TotalScore = zeros(1, number_of_images);
+    ImageScore = zeros(1, number_of_images);
+    DisplacementScore = zeros(1, number_of_images);
+    PixelsOutOfBody = sparse(1, number_of_images);
+    Length = zeros(1, number_of_images);
     centerline_has_ring = false(1,number_of_images); %used later to figure out when omega turns occur
+    %used later to resolve problems, problem types: 
+    %   1 head/tail/flips
+    %   2 Image score low
+    %   3 centerline out of body
+    %   4 displacement score low
+    potential_problems = zeros(1, number_of_images, 'uint8'); 
 
     %% STEPS 4-11: main loop for image analysis %%
     %STEP 4: initialize the contour with our absolute best image
@@ -95,11 +112,14 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
             index = good_frame_index;
             I = reshape(image_stack(:,:,index),image_size); %grab the image
             %STEP 4A-C: find initial contour, thin image, and tips%
-            [initial_contour, thin_image] = initialize_contour(I, worm_radius, nPoints, best_threshold);
+            [initial_contour, thin_image, BW] = initialize_contour(I, thinning_iteration, nPoints, best_threshold);
             current_head = initial_contour(1,:);
             current_tail = initial_contour(end,:);
             centerline_has_ring(index) = false;
         case {5, 6, 9, 11}
+%             if index == 356
+%                 asdf = 1;
+%             end
             %STEP 5/6/9/11A: find initial contour by looking at the previous%
             initial_contour = reshape(all_center_lines(:,:,index),nPoints,2);
             if step_number == 5 || step_number == 11
@@ -113,16 +133,16 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
             prev_head= initial_contour(1,:);
             prev_tail = initial_contour(end,:);
             %STEP 5/6/9/11C: find tips and thin image%
-            [current_head, current_tail, CenterlineProperties(index).UncertainTips, ...
-                centerline_has_ring(index), thin_image] = ...
-                find_tips_centerline_image(I, prev_head, prev_tail, worm_radius, best_threshold);
+            [current_head, current_tail, UncertainTips(index).Tips, ...
+                centerline_has_ring(index), thin_image, BW] = ...
+                find_tips_centerline_image(I, prev_head, prev_tail, thinning_iteration, best_threshold);
         case 7
             %STEP 7: prepare for going into Okazaki mode%%
             find_centerline = false; %skip active contour
             omega_turn_annotation = binary_smoothing(centerline_has_ring, 7);
             omega_turn_annotation = fill_binary_holes(omega_turn_annotation, 2); %fill up to 2 holes
             all_centerline_tips = all_center_lines([1,end],:,:);
-            possible_head_switch_frames = false(1,number_of_images);
+            possible_head_switch_frames = sparse(false(1,number_of_images));
             step_number = 8;
         case 8
             %STEP 8: going forwards from frame 1 for head/tail flip correction, finding the next omega turn%
@@ -174,54 +194,72 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
                 %STEP 4/5/6/9/11E: find centerline if both head and tail are certain%
                 tips = [current_head; current_tail];
                 all_center_lines(:,:,index) = relax2tip(initial_contour, tips, kappa, Fline, gamma, B, ConCrit, cd, mu, l0, nu, xi);
-                CenterlineProperties(index).Score = score_centerline_whole_image(all_center_lines(:,:,index), initial_contour, I, worm_radius, l0);
+                if step_number == 4
+                    %STEP 4: the displacement score is 1
+                    [TotalScore(index), ImageScore(index), DisplacementScore(index), PixelsOutOfBody(index)] ...
+                        = score_centerline_whole_image(all_center_lines(:,:,index), [], BW, dilation_size, l0);
+                else
+                    %STEP 5/6/9/11: the displacement score is based on what the previous contour is                   
+                    [TotalScore(index), ImageScore(index), DisplacementScore(index), PixelsOutOfBody(index)] ...
+                        = score_centerline_whole_image(all_center_lines(:,:,index), initial_contour, BW, dilation_size, l0);
+                end
             else
                 %STEP 5/6/9/11E: go through the uncertain tips for the ones that matches the image%
                 %we are here because at least one tip is uncertain
                 if ~isempty(current_head)
                     heads_to_try = current_head;
-                    tails_to_try = CenterlineProperties(index).UncertainTips;
+                    tails_to_try = UncertainTips(index).Tips;
                 elseif ~isempty(current_tail)
-                    heads_to_try = CenterlineProperties(index).UncertainTips;
+                    heads_to_try = UncertainTips(index).Tips;
                     tails_to_try = current_tail;
                 else
-                    heads_to_try = CenterlineProperties(index).UncertainTips;
-                    tails_to_try = CenterlineProperties(index).UncertainTips;                    
+                    heads_to_try = UncertainTips(index).Tips;
+                    tails_to_try = UncertainTips(index).Tips;                    
                 end
 
                 %The two tips are the ones that give the best centerline
                 %according to our score (higher score means better match)
-                tip_scores = zeros(size(heads_to_try,1), size(tails_to_try,1));
+                tip_total_scores = zeros(size(heads_to_try,1), size(tails_to_try,1));
+                tip_image_scores = zeros(size(heads_to_try,1), size(tails_to_try,1));
+                tip_displacement_scores = zeros(size(heads_to_try,1), size(tails_to_try,1));
+                tip_pixels_out_of_body = zeros(size(heads_to_try,1), size(tails_to_try,1));
                 tip_centerlines = zeros(size(heads_to_try,1), size(tails_to_try,1), nPoints, 2); %save the centerlines so we don't have to compute it again
-                for head_index = 1:size(tip_scores,1)
-                    for tail_index = 1:size(tip_scores,2)
+                for head_index = 1:size(tip_total_scores,1)
+                    for tail_index = 1:size(tip_total_scores,2)
                         if ismember(heads_to_try(head_index,:), tails_to_try(tail_index,:), 'rows')
                             %the head and the tail are the same
-                            tip_scores(head_index,tail_index) = -1;
+                            tip_total_scores(head_index,tail_index) = -1;
                         else
                             %the score has not been computed, compute it
                             temp_tips = [heads_to_try(head_index,:); tails_to_try(tail_index,:)];
                             K = relax2tip(initial_contour, temp_tips, kappa, Fline, gamma, B, ConCrit, cd, mu, l0, nu, xi);
-                            score = score_centerline_whole_image(K, initial_contour, I, worm_radius, l0); 
-                            tip_scores(head_index,tail_index) = score;
+                            [tip_total_scores(head_index,tail_index), ...
+                                tip_image_scores(head_index,tail_index), ...
+                                tip_displacement_scores(head_index,tail_index), ...
+                                tip_pixels_out_of_body(head_index,tail_index)]...
+                                = score_centerline_whole_image(K, initial_contour, BW, dilation_size, l0); 
+                            
                             tip_centerlines(head_index,tail_index, :, :) = K;
                         end
                     end
                 end
 
-                [max_score,tips_index] = max(tip_scores(:)); %get the max score
-                [head_index,tail_index] = ind2sub(size(tip_scores),tips_index); %find which head and tail produced it
+                [max_score,tips_index] = max(tip_total_scores(:)); %get the max score
+                [head_index,tail_index] = ind2sub(size(tip_total_scores),tips_index); %find which head and tail produced it
                 all_center_lines(:,:,index) = reshape(tip_centerlines(head_index,tail_index,:,:), nPoints, 2);
-                CenterlineProperties(index).Score = max_score;
+                TotalScore(index) = max_score;
+                ImageScore(index) = tip_image_scores(head_index,tail_index);
+                DisplacementScore(index) = tip_displacement_scores(head_index,tail_index);
+                PixelsOutOfBody(index) = tip_pixels_out_of_body(head_index,tail_index);
             end
 
             %STEP 4/5/6/9/11F: Get the centerline length%
-            CenterlineProperties(index).Length = sum(sqrt(sum(squeeze((all_center_lines(2:end,:,index)-all_center_lines(1:end-1,:,index))).^2,2)));
+            Length(index) = sum(sqrt(sum(squeeze((all_center_lines(2:end,:,index)-all_center_lines(1:end-1,:,index))).^2,2)));
             
 %             %%%%%%STEP DEBUG: plot as we go along%%%%%%
 %             plot_worm_frame(composite_image, reshape(all_center_lines(:,:,index),nPoints,2), ...
-%             CenterlineProperties(index), Track.Eccentricity(index), Track.Direction(index), ....
-%             Track.Speed(index), [predicted_head; predicted_tail]);
+%             UncertainTips(index).Tips, Track.Eccentricity(index), Track.Direction(index), ....
+%             Track.Speed(index), TotalScore(index));
 %             index
 %             pause(0.1)
 
@@ -337,6 +375,7 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
                     tail_direction_dot_product(subsection_start:subsection_end))
                 %a flip is needed
                 all_center_lines(:,:,1:subsection_end) = flip(all_center_lines(:,:,1:subsection_end),1);
+                potential_problems(subsection_end) = 1;
                 %flip the dot products
                 temp_head_direction_dot_product = head_direction_dot_product;
                 head_direction_dot_product(1:subsection_end) = tail_direction_dot_product(1:subsection_end);
@@ -361,6 +400,7 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
                     tail_direction_dot_product(subsection_start:subsection_end))
                 %a flip is needed
                 all_center_lines(:,:,subsection_start:end) = flip(all_center_lines(:,:,subsection_start:end),1);
+                potential_problems(subsection_start) = 1;
                 %flip the dot products
                 temp_head_direction_dot_product = head_direction_dot_product;
                 head_direction_dot_product(subsection_start:end) = tail_direction_dot_product(subsection_start:end);
@@ -371,18 +411,35 @@ function [all_center_lines, CenterlineProperties, omega_turn_annotation, possibl
                 break
             end
         end
-    end    
+    end
     
-    %% STEP 16: store more centerline properties
-    % TO DO
-%     
+    %% STEP 16: determine if there are additional problems
+    potential_problems(ImageScore < 0.5) = 2;
+    potential_problems(PixelsOutOfBody > 10) = 3;
+    potential_problems(DisplacementScore < 0.85) = 4;
+    
+    %% STEP 17: store results
+    Track.Centerlines = all_center_lines;
+    Track.UncertainTips = UncertainTips;
+    Track.OmegaTurnAnnotation = omega_turn_annotation;
+    Track.PossibleHeadSwitch = possible_head_switch_frames;
+    Track.Length = Length;
+    Track.TotalScore = TotalScore;
+    Track.ImageScore = ImageScore;
+    Track.DisplacementScore = DisplacementScore;
+    Track.PixelsOutOfBody = PixelsOutOfBody;
+    Track.PotentialProblems = potential_problems;
+    
+    
 %     %% DEBUG: plot from beginning to finish%%%%%%
 %     outputVideo = VideoWriter(fullfile(['worm_', num2str(plot_index)]),'MPEG-4');
 %     outputVideo.FrameRate = 14;
 %     open(outputVideo)
 %     for index = 1:number_of_images
 %         I = reshape(image_stack(:,:,index),image_size);
-%         plot_worm_frame(I, reshape(all_center_lines(:,:,index),nPoints,2), CenterlineProperties(index), Track.Eccentricity(index), Track.Direction(index), Track.Speed(index), Track.Path(index, :), 1);
+%         plot_worm_frame(I, squeeze(all_center_lines(:,:,index)), ...
+%             Track.UncertainTips(index), Track.Eccentricity(index), ...
+%             Track.Direction(index), Track.Speed(index), Track.TotalScore(index), 1);
 %         writeVideo(outputVideo, getframe(gcf));
 %     end
 %     close(outputVideo) 

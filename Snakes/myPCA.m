@@ -1,4 +1,5 @@
 function [sorted_eigen_values, eigen_vectors] = myPCA( matrix )
+    %get the eigen values and vectors to do PCA
     %mean center
     mean_centered = matrix - (diag(mean(matrix, 2))*ones(size(matrix)));
     %get the covariance

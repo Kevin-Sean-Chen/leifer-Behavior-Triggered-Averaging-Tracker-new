@@ -10,7 +10,13 @@ function [tip_centroids, L, BW]  = tip_filter(I, thresh)
 
     BW = im2bw(I,thresh);
     BW = bwmorph(BW, 'fill'); %fill in the blob
-        
+    
+    %take the largest blob
+    CC = bwconncomp(BW);
+    numPixels = cellfun(@numel,CC.PixelIdxList);
+    [~,idx] = max(numPixels);
+    BW(~CC.PixelIdxList{idx}) = 0;
+    
     % apply Mexican hat-esque filter to image to get tips
     Icirc = imfilter(BW,circle_filter);
     L = bwlabel(Icirc);

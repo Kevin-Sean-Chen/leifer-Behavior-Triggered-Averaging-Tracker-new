@@ -3,20 +3,22 @@ function threshold = find_best_threshold(Image)
 
     threshold = 0;
     %imshow(Image, []);
-    while threshold < 30
-        BW = im2bw(Image, threshold/255);
+    while threshold < 0.3
+        BW = im2bw(Image, threshold);
         BW = bwmorph(BW, 'fill');
         STATS = regionprops(BW,'Eccentricity');
 %         imshow(BW, []);
 %         STATS
 %         threshold
 %         pause
-        if STATS(1).Eccentricity > 0.97
-            threshold = threshold / 255;
+        if isempty(STATS)
+            threshold = 0;
+            return
+        elseif STATS(1).Eccentricity > 0.97
             return
         else
-            threshold = threshold + 1;
+            threshold = threshold + 1/255;
         end
     end
-    threshold = -1;
+    threshold = 0;
 end

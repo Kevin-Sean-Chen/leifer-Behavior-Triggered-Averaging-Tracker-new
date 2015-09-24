@@ -12,7 +12,7 @@ function [ filteredTracks ] = FilterTracksByTime(Tracks, startFrame, endFrame)
             for field_index = 1:length(trackFieldNames)
                 currentField = getfield(currentTrack,trackFieldNames{field_index});
                 currentFieldSizes = size(currentField);
-                %check if the first 2 dimensions of currentFieldSizes are the
+                %check if the first 3 dimensions of currentFieldSizes are the
                 %same as the length(Frames). If so, cut it to match the
                 %startFrame and endFrame
                 if currentFieldSizes(1) == LengthToReplace
@@ -35,6 +35,9 @@ function [ filteredTracks ] = FilterTracksByTime(Tracks, startFrame, endFrame)
                 end
                 if currentFieldSizes(2) == LengthToReplace
                     currentField = currentField(:,filteredIndecies(1):filteredIndecies(end));
+                end
+                if currentFieldSizes(3) == LengthToReplace
+                    currentField = currentField(:,:,filteredIndecies(1):filteredIndecies(end));
                 end
                 currentTrack = setfield(currentTrack,trackFieldNames{field_index},currentField);
             end

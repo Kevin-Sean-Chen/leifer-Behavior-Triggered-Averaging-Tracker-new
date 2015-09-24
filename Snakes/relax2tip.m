@@ -19,6 +19,10 @@ function K = relax2tip(P, tips, kappa, Fline, gamma, B, ConCrit, cd, mu, l0, nu,
     Pdiff = ConCrit + 1;
     iteration = 1;
     try
+%         outputVideo = VideoWriter(fullfile(['snakes_', num2str(1)]),'MPEG-4');
+%         outputVideo.FrameRate = 1;
+%         open(outputVideo)
+
         while Pdiff > ConCrit && iteration < max_iteration
             Pold = P;
 
@@ -53,17 +57,24 @@ function K = relax2tip(P, tips, kappa, Fline, gamma, B, ConCrit, cd, mu, l0, nu,
             Pdis = (Pold - J).^2;
             Pdiff = (sum(sqrt(Pdis(2:nPoints-1,1)+Pdis(2:nPoints-1,2))))/nPoints;
 
-%             %debug
-%             imshow(Fline(:,:,1)+Fline(:,:,2), [])
-%             hold on
-%             plot(Pold(:,2), Pold(:,1), 'g-');
-%             quiver(Pold(:,2),Pold(:,1),Fext(:,2),Fext(:,1),'AutoScale','off')
-%             hold off
-%             pause();
+
+            %writeVideo(outputVideo, getframe(gcf));
+            %pause();
 
             iteration = iteration + 1;
         end
 
+%         if iteration >= max_iteration
+% %             'WARNING: max iteration reached'
+%               %debug
+%             imshow(Fline(:,:,1)+Fline(:,:,2), [], 'InitialMagnification', 300, 'Border','tight')
+%             hold on
+%             plot(Pold(:,2), Pold(:,1), 'g-');
+%             quiver(Pold(:,2),Pold(:,1),Ftot(:,2),Ftot(:,1),'AutoScale','off')
+%             hold off
+%             pause
+%         end
+        
         dis=[0;cumsum(sqrt(sum((P(2:end,:)-P(1:end-1,:)).^2,2)))];
         % Resample to make uniform points
         K(:,1) = interp1(dis,P(:,1),linspace(0,dis(end),nPoints));
@@ -71,4 +82,5 @@ function K = relax2tip(P, tips, kappa, Fline, gamma, B, ConCrit, cd, mu, l0, nu,
     catch
         K = POriginal;
     end
+%     close(outputVideo) 
 end

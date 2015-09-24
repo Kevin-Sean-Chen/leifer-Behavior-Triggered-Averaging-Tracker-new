@@ -29,13 +29,13 @@ function [] = save_individual_worm_images(Tracks, image_files, medianProj, mask,
                 track_index = tracks_that_start_in_this_frame(new_track_index);
                 current_image_stacks(previous_length+new_track_index).TrackIndex = track_index;
                 current_image_stacks(previous_length+new_track_index).TrackStartFrame = frame_index;
-                current_image_stacks(previous_length+new_track_index).Images = zeros([image_size, length(Tracks(track_index).Frames)]);
+                current_image_stacks(previous_length+new_track_index).Images = zeros([image_size, length(Tracks(track_index).Frames)], 'uint8');
             end
         end
         
         %%%image processing%%%
         curImage = imread([curDir, '\' image_files(frame_index).name]);
-        subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
+        subtractedImage = curImage - medianProj - mask; %subtract median projection  - imageBackground
         if WormTrackerPrefs.AutoThreshold       % use auto thresholding
             Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
             Level = max(min(Level,1) ,0);

@@ -159,7 +159,7 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
                 Tracks(Index).Eccentricity = WormEccentricities(i);
                 Tracks(Index).WormIndex = WormIndices(i);
             end
-            if mod(frame_index,50) == 0
+            if mod(frame_index,100) == 0
                 parfor_progress(Prefs.ProgressDir);
             end
             %frame_index
@@ -242,6 +242,8 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
     end
     
     frame_count = length(image_files)-1;
+    %get where each track begins and ends in terms of frames and put them
+    %in a sparse binary matrix
     tracks_start_in_frame = logical(sparse(length(Tracks), frame_count));
     tracks_end_in_frame = logical(sparse(length(Tracks), frame_count));
     for track_index = 1:length(Tracks)
@@ -261,13 +263,13 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
                 track_index = tracks_that_start_in_this_frame(new_track_index);
                 current_image_stacks(previous_length+new_track_index).TrackIndex = track_index;
                 current_image_stacks(previous_length+new_track_index).TrackStartFrame = frame_index;
-                current_image_stacks(previous_length+new_track_index).Images = zeros([image_size, length(Tracks(track_index).Frames)]);
+                current_image_stacks(previous_length+new_track_index).Images = zeros([image_size, length(Tracks(track_index).Frames)], 'uint8');
             end
         end
 
         %%%image processing%%%
         curImage = imread([curDir, '\' image_files(frame_index).name]);
-        subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
+        subtractedImage = curImage - medianProj - mask; %subtract median projection  - imageBackground
         if WormTrackerPrefs.AutoThreshold       % use auto thresholding
             Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
             Level = max(min(Level,1) ,0);
@@ -326,13 +328,12 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
                 track_index = tracks_that_end_in_this_frame(ending_track_index);
                 image_stack_index = find([current_image_stacks.TrackIndex] == track_index);
                 image_stack_indecies = [image_stack_indecies, image_stack_index];
-                worm_images = uint8(current_image_stacks(image_stack_index).Images);
+                worm_images = current_image_stacks(image_stack_index).Images;
                 save([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat'], 'worm_images');
-                %[Tracks(track_index).Centerlines, Tracks(track_index).CenterlineProperties] = initial_sweep(current_image_stacks(image_stack_index).Images, Tracks(track_index), track_index);
             end
             current_image_stacks(image_stack_indecies) = []; %clear the memory of these images
         end
-        if mod(frame_index,50) == 0
+        if mod(frame_index,100) == 0
             parfor_progress(Prefs.ProgressDir);
         end
     end

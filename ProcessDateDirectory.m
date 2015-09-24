@@ -87,22 +87,23 @@ if ~exist('Prefs', 'var') || ~exist('WormTrackerPrefs', 'var')
     Prefs.ImageSize = [N(23,computer_index), N(23,computer_index)];   
     Prefs.ProgressDir = pwd;
 end
-%% STEP 3: Get a rough estimate of how much work needs to be done %%
-total_image_files = 0;
-for folder_index = 1:folder_count
-    curDir = folders{folder_index};
-    image_files = dir([curDir, '\*.tif']);
-    total_image_files = total_image_files + length(image_files);
-end
+% %% STEP 3: Get a rough estimate of how much work needs to be done %%
+% total_image_files = 0;
+% for folder_index = 1:folder_count
+%     curDir = folders{folder_index};
+%     image_files = dir([curDir, '\*.tif']);
+%     total_image_files = total_image_files + length(image_files);
+% end
 % 
 % %% STEP 3: Track and save the individual worm images %%
 % 'Tracking...'
-% poolobj = gcp('nocreate'); 
-% if isempty(poolobj)
-%     parpool(4)
-% end
+% % poolobj = gcp('nocreate'); 
+% % if isempty(poolobj)
+% %     parpool(4)
+% % end
 % parfor_progress(Prefs.ProgressDir, round(total_image_files/50));
 % parfor folder_index = 1:folder_count
+% %for folder_index = 1:folder_count
 %     folder_name = folders{folder_index};
 %     TrackImageDirectory(folder_name, 'all', WormTrackerPrefs, Prefs);
 % end
@@ -135,3 +136,11 @@ for folder_index = 1:folder_count
     curDir = folders{folder_index};
     PlotImageDirectory(curDir, WormTrackerPrefs, Prefs);
 end 
+
+%% STEP 6: Resolve problems
+for folder_index = 1:folder_count
+    curDir = folders{folder_index};
+    
+    resolve_problems(curDir)
+end 
+

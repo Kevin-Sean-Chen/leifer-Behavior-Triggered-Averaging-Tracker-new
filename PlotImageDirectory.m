@@ -34,54 +34,55 @@ function success = PlotImageDirectory(curDir, WormTrackerPrefs, Prefs)
     medianProj = median(medianProj, 3);
     medianProj = uint8(medianProj);
     
-%     %% STEP 5: plot all the tracks
-%     % Setup figure for plotting tracker results
-%     % -----------------------------------------
-%     WTFigH = findobj('Tag', 'WTFIG');
-%     if isempty(WTFigH)
-%         WTFigH = figure('Name', 'Tracking Results', ...
-%             'NumberTitle', 'off', ...
-%             'Tag', 'WTFIG');
-%     else
-%         figure(WTFigH);
-%     end
-% 
-%     frames_per_plot_time = round(Prefs.SampleRate/WormTrackerPrefs.PlottingFrameRate);
-%     
-%     %save subtracted avi
-%     outputVideo = VideoWriter(fullfile([curDir, '\', 'processed']),'MPEG-4');
-%     outputVideo.FrameRate = WormTrackerPrefs.PlottingFrameRate;
-%     open(outputVideo)
-%     
-%     for frame_index = 1:frames_per_plot_time:length(image_files) - 1
-%         % Get Frame
-%         curImage = imread([curDir, '\', image_files(frame_index).name]);
-%         subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
-%         if WormTrackerPrefs.AutoThreshold       % use auto thresholding
-%             Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
-%             Level = max(min(Level,1) ,0);
-%         else
-%             Level = WormTrackerPrefs.ManualSetLevel;
-%         end
-%         % Convert frame to a binary image 
-%         NUM = WormTrackerPrefs.MaxObjects + 1;
-%         while (NUM > WormTrackerPrefs.MaxObjects)
-%             if WormTrackerPrefs.DarkObjects
-%                 BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
-%             else
-%                 BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
-%             end
-% 
-%             % Identify all objects
-%             [~,NUM] = bwlabel(BW);
-%             Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
-%         end
-% 
-%         PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDVoltages(frame_index));
-%         FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
-%         set(WTFigH, 'Name', FigureName);
-% 
-%         writeVideo(outputVideo, getframe(WTFigH));
-%     end
-%     close(outputVideo) 
+    %% STEP 5: plot all the tracks
+    % Setup figure for plotting tracker results
+    % -----------------------------------------
+    WTFigH = findobj('Tag', 'WTFIG');
+    if isempty(WTFigH)
+        WTFigH = figure('Name', 'Tracking Results', ...
+            'NumberTitle', 'off', ...
+            'Tag', 'WTFIG');
+    else
+        figure(WTFigH);
+    end
+
+    frames_per_plot_time = round(Prefs.SampleRate/WormTrackerPrefs.PlottingFrameRate);
+    
+    %save subtracted avi
+    outputVideo = VideoWriter(fullfile([curDir, '\', 'processed']),'MPEG-4');
+    outputVideo.FrameRate = WormTrackerPrefs.PlottingFrameRate;
+    open(outputVideo)
+    
+    for frame_index = 1:frames_per_plot_time:length(image_files) - 1
+        % Get Frame
+        curImage = imread([curDir, '\', image_files(frame_index).name]);
+        subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
+        if WormTrackerPrefs.AutoThreshold       % use auto thresholding
+            Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
+            Level = max(min(Level,1) ,0);
+        else
+            Level = WormTrackerPrefs.ManualSetLevel;
+        end
+        % Convert frame to a binary image 
+        NUM = WormTrackerPrefs.MaxObjects + 1;
+        while (NUM > WormTrackerPrefs.MaxObjects)
+            if WormTrackerPrefs.DarkObjects
+                BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
+            else
+                BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
+            end
+
+            % Identify all objects
+            [~,NUM] = bwlabel(BW);
+            Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
+        end
+
+        PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDVoltages(frame_index));
+        FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
+        set(WTFigH, 'Name', FigureName);
+
+        writeVideo(outputVideo, getframe(WTFigH));
+    end
+    close(outputVideo) 
+    close(WTFigH)
 end

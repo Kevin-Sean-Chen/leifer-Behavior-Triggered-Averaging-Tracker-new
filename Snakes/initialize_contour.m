@@ -1,27 +1,73 @@
-function [center_line_interp, thin_image_returned] = initialize_contour(Image, worm_radius, nPoints, best_threshold)
+function [center_line_interp, thin_image_returned, BW, isGoodFrame] = initialize_contour(I, worm_radius, nPoints, best_threshold)
     %Initializes the contour given a threshold value
 
-    BW = im2bw(Image,best_threshold);
-    thin_image_returned = find_possible_centerline_image(BW, worm_radius);
-    thin_image = thin_image_returned;
-    endpoints = bwmorph(bwmorph(thin_image,'endpoints'),'shrink',Inf);
+    %% STEP 1: use mexican hat filter to find tips %%
+    [mex_tips, labeled_filtered_image, BW] = tip_filter(I, best_threshold);
+    labeled_filtered_image = imdilate(labeled_filtered_image, ones(3)); %dilate the tips
+    isGoodFrame = false; 
     
+    %% STEP 2: thin for end points%%%
+    thin_image = find_possible_centerline_image(BW, Inf); %update 3 to variable
+    thin_image_returned = thin_image;
+    endpoint_image = bwmorph(thin_image,'endpoint');
+    [endpoints_x, endpoints_y] = ind2sub(size(endpoint_image),find(endpoint_image));
+    endpoints = [endpoints_x, endpoints_y];
+
+    %% STEP 3: get head and tail if possible%%%   
+    potentially_certain_tips = []; 
+    endpoints_accounted_for = [];
+    mex_tips_accounted_for = [];
+    for endpoint_index = 1:size(endpoints,1)
+        mex_tip_index = labeled_filtered_image(endpoints(endpoint_index, 1), endpoints(endpoint_index, 2));
+        if mex_tip_index > 0
+            %the tip is picked up by both algorithms
+            potentially_certain_tips = [potentially_certain_tips; endpoints(endpoint_index, :)];
+            mex_tips_accounted_for = [mex_tips_accounted_for, mex_tip_index];
+            endpoints_accounted_for = [endpoints_accounted_for, endpoint_index];
+        end
+    end
+    
+    if size(potentially_certain_tips) == 2
+        %there are exactly 2 tips, it is a good frame
+        endpoints = potentially_certain_tips;
+        isGoodFrame = true;
+    elseif size(potentially_certain_tips) >= 2
+        endpoints = potentially_certain_tips;
+    else
+        endpoints(endpoints_accounted_for, :) = []; %remove all the endpoints that were pulled
+        endpoints = [potentially_certain_tips; endpoints]; %put them back if we need it
+    end
+    
+    %% STEP 4: get a centerline without spurs
+    iteration_count = 1; %make sure we don't loop forever
+    while iteration_count < 50
+        endpoint_image = bwmorph(thin_image,'endpoint');
+        if sum(endpoint_image(:)) <= 2
+            break
+        else
+            %there are more than 2 endpoints remove spurs
+            thin_image = bwmorph(thin_image, 'spur', 1);
+        end
+        iteration_count = iteration_count + 1;
+    end
+    
+    %% STEP 5: put the potentially_certain_tips back 
+    for i = 1:size(endpoints,1)
+        thin_image(endpoints(i,1), endpoints(i,2)) = true;
+    end
+    
+    %% STEP 6: start the algorithm
     %grab any endpoint to start the algorithm
-    [endpoint_x, endpoint_y] = ind2sub(size(Image),find(endpoints,1,'first'));
-    endpoint = [endpoint_x, endpoint_y];
-    thin_image(endpoint_x, endpoint_y) = 0;
+    endpoint = endpoints(1,:);
+    thin_image(endpoint(1), endpoint(2)) = 0;
     
     center_line = endpoint;
     while sum(thin_image(:)) > 0
         %the next point along the centerline is the closest pixel to the
         %current end of the centerline
-        [pixels_left_x, pixels_left_y] = ind2sub(size(Image),find(thin_image));
+        [pixels_left_x, pixels_left_y] = ind2sub(size(I),find(thin_image));
         pixels_left = [pixels_left_x, pixels_left_y];
-        [distance, next_index] = pdist2(pixels_left, center_line(end,:),'euclidean', 'Smallest', 1);
-        if distance > size(Image,1)*0.2
-            %the closest pixel cannot jump that much (to get rid of spurs
-            break
-        end
+        [~, next_index] = pdist2(pixels_left, center_line(end,:),'euclidean', 'Smallest', 1);
         center_line = [center_line; pixels_left(next_index,:)];
         thin_image(pixels_left(next_index,1), pixels_left(next_index,2)) = 0;
     end
