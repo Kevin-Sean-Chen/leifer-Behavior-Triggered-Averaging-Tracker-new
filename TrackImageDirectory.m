@@ -1,14 +1,9 @@
-%%
-% analysis_mode 'all' does tracking, analysis and saves centerlines
-% analysis_mode 'analysis' skips the tracking, does analysis and saves centerlines
-% analysis_mode 'track_plot' tracks and plots (no eigen worms)
-% analysis_mode 'continue' tracks (no eigen worms) the folders without tracks.mat
-function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, Prefs)
-% tracks and extracts the centerlines for all the images in a directory
+function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
+% tracks and saves individual worms for all the images in a directory
 
     %% STEP 1: initialize %%
     number_of_images_for_median_projection = 20;
-    mask = WormTrackerPrefs.Mask;
+    mask = Prefs.Mask;
     image_size = Prefs.ImageSize;
         
     %% STEP 2: See if a track file exists, if it does, there are some options that use them %%
@@ -54,16 +49,16 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
             subtractedImage = curImage - medianProj - mask;
 
             % Convert frame to a binary image 
-            if WormTrackerPrefs.AutoThreshold       % use auto thresholding
-                Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
+            if Prefs.AutoThreshold       % use auto thresholding
+                Level = graythresh(subtractedImage) + Prefs.CorrectFactor;
                 Level = max(min(Level,1) ,0);
             else
-                Level = WormTrackerPrefs.ManualSetLevel;
+                Level = Prefs.ManualSetLevel;
             end
             
-            NUM = WormTrackerPrefs.MaxObjects + 1;
-            while (NUM > WormTrackerPrefs.MaxObjects)
-                if WormTrackerPrefs.DarkObjects
+            NUM = Prefs.MaxObjects + 1;
+            while (NUM > Prefs.MaxObjects)
+                if Prefs.DarkObjects
                     BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
                 else
                     BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
@@ -76,8 +71,8 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
             STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity', 'Extrema'});
 
             % Identify all worms by size
-            WormIndices = find([STATS.Area] > WormTrackerPrefs.MinWormArea & ...
-                [STATS.Area] < WormTrackerPrefs.MaxWormArea);
+            WormIndices = find([STATS.Area] > Prefs.MinWormArea & ...
+                [STATS.Area] < Prefs.MaxWormArea);
             
             % Find and ignore the blobs touching the edge
             all_extrema = reshape([STATS.Extrema], 8, 2, []);
@@ -110,7 +105,7 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
             if isempty(Tracks)
                 ActiveTracks = [];
             else
-                ActiveTracks = find([Tracks.Active]);
+                ActiveTracks = find([Tracks.Active] == 1);
             end
 
             % Update active tracks with new coordinates
@@ -120,27 +115,31 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
                 DistanceY = WormCoordinates(:,2) - Tracks(ActiveTracks(i)).LastCoordinates(2);
                 Distance = sqrt(DistanceX.^2 + DistanceY.^2);
                 [MinVal, MinIndex] = min(Distance);
-                if ~isempty(MinVal) && (MinVal <= WormTrackerPrefs.MaxDistance) && ...
-                        (abs(WormSizes(MinIndex) - Tracks(ActiveTracks(i)).LastSize) < WormTrackerPrefs.SizeChangeThreshold)
-                    Tracks(ActiveTracks(i)).Path = [Tracks(ActiveTracks(i)).Path; WormCoordinates(MinIndex, :)];
-                    Tracks(ActiveTracks(i)).LastCoordinates = WormCoordinates(MinIndex, :);
-                    Tracks(ActiveTracks(i)).Frames = [Tracks(ActiveTracks(i)).Frames, frame_index];
-                    Tracks(ActiveTracks(i)).Size = [Tracks(ActiveTracks(i)).Size, WormSizes(MinIndex)];
-                    Tracks(ActiveTracks(i)).LastSize = WormSizes(MinIndex);
-                    Tracks(ActiveTracks(i)).FilledArea = [Tracks(ActiveTracks(i)).FilledArea, WormFilledAreas(MinIndex)];
-                    Tracks(ActiveTracks(i)).Eccentricity = [Tracks(ActiveTracks(i)).Eccentricity, WormEccentricities(MinIndex)];
-                    Tracks(ActiveTracks(i)).WormIndex = [Tracks(ActiveTracks(i)).WormIndex, WormIndices(MinIndex)];
-                    WormIndices(MinIndex) = [];
-                    WormCoordinates(MinIndex,:) = [];
-                    WormSizes(MinIndex) = [];
-                    WormFilledAreas(MinIndex) = [];
-                    WormEccentricities(MinIndex) = [];
+                if ~isempty(MinVal) && (MinVal <= Prefs.MaxDistance) 
+                    if WormSizes(MinIndex) - Tracks(ActiveTracks(i)).LastSize > Prefs.SizeChangeThreshold
+                        % the current blob has gained too much area
+                        Tracks(ActiveTracks(i)).Active = -1;
+                        Tracks(ActiveTracks(i)).MergedBlobIndex = WormIndices(MinIndex);
+                    elseif Tracks(ActiveTracks(i)).LastSize - WormSizes(MinIndex) > Prefs.SizeChangeThreshold
+                        % the current blob has lost too much area
+                        Tracks(ActiveTracks(i)).Active = -2;
+                    else
+                        Tracks(ActiveTracks(i)).Path = [Tracks(ActiveTracks(i)).Path; WormCoordinates(MinIndex, :)];
+                        Tracks(ActiveTracks(i)).LastCoordinates = WormCoordinates(MinIndex, :);
+                        Tracks(ActiveTracks(i)).Frames = [Tracks(ActiveTracks(i)).Frames, frame_index];
+                        Tracks(ActiveTracks(i)).Size = [Tracks(ActiveTracks(i)).Size, WormSizes(MinIndex)];
+                        Tracks(ActiveTracks(i)).LastSize = WormSizes(MinIndex);
+                        Tracks(ActiveTracks(i)).FilledArea = [Tracks(ActiveTracks(i)).FilledArea, WormFilledAreas(MinIndex)];
+                        Tracks(ActiveTracks(i)).Eccentricity = [Tracks(ActiveTracks(i)).Eccentricity, WormEccentricities(MinIndex)];
+                        Tracks(ActiveTracks(i)).WormIndex = [Tracks(ActiveTracks(i)).WormIndex, WormIndices(MinIndex)];
+                        WormIndices(MinIndex) = [];
+                        WormCoordinates(MinIndex,:) = [];
+                        WormSizes(MinIndex) = [];
+                        WormFilledAreas(MinIndex) = [];
+                        WormEccentricities(MinIndex) = [];
+                    end
                 else
                     Tracks(ActiveTracks(i)).Active = 0;
-                    if length(Tracks(ActiveTracks(i)).Frames) < WormTrackerPrefs.MinTrackLength
-                        Tracks(ActiveTracks(i)) = [];
-                        ActiveTracks = ActiveTracks - 1;
-                    end
                 end
 
             end
@@ -158,6 +157,7 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
                 Tracks(Index).FilledArea = WormFilledAreas(i);
                 Tracks(Index).Eccentricity = WormEccentricities(i);
                 Tracks(Index).WormIndex = WormIndices(i);
+                Tracks(Index).MergedBlobIndex = [];
             end
             if mod(frame_index,100) == 0
                 parfor_progress(Prefs.ProgressDir);
@@ -168,8 +168,18 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
     
     %% STEP 6: Post-Track Filtering to get rid of invalid tracks %%
     DeleteTracks = [];
+    first_frames = zeros(1,length(Tracks));
+    last_frames = zeros(1,length(Tracks));
     for i = 1:length(Tracks)
-        if length(Tracks(i).Frames) < WormTrackerPrefs.MinTrackLength
+        first_frames(i) = Tracks(i).Frames(1);
+        last_frames(i) = Tracks(i).Frames(end);
+    end
+    for i = 1:length(Tracks)
+        if length(Tracks(i).Frames) < Prefs.MinTrackLength
+            %get rid of tracks that are too short
+            DeleteTracks = [DeleteTracks, i];
+        elseif mean(Tracks(i).Size) < Prefs.MinAverageWormArea
+            %get rid of worms that are too small
             DeleteTracks = [DeleteTracks, i];
         else
             %find the maximum displacement from the first time point.
@@ -179,9 +189,50 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
             if max(euclideian_distances_relative_to_start) < Prefs.MinDisplacement
                 DeleteTracks = [DeleteTracks, i];
             end
-        end        
+        end
+        if Tracks(i).Active == -1
+            %the track ended because of a + change in area
+            if ~isempty(Tracks(i).MergedBlobIndex)
+                %find the tracks that starts right after the last frame
+                tracks_that_started_immediately_after = find(first_frames == last_frames(i)+1);
+                if ~isempty(tracks_that_started_immediately_after)
+                    for tracks_that_started_immediately_after_index = 1:length(tracks_that_started_immediately_after)
+                        current_track_index = tracks_that_started_immediately_after(tracks_that_started_immediately_after_index);
+                        if Tracks(current_track_index).WormIndex(1) == Tracks(i).MergedBlobIndex
+                            %this track is a result of increased blob size
+                            DeleteTracks = [DeleteTracks, current_track_index];
+                            break
+                        end
+                    end
+                end
+            end
+        elseif Tracks(i).Active == -2
+            %the track ended because of a - change in area
+            tracks_that_started_immediately_after = find(first_frames == last_frames(i)+1);
+            if length(tracks_that_started_immediately_after) >= 2
+                %there are 2 or more tracks that started in this frame, get
+                %their centroids
+                ending_position = Tracks(i).Path(end,:);
+                starting_positions = [];
+                resulting_worm_count = 0;
+                for tracks_that_started_immediately_after_index = 1:length(tracks_that_started_immediately_after)
+                    current_track_index = tracks_that_started_immediately_after(tracks_that_started_immediately_after_index);
+                    starting_positions = [starting_positions; Tracks(current_track_index).Path(1,:)];
+                end
+                %get the top 2 tracks that are the closest to the ending
+                %centroid, average them and see the displacement
+                distances = pdist2(ending_position, starting_positions);
+                [~, sorted_distance_indecies] = sort(distances, 'descend');
+                closest_track_index_1 = sorted_distance_indecies(1);
+                closest_track_index_2 = sorted_distance_indecies(2);
+                averaged_centroid = (starting_positions(closest_track_index_1,:) + starting_positions(closest_track_index_2,:)) ./ 2;
+                if pdist2(ending_position, averaged_centroid) < Prefs.MaxDistance
+                    DeleteTracks = [DeleteTracks, i];
+                end
+            end
+        end
     end
-    Tracks(DeleteTracks) = [];
+    Tracks(unique(DeleteTracks)) = [];
     
     %% STEP 7: Go through all the tracks and analyze them %% 
     
@@ -230,8 +281,13 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
         Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
     end
     
-%% STEP 8: save each worms' images %%
-    if isempty(Tracks)
+%% STEP 8: Go through all the tracks and analyze them %%
+    saveFileName = [curDir, '\tracks.mat'];
+    save(saveFileName, 'Tracks');
+    AutoSave(curDir, Prefs.DefaultPath);
+    
+%% STEP 9: save each worms' images %%
+    if isempty(Tracks) || ~Prefs.SaveIndividualImages
         success = true;
         return
     end
@@ -240,6 +296,8 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
     if ~exist(savePath, 'dir')
         mkdir(savePath)
     end
+    
+    delete_extra_individual_worm_images(curDir, 0); %delete previous .mat files
     
     frame_count = length(image_files)-1;
     %get where each track begins and ends in terms of frames and put them
@@ -270,16 +328,16 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
         %%%image processing%%%
         curImage = imread([curDir, '\' image_files(frame_index).name]);
         subtractedImage = curImage - medianProj - mask; %subtract median projection  - imageBackground
-        if WormTrackerPrefs.AutoThreshold       % use auto thresholding
-            Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
+        if Prefs.AutoThreshold       % use auto thresholding
+            Level = graythresh(subtractedImage) + Prefs.CorrectFactor;
             Level = max(min(Level,1) ,0);
         else
-            Level = WormTrackerPrefs.ManualSetLevel;
+            Level = Prefs.ManualSetLevel;
         end
         % Convert frame to a binary image 
-        NUM = WormTrackerPrefs.MaxObjects + 1;
-        while (NUM > WormTrackerPrefs.MaxObjects)
-            if WormTrackerPrefs.DarkObjects
+        NUM = Prefs.MaxObjects + 1;
+        while (NUM > Prefs.MaxObjects)
+            if Prefs.DarkObjects
                 BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
             else
                 BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
@@ -337,11 +395,6 @@ function success = TrackImageDirectory(curDir, analysis_mode, WormTrackerPrefs, 
             parfor_progress(Prefs.ProgressDir);
         end
     end
-    
-%% STEP 9: Go through all the tracks and analyze them %%
-    saveFileName = [curDir, '\tracks.mat'];
-    save(saveFileName, 'Tracks');
-    AutoSave(curDir, Prefs.DefaultPath);
     
 %% STEP FINAL: return 
     success = true;

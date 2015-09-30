@@ -1,4 +1,4 @@
-function Track = initial_sweep(image_stack, Track, plot_index)
+function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
     % given a sequence of worm images, this function finds the centerlines,
     % before smoothing
     
@@ -88,10 +88,11 @@ function Track = initial_sweep(image_stack, Track, plot_index)
     Length = zeros(1, number_of_images);
     centerline_has_ring = false(1,number_of_images); %used later to figure out when omega turns occur
     %used later to resolve problems, problem types: 
-    %   1 head/tail/flips
+    %   1 head/tail flips
     %   2 Image score low
     %   3 centerline out of body
     %   4 displacement score low
+    %   see function problem_code_lookup for full list
     potential_problems = zeros(1, number_of_images, 'uint8'); 
 
     %% STEPS 4-11: main loop for image analysis %%
@@ -117,7 +118,7 @@ function Track = initial_sweep(image_stack, Track, plot_index)
             current_tail = initial_contour(end,:);
             centerline_has_ring(index) = false;
         case {5, 6, 9, 11}
-%             if index == 356
+%             if index == 2405
 %                 asdf = 1;
 %             end
             %STEP 5/6/9/11A: find initial contour by looking at the previous%
@@ -313,6 +314,7 @@ function Track = initial_sweep(image_stack, Track, plot_index)
                 end
             end
         end
+%         index
     end
     
     %% STEP 12: get correct head/tail assuming the worm travels mainly pointing towards the head%%
@@ -352,8 +354,12 @@ function Track = initial_sweep(image_stack, Track, plot_index)
             search_forwards = false;
         end
         if test_flip
-            if determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
-                    tail_direction_dot_product(subsection_start:subsection_end))
+            [flip_needed, flip_possible] = determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
+                    tail_direction_dot_product(subsection_start:subsection_end), Prefs);
+            if flip_possible
+                potential_problems(index) = 1;
+            end
+            if flip_needed
                 %a flip is needed
                 all_center_lines = flip(all_center_lines,1);
                 %flip the dot products
@@ -371,11 +377,14 @@ function Track = initial_sweep(image_stack, Track, plot_index)
         if isempty(subsection_start)
             break
         else
-            if determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
-                    tail_direction_dot_product(subsection_start:subsection_end))
+            [flip_needed, flip_possible] = determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
+                    tail_direction_dot_product(subsection_start:subsection_end), Prefs);
+            if flip_possible
+                potential_problems(subsection_end) = 1;
+            end
+            if flip_needed
                 %a flip is needed
                 all_center_lines(:,:,1:subsection_end) = flip(all_center_lines(:,:,1:subsection_end),1);
-                potential_problems(subsection_end) = 1;
                 %flip the dot products
                 temp_head_direction_dot_product = head_direction_dot_product;
                 head_direction_dot_product(1:subsection_end) = tail_direction_dot_product(1:subsection_end);
@@ -396,11 +405,14 @@ function Track = initial_sweep(image_stack, Track, plot_index)
         if isempty(subsection_start)
             break
         else
-            if determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
-                    tail_direction_dot_product(subsection_start:subsection_end))
+            [flip_needed, flip_possible] = determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
+                    tail_direction_dot_product(subsection_start:subsection_end), Prefs);
+            if flip_possible
+                potential_problems(subsection_start) = 1;
+            end
+            if flip_needed
                 %a flip is needed
                 all_center_lines(:,:,subsection_start:end) = flip(all_center_lines(:,:,subsection_start:end),1);
-                potential_problems(subsection_start) = 1;
                 %flip the dot products
                 temp_head_direction_dot_product = head_direction_dot_product;
                 head_direction_dot_product(subsection_start:end) = tail_direction_dot_product(subsection_start:end);
@@ -414,9 +426,14 @@ function Track = initial_sweep(image_stack, Track, plot_index)
     end
     
     %% STEP 16: determine if there are additional problems
+    aspect_ratio = Length / dilation_size;
     potential_problems(ImageScore < 0.5) = 2;
     potential_problems(PixelsOutOfBody > 10) = 3;
     potential_problems(DisplacementScore < 0.85) = 4;
+    potential_problems(Length < 25) = 5; 
+    potential_problems(Length > 65) = 6;
+    potential_problems(aspect_ratio < 4) = 7; 
+    potential_problems(aspect_ratio > 12) = 8;
     
     %% STEP 17: store results
     Track.Centerlines = all_center_lines;
@@ -429,7 +446,9 @@ function Track = initial_sweep(image_stack, Track, plot_index)
     Track.DisplacementScore = DisplacementScore;
     Track.PixelsOutOfBody = PixelsOutOfBody;
     Track.PotentialProblems = potential_problems;
-    
+    Track.DilationSize = dilation_size;
+    Track.AspectRatio = aspect_ratio;
+    Track.MeanAspectRatio = mean(Track.AspectRatio);
     
 %     %% DEBUG: plot from beginning to finish%%%%%%
 %     outputVideo = VideoWriter(fullfile(['worm_', num2str(plot_index)]),'MPEG-4');

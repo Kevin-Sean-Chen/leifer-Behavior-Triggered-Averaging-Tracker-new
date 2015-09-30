@@ -1,8 +1,12 @@
-function [newTracks] = resolve_problems(curDir, WormTrackerPrefs)
+function [newTracks] = resolve_problems(curDir, Prefs)
 % Plots a single worm over time along with its centerline
-    min_track_length = WormTrackerPrefs.MinTrackLength;
-    plotting_index = 1;
-    load([curDir, '\', 'tracks.mat']);
+    min_track_length = Prefs.MinTrackLength;
+%     plotting_index = 1;
+    if exist([curDir, '\tracks.mat'], 'file') == 2
+        load([curDir, '\tracks.mat'])
+    else
+        return
+    end
     modifications_index = 1;
     Modifications = [];
     for track_index = 1:length(Tracks)
@@ -47,11 +51,10 @@ function [newTracks] = resolve_problems(curDir, WormTrackerPrefs)
                         case 5
                             %advanced, let's implement later delete section and split track
                             Modifications(modifications_index).TrackIndex = track_index;
-                            Modifications(modifications_index).Action = 2; %delete
-                            Modifications(modifications_index).StartFrame = worm_frame_start_index;
-                            Modifications(modifications_index).EndFrame = worm_frame_end_index;
+                            Modifications(modifications_index).Action = 2;
+                            Modifications(modifications_index).StartFrame = Track.Frames(worm_frame_start_index);
+                            Modifications(modifications_index).EndFrame = Track.Frames(worm_frame_end_index);
                             modifications_index = modifications_index + 1;
-                            break
                     end
                 end
                 worm_frame_start_index = worm_frame_end_index + 1;
@@ -59,9 +62,13 @@ function [newTracks] = resolve_problems(curDir, WormTrackerPrefs)
         end
     end
     
+    if isempty(Modifications)
+        newTracks = Tracks;
+        return
+    end
     
     newTracks = [];
-    modification_track_indecies = [Modifications.Action];
+    modification_track_indecies = [Modifications.TrackIndex];
     current_track_index = 1;
     current_end_index = length(Tracks);
     for track_index = 1:length(Tracks)
@@ -84,38 +91,35 @@ function [newTracks] = resolve_problems(curDir, WormTrackerPrefs)
                 %there are one or many split commands
                 split_tracks = [];
                 split_modifications = modifications_to_this_track(modifications_to_this_track_actions == 2);
-                track_frame_shift = 0;
                 
                 loaded_file = load([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index), '.mat']);
-                worm_images = loaded_file.worm_images;
-                worm_images_struct(1).Images = [];
+                Track.WormImages = loaded_file.worm_images;
                 
                 for split_modification_index = 1:length(split_modifications)
                     current_split_modification_begin = split_modifications(split_modification_index).StartFrame;
                     current_split_modification_end = split_modifications(split_modification_index).EndFrame;
-                    new_subtrack = FilterTracksByTime(Track, 1-track_frame_shift, current_split_modification_begin-track_frame_shift);
+                    new_subtrack = FilterTracksByTime(Track, Track.Frames(1), current_split_modification_begin);
                     if length(new_subtrack.Frames) >= min_track_length
                         split_tracks = [split_tracks, new_subtrack];
-                        worm_images_struct(length(split_tracks)).Images = worm_images(:,:,track_frame_shift+1:current_split_modification_begin);
                     end
-                    Track = FilterTracksByTime(Track, current_split_modification_end-track_frame_shift, length(Track.Frames));
-                    track_frame_shift = track_frame_shift + current_split_modification_end;
+                    Track = FilterTracksByTime(Track, current_split_modification_end, Track.Frames(end));
                 end
                 
                 if length(Track.Frames) >= min_track_length
                     split_tracks = [split_tracks, Track];
-                    worm_images_struct(length(split_tracks)).Images = worm_images(:,:,track_frame_shift+1:end);
                 end                
                 
                 %shift up by the number of new tracks added
+                rename_individual_worm_images(curDir, current_track_index+1, current_end_index, length(split_tracks)-1);
                 current_end_index = current_end_index + length(split_tracks) - 1;
-                rename_individual_worm_images(curDir, current_track_index+1, current_end_index);
                 
                 %split the worm frames exactly as before
                 for saveindex = 1:length(split_tracks)
-                    worm_images = worm_images_struct(saveindex).Images;
+                    worm_images = split_tracks(saveindex).WormImages;
                     save([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index+saveindex-1), '.mat'], 'worm_images');
                 end
+                
+                split_tracks = rmfield(split_tracks, 'WormImages');
                 
                 newTracks = [newTracks, split_tracks];
                 current_track_index = length(newTracks) + 1;
@@ -126,5 +130,6 @@ function [newTracks] = resolve_problems(curDir, WormTrackerPrefs)
             current_track_index = length(newTracks) + 1;
         end
     end
+    delete_extra_individual_worm_images(curDir, length(newTracks))
     
 end

@@ -1,7 +1,7 @@
 function [angle_changes, mean_angles] = centerlines_to_angles(centerlines)
     %this function gets the angles with respect to the mean angle for each
     %segment in the worm, vectorized so that multiple centerlines can be
-    %inputted at once
+    %inputted at once. The output is in radians
     
     [nPoints, ~, num_centerlines] = size(centerlines);
     
@@ -38,15 +38,15 @@ function [angle_changes, mean_angles] = centerlines_to_angles(centerlines)
     correction = repmat(correction,nPoints-1,1);
     angle_changes = angle_changes + correction;
     
-    %debug
-    figure
-    hold all
-    sample_count = min(100, num_centerlines);
-    sampled_indecies = randsample(num_centerlines, sample_count);
-    for index = 1:sample_count
-        plot(angle_changes(:,sampled_indecies(index)));
-    end
-    xlabel('Position Along the Worm')
-    ylabel('Angle Difference to Mean Angle (radians)')
-    hold off
+%     %debug
+%     figure
+%     hold all
+%     sample_count = min(100, num_centerlines);
+%     sampled_indecies = randsample(num_centerlines, sample_count);
+%     for index = 1:sample_count
+%         plot(angle_changes(:,sampled_indecies(index)));
+%     end
+%     xlabel('Position Along the Worm')
+%     ylabel('Angle Difference to Mean Angle (radians)')
+%     hold off
 end

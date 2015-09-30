@@ -1,7 +1,8 @@
-function Tracks = Find_Centerlines(Tracks, curDir)
+function Tracks = Find_Centerlines(Tracks, curDir, Prefs)
     if isempty(Tracks)
         return
     end
+    %% load eigenvectors for eigenworms
     
     %% Preallocate memory
     track_count = length(Tracks);
@@ -15,14 +16,20 @@ function Tracks = Find_Centerlines(Tracks, curDir)
     Tracks(track_count).DisplacementScore = [];
     Tracks(track_count).PixelsOutOfBody = [];
     Tracks(track_count).PotentialProblems = [];
+    Tracks(track_count).DilationSize = [];
+    Tracks(track_count).AspectRatio = [];
+    Tracks(track_count).MeanAspectRatio = [];
+%     Tracks(track_count).MeanAngles = [];
+%     Tracks(track_count).ProjectedEigenValues = [];
     
+    %% Extract Centerlines and eigenworms
     parfor_progress([], length(Tracks));
-    %% Extract Centerlines
     parfor track_index = 1:track_count
     %for track_index = 1:track_count
         loaded_file = load([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat']);
         worm_images = loaded_file.worm_images;
-        Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), track_index);
+        Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), Prefs, track_index);
+        
         parfor_progress([]);
     end
     parfor_progress([], 0);

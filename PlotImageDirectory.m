@@ -1,9 +1,9 @@
-function success = PlotImageDirectory(curDir, WormTrackerPrefs, Prefs)
+function success = PlotImageDirectory(curDir, Prefs)
 % plots the individual worm videos and all the track videos
 
     %% STEP 1: initialize %%
     number_of_images_for_median_projection = 20;
-    mask = WormTrackerPrefs.Mask;
+    mask = Prefs.Mask;
 
     if exist([curDir, '\tracks.mat'], 'file') == 2
         load([curDir, '\tracks.mat'])
@@ -13,7 +13,7 @@ function success = PlotImageDirectory(curDir, WormTrackerPrefs, Prefs)
     end
 
     %% STEP 2: plot individual worms
-    individual_worm_videos(Tracks, curDir, Prefs.SampleRate, WormTrackerPrefs.PlottingFrameRate);
+    individual_worm_videos(Tracks, curDir, Prefs.SampleRate, Prefs.PlottingFrameRate);
             
     %% STEP 3: Load images and other properties from the directory %%
     % Get all the tif file names (probably jpgs)
@@ -46,27 +46,27 @@ function success = PlotImageDirectory(curDir, WormTrackerPrefs, Prefs)
         figure(WTFigH);
     end
 
-    frames_per_plot_time = round(Prefs.SampleRate/WormTrackerPrefs.PlottingFrameRate);
+    frames_per_plot_time = round(Prefs.SampleRate/Prefs.PlottingFrameRate);
     
     %save subtracted avi
     outputVideo = VideoWriter(fullfile([curDir, '\', 'processed']),'MPEG-4');
-    outputVideo.FrameRate = WormTrackerPrefs.PlottingFrameRate;
+    outputVideo.FrameRate = Prefs.PlottingFrameRate;
     open(outputVideo)
     
     for frame_index = 1:frames_per_plot_time:length(image_files) - 1
         % Get Frame
         curImage = imread([curDir, '\', image_files(frame_index).name]);
         subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
-        if WormTrackerPrefs.AutoThreshold       % use auto thresholding
-            Level = graythresh(subtractedImage) + WormTrackerPrefs.CorrectFactor;
+        if Prefs.AutoThreshold       % use auto thresholding
+            Level = graythresh(subtractedImage) + Prefs.CorrectFactor;
             Level = max(min(Level,1) ,0);
         else
-            Level = WormTrackerPrefs.ManualSetLevel;
+            Level = Prefs.ManualSetLevel;
         end
         % Convert frame to a binary image 
-        NUM = WormTrackerPrefs.MaxObjects + 1;
-        while (NUM > WormTrackerPrefs.MaxObjects)
-            if WormTrackerPrefs.DarkObjects
+        NUM = Prefs.MaxObjects + 1;
+        while (NUM > Prefs.MaxObjects)
+            if Prefs.DarkObjects
                 BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
             else
                 BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background

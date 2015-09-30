@@ -28,7 +28,7 @@ function [total_score, image_score, displacement_score, centerline_pixels_out_of
         displacement_score = 1;
     end
     total_score = image_score + displacement_score;
-% % %     if displacement_score < 0.9
+%     if image_score < 0.5
 %         %debug
 %          subplot(1,2,1), imshow(BW,[])
 % %        subplot(1,2,1), imshow(reshape(union,70,70),[])
@@ -43,7 +43,6 @@ function [total_score, image_score, displacement_score, centerline_pixels_out_of
 %         hold off
 % 
 %         [total_score, image_score, displacement_score, centerline_pixels_out_of_body]
-%         pause
-% % %     end
+%     end
 
 end

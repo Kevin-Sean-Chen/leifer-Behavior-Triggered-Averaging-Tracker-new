@@ -10,11 +10,12 @@ function success = AutoSave(curDir, autoSaveDir)
         if ~exist(savePath, 'dir')
             mkdir(savePath)
         end
-        copyfile('Tracks.mat',savePath)
-        copyfile('Parameters.txt',savePath)
-        copyfile('LEDVoltages.txt',savePath)     
+        copyfile([curDir, '\', 'Tracks.mat'],savePath)
+        copyfile([curDir, '\', 'Parameters.txt'],savePath)
+        copyfile([curDir, '\', 'LEDVoltages.txt'],savePath)     
         success = 1;
      catch
+         warning('no autosave occured');
          success = 0;
      end
 end

@@ -9,10 +9,13 @@ Tracks(track_count).ImageScore = [];
 Tracks(track_count).DisplacementScore = [];
 Tracks(track_count).PixelsOutOfBody = [];
 Tracks(track_count).PotentialProblems = [];
-for track_index = 1:175
+Tracks(track_count).DilationSize = [];
+Tracks(track_count).AspectRatio = [];
+Tracks(track_count).MeanAspectRatio = [];
+for track_index = 13:13
     load(['worm_', num2str(track_index), '.mat']);
     Track = Tracks(track_index);
-    Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), 1);
+    Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), Prefs, track_index);
     %resolve_problems(Tracks(track_index), curDir)
     track_index
 end

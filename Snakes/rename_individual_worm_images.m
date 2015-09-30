@@ -1,12 +1,15 @@
 function [] = rename_individual_worm_images(curDir, beginIndex, endIndex, shift)
 % renames the individually saved matrices by shift
-    if shift > 0
+    if beginIndex > endIndex
+        return
+    elseif shift > 0
         %shift up
         shift_indecies = endIndex:-1:beginIndex;
     elseif shift < 0
         %shift down
         shift_indecies = beginIndex:endIndex;
     else
+        %shift == 0
         return
     end
 
