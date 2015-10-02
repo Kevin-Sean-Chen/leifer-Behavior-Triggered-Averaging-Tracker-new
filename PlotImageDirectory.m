@@ -13,7 +13,7 @@ function success = PlotImageDirectory(curDir, Prefs)
     end
 
     %% STEP 2: plot individual worms
-    individual_worm_videos(Tracks, curDir, Prefs.SampleRate, Prefs.PlottingFrameRate);
+    individual_worm_videos(Tracks, curDir, Prefs.SampleRate, Prefs.IndividualVideoPlottingFrameRate);
             
     %% STEP 3: Load images and other properties from the directory %%
     % Get all the tif file names (probably jpgs)

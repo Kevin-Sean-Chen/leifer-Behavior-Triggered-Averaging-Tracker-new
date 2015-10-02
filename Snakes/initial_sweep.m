@@ -63,7 +63,7 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
         %kappa = 2.5*255/worm_radius; % the image force is scale dependent
         sigma = thinning_iteration/3; %the gaussian blurring is scale dependent
         cd = thinning_iteration; %repel distance is scale dependent
-        [initial_contour, thin_image, ~, isGoodFrame] = initialize_contour(I, thinning_iteration, nPoints, best_threshold);
+        [initial_contour, thin_image, ~, isGoodFrame, ~] = initialize_contour(I, nPoints, best_threshold);
         if looking_for_good_frame && isGoodFrame
             good_frame_index = index;
             looking_for_good_frame = false;
@@ -76,11 +76,14 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
     end
     l0 = mean(lengths)*0.95; %the length is generally smaller than when the worm is fully extended
     dilation_size = round(mean(dilation_sizes));
+    current_thinning_iteration = thinning_iteration;
     
     %% STEP 3: preallocate memory for speed %%
+    
     UncertainTips = struct();
     UncertainTips(number_of_images).Tips = [];
     all_center_lines = zeros(nPoints,2,number_of_images);
+    thinning_iterations = zeros(1, number_of_images, 'uint8');
     TotalScore = zeros(1, number_of_images);
     ImageScore = zeros(1, number_of_images);
     DisplacementScore = zeros(1, number_of_images);
@@ -113,16 +116,22 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
             index = good_frame_index;
             I = reshape(image_stack(:,:,index),image_size); %grab the image
             %STEP 4A-C: find initial contour, thin image, and tips%
-            [initial_contour, thin_image, BW] = initialize_contour(I, thinning_iteration, nPoints, best_threshold);
+            [initial_contour, thin_image, BW, ~, current_thinning_iteration] = initialize_contour(I, nPoints, best_threshold);
             current_head = initial_contour(1,:);
             current_tail = initial_contour(end,:);
             centerline_has_ring(index) = false;
         case {5, 6, 9, 11}
-%             if index == 2405
+%             if index == 1140
 %                 asdf = 1;
 %             end
-            %STEP 5/6/9/11A: find initial contour by looking at the previous%
-            initial_contour = reshape(all_center_lines(:,:,index),nPoints,2);
+            %STEP 5/6/9/11A: find initial contour by looking at the previous, unless we are starting at the first or last frame%
+            if index >= 1 && index <= number_of_images
+                initial_contour = reshape(all_center_lines(:,:,index),nPoints,2);
+                current_thinning_iteration = thinning_iterations(index);
+                reinitialize = false;
+            else
+                reinitialize = true;
+            end
             if step_number == 5 || step_number == 11
                 %STEP 5/9B: go backwards%
                 index = index - 1;
@@ -131,12 +140,21 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
                 index = index + 1;
             end
             I = reshape(image_stack(:,:,index),image_size); %grab the image
-            prev_head= initial_contour(1,:);
-            prev_tail = initial_contour(end,:);
+
             %STEP 5/6/9/11C: find tips and thin image%
-            [current_head, current_tail, UncertainTips(index).Tips, ...
-                centerline_has_ring(index), thin_image, BW] = ...
-                find_tips_centerline_image(I, prev_head, prev_tail, thinning_iteration, best_threshold);
+            if reinitialize
+                % we need to reinitialize for STEPS 9 / 11 if beginning at
+                % the first and last frames and there are no omega turns
+                [initial_contour, thin_image, BW, ~, current_thinning_iteration] = initialize_contour(I, nPoints, best_threshold);
+                current_head = initial_contour(1,:);
+                current_tail = initial_contour(end,:);
+            else
+                prev_head= initial_contour(1,:);
+                prev_tail = initial_contour(end,:);
+                [current_head, current_tail, UncertainTips(index).Tips, ...
+                    centerline_has_ring(index), thin_image, BW, current_thinning_iteration] = ...
+                    find_tips_centerline_image(I, prev_head, prev_tail, current_thinning_iteration, dilation_size, best_threshold);
+            end
         case 7
             %STEP 7: prepare for going into Okazaki mode%%
             find_centerline = false; %skip active contour
@@ -159,6 +177,11 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
                 %go to step 10;
                 index = number_of_images;
                 step_number = 10;
+            elseif index == 1 && ~omega_turn_annotation(1)
+                %start going towards the omega turn from the first image if
+                %it is not an omega turn
+                index = 0;
+                step_number = 9;
             else
                 %start going towards the omega turn from the best image in
                 %between omega turns
@@ -175,6 +198,11 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
                 %no omega turns left, end this!
                 step_number = 12;
                 break
+            elseif index == number_of_images && ~omega_turn_annotation(number_of_images)
+                %start going towards the omega turn from the last image if
+                %it is not an omega turn
+                index = number_of_images+1;
+                step_number = 11;
             else
                 %start going towards the omega turn from the best image in
                 %between omega turns
@@ -256,11 +284,16 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
 
             %STEP 4/5/6/9/11F: Get the centerline length%
             Length(index) = sum(sqrt(sum(squeeze((all_center_lines(2:end,:,index)-all_center_lines(1:end-1,:,index))).^2,2)));
+            if pdist2(all_center_lines(1,:,index),all_center_lines(end,:,index)) > 0.7 * Length(index)
+                %the worm is pretty straight, it should not have rings
+                centerline_has_ring(index) = false;
+            end
+            thinning_iterations(index) = current_thinning_iteration;
             
 %             %%%%%%STEP DEBUG: plot as we go along%%%%%%
-%             plot_worm_frame(composite_image, reshape(all_center_lines(:,:,index),nPoints,2), ...
-%             UncertainTips(index).Tips, Track.Eccentricity(index), Track.Direction(index), ....
-%             Track.Speed(index), TotalScore(index));
+%             plot_worm_frame(I, squeeze(all_center_lines(:,:,index)), ...
+%                 Track.UncertainTips(index), Track.Eccentricity(index), ...
+%                 Track.Direction(index), Track.Speed(index), Track.TotalScore(index), 1);
 %             index
 %             pause(0.1)
 
@@ -318,9 +351,18 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
     end
     
     %% STEP 12: get correct head/tail assuming the worm travels mainly pointing towards the head%%
-    direction_vector = [[Track.Speed].*-cosd([Track.Direction]); [Track.Speed].*sind([Track.Direction])];
+%     direction_vector = [[Track.Speed].*-cosd([Track.Direction]); [Track.Speed].*sind([Track.Direction])];
+    direction_vector = [-cosd([Track.Direction]); sind([Track.Direction])];
+    
     head_vector = reshape(all_center_lines(1,:,:),2,[]) - (image_size(1)/2);    
     tail_vector = reshape(all_center_lines(end,:,:),2,[]) - (image_size(1)/2);
+    
+    %normalize into unit vector
+    head_normalization = hypot(head_vector(1,:), head_vector(2,:));
+    tail_normalization = hypot(tail_vector(1,:), tail_vector(2,:));
+    head_vector = head_vector ./ repmat(head_normalization, 2, 1);
+    tail_vector = tail_vector ./ repmat(tail_normalization, 2, 1);
+    
     head_direction_dot_product = dot(head_vector, direction_vector);
     tail_direction_dot_product = dot(tail_vector, direction_vector);
     mean_head_direction_dot_product = mean(head_direction_dot_product);
@@ -337,7 +379,7 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
     search_backwards = true;
     search_forwards = true;
     test_flip = true;
-    sections_with_no_head_switchs = ~possible_head_switch_frames;
+    sections_with_no_head_switchs = ~full(possible_head_switch_frames);
     if ~possible_head_switch_frames(good_frame_index)
         [subsection_start, ~, ~] = find_next_section(sections_with_no_head_switchs, index, 'b');
         [subsection_end, ~, ~] = find_next_section(sections_with_no_head_switchs, index, 'f');
@@ -449,9 +491,11 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
     Track.DilationSize = dilation_size;
     Track.AspectRatio = aspect_ratio;
     Track.MeanAspectRatio = mean(Track.AspectRatio);
+    Track.ThinningIteration = thinning_iterations;
     
 %     %% DEBUG: plot from beginning to finish%%%%%%
-%     outputVideo = VideoWriter(fullfile(['worm_', num2str(plot_index)]),'MPEG-4');
+% %    outputVideo = VideoWriter(fullfile(['worm_', num2str(plot_index)]),'MPEG-4');
+%     outputVideo = VideoWriter(fullfile('debug.mp4'),'MPEG-4');
 %     outputVideo.FrameRate = 14;
 %     open(outputVideo)
 %     for index = 1:number_of_images
@@ -459,6 +503,8 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
 %         plot_worm_frame(I, squeeze(all_center_lines(:,:,index)), ...
 %             Track.UncertainTips(index), Track.Eccentricity(index), ...
 %             Track.Direction(index), Track.Speed(index), Track.TotalScore(index), 1);
+% %         drawnow
+% %         pause(0.01);
 %         writeVideo(outputVideo, getframe(gcf));
 %     end
 %     close(outputVideo) 

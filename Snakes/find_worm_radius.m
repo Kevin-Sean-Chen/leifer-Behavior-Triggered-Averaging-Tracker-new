@@ -4,18 +4,21 @@ function [thinning_iteration, dilation_size] = find_worm_radius(Image, best_thre
     BW = im2bw(Image, best_threshold);
     BW = bwmorph(BW, 'fill');
     
-    last_thinned_image = false(size(Image));
-    thinning_iteration = 1;
-    while 1
-        thinned_image = bwmorph(BW, 'thin', thinning_iteration);
-        if isequal(last_thinned_image,thinned_image)
-            break
-        else
-            last_thinned_image = thinned_image;
-            thinning_iteration = thinning_iteration + 1;
-        end
-    end
-   
+%     last_thinned_image = false(size(Image));
+%     thinning_iteration = 1;
+%     while 1
+%         thinned_image = bwmorph(BW, 'thin', thinning_iteration);
+%         if isequal(last_thinned_image,thinned_image)
+%             break
+%         else
+%             last_thinned_image = thinned_image;
+%             thinning_iteration = thinning_iteration + 1;
+%         end
+%     end
+
+    [thinned_image, ~, thinning_iteration] = algbwmorph_iter_output(BW,'thin', Inf);
+
+
     % get how much to dilate the image for the best match
     linearized_image = BW(:);
     image_scores = zeros(1, thinning_iteration);
@@ -36,7 +39,6 @@ function [thinning_iteration, dilation_size] = find_worm_radius(Image, best_thre
     [~,dilation_size] = max(image_scores);
 %     imshow(thinned_image, [])
 %     pause();
-    %iteration = iteration;
 %     %debug
 %     subplot(1,2,1), imshow(Image,[])
 %     hold on

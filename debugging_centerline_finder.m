@@ -12,7 +12,8 @@ Tracks(track_count).PotentialProblems = [];
 Tracks(track_count).DilationSize = [];
 Tracks(track_count).AspectRatio = [];
 Tracks(track_count).MeanAspectRatio = [];
-for track_index = 13:13
+Tracks(track_count).ThinningIteration = [];
+for track_index = 9:9
     load(['worm_', num2str(track_index), '.mat']);
     Track = Tracks(track_index);
     Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), Prefs, track_index);

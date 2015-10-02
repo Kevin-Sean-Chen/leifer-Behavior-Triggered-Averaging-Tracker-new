@@ -1,5 +1,5 @@
 % analysis options
-tracking = 1;
+tracking = 0;
 finding_centerline = 1;
 resolving_problems = 0;
 plotting = 1;
@@ -66,7 +66,8 @@ if ~exist('Prefs', 'var')
     end
     Prefs.MaxObjects = N(14,computer_index);
     Prefs.PlottingFrameRate = N(15,computer_index);
-
+    Prefs.IndividualVideoPlottingFrameRate = N(16,computer_index);
+    
     WorkSheet = 'Analysis Prefs';
     [N, T, D] = xlsread(ExcelFileName, WorkSheet);
     for computer_index = 1:size(T,2)

@@ -19,6 +19,7 @@ function Tracks = Find_Centerlines(Tracks, curDir, Prefs)
     Tracks(track_count).DilationSize = [];
     Tracks(track_count).AspectRatio = [];
     Tracks(track_count).MeanAspectRatio = [];
+    Tracks(track_count).ThinningIteration = [];
 %     Tracks(track_count).MeanAngles = [];
 %     Tracks(track_count).ProjectedEigenValues = [];
     

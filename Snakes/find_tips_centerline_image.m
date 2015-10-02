@@ -1,4 +1,4 @@
- function [certain_head, certain_tail, uncertain_tips, has_ring, thin_image, BW]  = find_tips_centerline_image(I, prev_head, prev_tail, worm_radius, best_threshold)
+ function [certain_head, certain_tail, uncertain_tips, has_ring, thin_image, BW, new_worm_radius]  = find_tips_centerline_image(I, prev_head, prev_tail, worm_radius, dilation_size, best_threshold)
     %loop through threholds to see if there is a hole in the image, if so,
     %get the branching tips when the hole is the biggest
     
@@ -7,10 +7,10 @@
 
     %% STEP 1: use mexican hat filter to find tips %%
     [mex_tips, labeled_filtered_image, BW] = tip_filter(I, best_threshold);
-    labeled_filtered_image = imdilate(labeled_filtered_image, ones(3)); %dilate the tips
+    labeled_filtered_image = imdilate(labeled_filtered_image, true(worm_radius)); %dilate the tips
     
     %% STEP 2: thin for end points %%
-    thin_image = find_possible_centerline_image(BW, worm_radius); %update 3 to variable
+    [thin_image, thin_iteration] = find_possible_centerline_image(BW, worm_radius); %update 3 to variable
     endpoint_image = bwmorph(thin_image,'endpoint');
     [endpoints_x, endpoints_y] = ind2sub(size(endpoint_image),find(endpoint_image));
     endpoints = [endpoints_x, endpoints_y];
@@ -52,17 +52,43 @@
     if sum(possible_ring_image(:)) > 0
         %there is a hole detected, get the branchpoints
         thin_branchpoint_image = bwmorph(thin_image,'branchpoints');
-        possible_branchpoint_image = thin_branchpoint_image .* bwmorph(possible_ring_image, 'dilate');
+        dilated_ring_image = imdilate(possible_ring_image, true(dilation_size));
+        possible_branchpoint_image = thin_branchpoint_image .* dilated_ring_image;
         [possible_branchpoint_x, possible_branchpoint_y] = ind2sub(size(possible_branchpoint_image),find(possible_branchpoint_image));
         branching_points = [possible_branchpoint_x, possible_branchpoint_y];
-        has_ring = true;
+        
+        if isempty(certain_head) || isempty(certain_tail)
+            %only mark as possible omega turn when we don't have certain
+            %tips
+            has_ring = true;
+            %try to break the ring by thresholding so we can find maybe a better tip
+            mean_intensity = mean(I(I>0));
+            new_BW = im2bw(I, mean_intensity);
+            new_thin_image = find_possible_centerline_image(new_BW, worm_radius);
+            new_endpoint_image = bwmorph(new_thin_image,'endpoint') .* dilated_ring_image;
+            [new_endpoints_x, new_endpoints_y] = ind2sub(size(new_endpoint_image),find(new_endpoint_image));
+            new_endpoints = [new_endpoints_x, new_endpoints_y];
+        else
+            %we have certain head and certain tail.. but there is still a
+            %ring in the image?! that means that our thinning is off
+            [new_thin_image, thin_iteration] = find_possible_centerline_image(BW, Inf);
+            if thin_iteration > worm_radius && thin_iteration <= worm_radius + 2
+                %the thin_iteration has increased by 1 or 2. change the
+                %worm_raidus
+                new_worm_radius = thin_iteration;
+                thin_image = new_thin_image;
+            end
+            new_endpoints = [];
+            has_ring = false;
+        end
     else
         branching_points = [];
+        new_endpoints = [];
         has_ring = false;
     end
     
     %% STEP 5: add in prev_head and prev_tail if there are no suitable candidates close to them %%
-    uncertain_tips = [endpoints; branching_points; mex_tips];
+    uncertain_tips = [endpoints; branching_points; new_endpoints; mex_tips];
     all_tips = [certain_head; certain_tail; uncertain_tips];
     if isempty(certain_head) && BW(round(prev_head(1)), round(prev_head(2)))
         min_distance = pdist2(prev_head, all_tips, 'euclidean', 'Smallest', 1);
@@ -83,4 +109,10 @@
         uncertain_tips = [uncertain_tips; prev_head; prev_tail];
     end
     uncertain_tips = unique(uncertain_tips, 'rows');
+    if thin_iteration < worm_radius
+        %update the thinning if it decreased
+        new_worm_radius = thin_iteration;
+    else
+        new_worm_radius = worm_radius;
+    end
 end
