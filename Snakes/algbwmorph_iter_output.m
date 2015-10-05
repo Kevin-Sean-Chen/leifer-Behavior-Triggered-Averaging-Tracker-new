@@ -1,4 +1,4 @@
-function [bwout, lut, iter] = algbwmorph_iter_output(bw,opStr,n)  
+function [bwout, lut, conv_iter] = algbwmorph_iter_output(bw,opStr,n)  
 % Main algorithm used by the bwmorph function. See bwmorph for more
 % details. modified to output iteration number
 
@@ -19,22 +19,27 @@ coder.internal.prefer_const(n);
 if(n<1)
     bwout = bw;
     lut   = [];
-    
-elseif(n==1)
-    [bwout,lut] = bwmorphApplyOnce(bw,opStr);    
-    iter = 1;
+    conv_iter  = 0;
+% elseif(n==1)
+%     [bwout,lut] = bwmorphApplyOnce(bw,opStr);    
+%     conv_iter = 1;
 else    
-    iter  = 0;
-    bwout = bw;
+    conv_iter  = 0;
+    bwout = [];
     lut   = [];
-    while(iter<n)
+    while true
+        last_aout   = bw;
+        [bw,lut] = bwmorphApplyOnce(bw,opStr);
+        conv_iter        = conv_iter+1;
         
-        last_aout   = bwout;
-        [bwout,lut] = bwmorphApplyOnce(bwout,opStr);
-        iter        = iter+1;
-        
-        if(isequal(last_aout, bwout))
+        if conv_iter == n
+            bwout = bw;
+        end
+        if(isequal(last_aout, bw))
             %> the output is not changing anymore
+            if isempty(bwout)
+                bwout = bw;
+            end
             break
         end
     end

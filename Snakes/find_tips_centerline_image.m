@@ -49,6 +49,9 @@
 
     %% STEP 4: find branch points if there is a ring %%
     possible_ring_image = bwmorph(bwmorph(thin_image,'shrink',Inf), 'clean');
+    new_worm_radius = [];
+    new_endpoints = [];
+    has_ring = false;
     if sum(possible_ring_image(:)) > 0
         %there is a hole detected, get the branchpoints
         thin_branchpoint_image = bwmorph(thin_image,'branchpoints');
@@ -68,23 +71,52 @@
             new_endpoint_image = bwmorph(new_thin_image,'endpoint') .* dilated_ring_image;
             [new_endpoints_x, new_endpoints_y] = ind2sub(size(new_endpoint_image),find(new_endpoint_image));
             new_endpoints = [new_endpoints_x, new_endpoints_y];
-        else
+        elseif size(branching_points,1) == 2 
+            %there are 2 branchpoints
             %we have certain head and certain tail.. but there is still a
-            %ring in the image?! that means that our thinning is off
-            [new_thin_image, thin_iteration] = find_possible_centerline_image(BW, Inf);
-            if thin_iteration > worm_radius && thin_iteration <= worm_radius + 2
-                %the thin_iteration has increased by 1 or 2. change the
-                %worm_raidus
-                new_worm_radius = thin_iteration;
-                thin_image = new_thin_image;
+            %ring in the image?! that means that our thinning is off or
+            %there is a bend in the worm
+            
+            %trace the paths from one branchpoint to another 
+            [possible_ring_image_pixels_x, possible_ring_image_pixels_y] = ind2sub(size(I),find(possible_ring_image));
+            possible_ring_image_pixels = [possible_ring_image_pixels_x, possible_ring_image_pixels_y];
+            
+            [~,closest_boundary_point1_index] = pdist2(possible_ring_image_pixels,branching_points(1,:),'euclidean','Smallest',1);
+            closest_boundary_point1 = possible_ring_image_pixels(closest_boundary_point1_index,:);
+            
+            [~,closest_boundary_point2_index] = pdist2(possible_ring_image_pixels,branching_points(2,:),'euclidean','Smallest',1);
+            closest_boundary_point2 = possible_ring_image_pixels(closest_boundary_point2_index,:);
+            
+            boundary_points = bwtraceboundary(possible_ring_image, closest_boundary_point1, 'N');
+            cum_distances = find_cumulative_distance(boundary_points);
+            perimeter = cum_distances(end);
+            [~, second_branchpoint_index] = ismember(closest_boundary_point2, boundary_points, 'rows');
+            cw_distance = cum_distances(second_branchpoint_index);
+            ccw_distance = perimeter - cw_distance;
+            
+            if min(cw_distance, ccw_distance) < 0.8*max(cw_distance, ccw_distance)
+                %real! thin image should have the shorter path removed
+                if cw_distance < ccw_distance
+                    points_to_remove = boundary_points(2:second_branchpoint_index-1,:);
+                else
+                    points_to_remove = boundary_points(second_branchpoint_index+1:end-1,:);
+                end
+                for removal_index = 1:size(points_to_remove,1);
+                    thin_image(points_to_remove(removal_index,1), points_to_remove(removal_index,2)) = false;
+                end
+            else
+                %fake! it's time to change the thinning parameter
+                [new_thin_image, thin_iteration] = find_possible_centerline_image(BW, Inf);
+                if thin_iteration > worm_radius && thin_iteration <= worm_radius + 2
+                    %the thin_iteration has increased by 1 or 2. change the
+                    %worm_raidus
+                    new_worm_radius = thin_iteration;
+                    thin_image = new_thin_image;
+                end
             end
-            new_endpoints = [];
-            has_ring = false;
         end
     else
         branching_points = [];
-        new_endpoints = [];
-        has_ring = false;
     end
     
     %% STEP 5: add in prev_head and prev_tail if there are no suitable candidates close to them %%
@@ -109,10 +141,13 @@
         uncertain_tips = [uncertain_tips; prev_head; prev_tail];
     end
     uncertain_tips = unique(uncertain_tips, 'rows');
-    if thin_iteration < worm_radius
-        %update the thinning if it decreased
-        new_worm_radius = thin_iteration;
-    else
-        new_worm_radius = worm_radius;
+    if isempty(new_worm_radius) 
+        if thin_iteration < worm_radius
+            %update the thinning if it decreased
+            new_worm_radius = thin_iteration;
+        else
+            new_worm_radius = worm_radius;
+        end
     end
+%    new_worm_radius = worm_radius;
 end
