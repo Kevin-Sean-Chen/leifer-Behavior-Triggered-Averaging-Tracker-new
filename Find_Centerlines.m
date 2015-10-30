@@ -2,7 +2,6 @@ function Tracks = Find_Centerlines(Tracks, curDir, Prefs)
     if isempty(Tracks)
         return
     end
-    %% load eigenvectors for eigenworms
     
     %% Preallocate memory
     track_count = length(Tracks);
@@ -20,8 +19,9 @@ function Tracks = Find_Centerlines(Tracks, curDir, Prefs)
     Tracks(track_count).AspectRatio = [];
     Tracks(track_count).MeanAspectRatio = [];
     Tracks(track_count).ThinningIteration = [];
-%     Tracks(track_count).MeanAngles = [];
-%     Tracks(track_count).ProjectedEigenValues = [];
+    Tracks(track_count).MeanAngle = [];
+    Tracks(track_count).Angles = [];
+    Tracks(track_count).ProjectedEigenValues = [];
     
     %% Extract Centerlines and eigenworms
     parfor_progress([], length(Tracks));
@@ -31,6 +31,11 @@ function Tracks = Find_Centerlines(Tracks, curDir, Prefs)
         worm_images = loaded_file.worm_images;
         Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), Prefs, track_index);
         
+        %smoothing?
+        
+        [angles, Tracks(track_index).MeanAngle] = centerlines_to_angles(Tracks(track_index).Centerlines); %get the angles
+        Tracks(track_index).Angles = angles - (diag(Prefs.MeanAngles)*ones(size(angles))); %mean center
+        Tracks(track_index).ProjectedEigenValues = Prefs.EigenVectors\Tracks(track_index).Angles; %project into PCA space
         parfor_progress([]);
     end
     parfor_progress([], 0);

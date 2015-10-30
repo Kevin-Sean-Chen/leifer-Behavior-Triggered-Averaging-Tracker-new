@@ -1,7 +1,7 @@
 % analysis options
-tracking = 0;
+tracking = 1;
 finding_centerline = 1;
-resolving_problems = 0;
+resolving_problems =1;
 plotting = 1;
 SaveIndividualImages = 1;
 
@@ -33,6 +33,7 @@ end
 %% STEP 2: Load the analysis preferences from Excel %%
 'Initializing...'
 if ~exist('Prefs', 'var')
+    Prefs = load('EigenVectors.mat'); %load eigenvectors for eigenworms
     Prefs.SaveIndividualImages = SaveIndividualImages;
     [~, ComputerName] = system('hostname'); %get the computer name
 
@@ -167,7 +168,7 @@ if resolving_problems
     for folder_index = 1:folder_count
         curDir = folders{folder_index}
 
-        Tracks = resolve_problems(curDir, Prefs);
+        Tracks = auto_resolve_problems(curDir, Prefs);
         saveFileName = [curDir '\tracks.mat'];
         save(saveFileName, 'Tracks');
         AutoSave(curDir, Prefs.DefaultPath);

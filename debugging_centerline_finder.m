@@ -13,6 +13,10 @@ Tracks(track_count).DilationSize = [];
 Tracks(track_count).AspectRatio = [];
 Tracks(track_count).MeanAspectRatio = [];
 Tracks(track_count).ThinningIteration = [];
+Tracks(track_count).MeanAngle = [];
+Tracks(track_count).Angles = [];
+Tracks(track_count).ProjectedEigenValues = [];
+
 for track_index = 217:217
     load(['worm_', num2str(track_index), '.mat']);
     Track = Tracks(track_index);

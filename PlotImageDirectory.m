@@ -11,11 +11,18 @@ function success = PlotImageDirectory(curDir, Prefs)
         success = false;
         return
     end
-
+    
     %% STEP 2: plot individual worms
-    individual_worm_videos(Tracks, curDir, Prefs.SampleRate, Prefs.IndividualVideoPlottingFrameRate);
-            
+    if Prefs.IndividualVideoPlottingFrameRate > 0
+        individual_worm_videos(Tracks, curDir, Prefs.SampleRate, Prefs.IndividualVideoPlottingFrameRate);
+    end
+    
     %% STEP 3: Load images and other properties from the directory %%
+    % check if preferences indicate not to plot
+    if Prefs.PlottingFrameRate <= 0
+        return
+    end
+    
     % Get all the tif file names (probably jpgs)
     image_files = dir([curDir, '\*.tif']); 
     % Load Voltages

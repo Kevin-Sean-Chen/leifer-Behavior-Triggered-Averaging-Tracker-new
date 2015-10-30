@@ -1,7 +1,8 @@
-function [newTracks] = resolve_problems(curDir, Prefs)
-% displays a GUI to help user decide how to resolve centerline problems
+function [newTracks] = auto_resolve_problems(curDir, Prefs)
+% automatically resolve centerline problems
+
+    frames_around_problem_to_cut = 28;
     min_track_length = Prefs.MinTrackLength;
-%     plotting_index = 1;
     if exist([curDir, '\tracks.mat'], 'file') == 2
         load([curDir, '\tracks.mat'])
     else
@@ -13,51 +14,64 @@ function [newTracks] = resolve_problems(curDir, Prefs)
         Track = Tracks(track_index);
         potential_problems = Track.PotentialProblems;
         if sum(potential_problems) > 0
-            loaded_file = load([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat']);
-            worm_images = loaded_file.worm_images;
+            %there is a potential problem in this track
+            frames_with_potential_problems = potential_problems > 0;
+            if sum(frames_with_potential_problems) / length(frames_with_potential_problems) > 0.03 
+                %more than 3% of the frames have issues, lets throw the
+                %track out
+                Modifications(modifications_index).TrackIndex = track_index;
+                Modifications(modifications_index).Action = 1; %delete
+                modifications_index = modifications_index + 1;
+            else
+                %less than 3% of the frames have issues, resolve one by one
+                potential_problems(potential_problems == 1) = 0; %ignore H/T flips
 
-            frames_to_show = conv(single(potential_problems), ones(1, 28), 'same'); %show for 2 sec around the problem
-            frames_to_show = frames_to_show > 0;
-            worm_frame_start_index = 0;
-            while worm_frame_start_index <= size(worm_images, 3)
-                [worm_frame_start_index, worm_frame_end_index] = find_next_section(frames_to_show, worm_frame_start_index, 'f');
-                if isempty(worm_frame_start_index)
-                    break
-                else
-                    %call the gui for resolution
-                    h = resolve_problems_gui(worm_images, Track, worm_frame_start_index, worm_frame_end_index, track_index);
-                    movegui(h, 'center');
-                    uiwait(h);
-                    action = h.UserData{7};
-                    current_frame = h.UserData{6};
-                    close(h);
-                    switch action
-                        %depending on what the user selected, 
-                        case 1
-                            %no action: repress the error
-                            Track.PotentialProblems(worm_frame_start_index:worm_frame_end_index) = -1;
-                        case 2
-                            %flip head/tail before
-                            Track.Centerlines(:,:,1:current_frame) = flip(Track.Centerlines(:,:,1:current_frame),1);
-                        case 3
-                            %flip head/tail after
-                            Track.Centerlines(:,:,current_frame:end) = flip(Track.Centerlines(:,:,current_frame:end),1);
-                        case 4
-                            %delete track
-                            Modifications(modifications_index).TrackIndex = track_index;
-                            Modifications(modifications_index).Action = 1; %delete
-                            modifications_index = modifications_index + 1;
-                            break
-                        case 5
-                            %delete section and split track
-                            Modifications(modifications_index).TrackIndex = track_index;
-                            Modifications(modifications_index).Action = 2;
-                            Modifications(modifications_index).StartFrame = Track.Frames(worm_frame_start_index);
-                            Modifications(modifications_index).EndFrame = Track.Frames(worm_frame_end_index);
-                            modifications_index = modifications_index + 1;
+                frames_to_show = conv(single(potential_problems), ones(1, frames_around_problem_to_cut), 'same'); %show for 2 sec around the problem
+                frames_to_show = frames_to_show > 0;
+                worm_frame_start_index = 0;
+                
+                while worm_frame_start_index <= length(potential_problems)
+                    [worm_frame_start_index, worm_frame_end_index] = find_next_section(frames_to_show, worm_frame_start_index, 'f');
+                    if isempty(worm_frame_start_index)
+                        break
+                    else
+                        %determine what action to take
+                        if abs(worm_frame_end_index-worm_frame_start_index) == frames_around_problem_to_cut
+                            %there is only one frame that is bad
+                            action = 1;
+                        else
+                            %there are multiple frames that are bad. cut
+                            %them
+                            action = 5;
+                        end
+                        switch action
+                            %depending on what the user selected, 
+                            case 1
+                                %no action: repress the error
+                                Track.PotentialProblems(worm_frame_start_index:worm_frame_end_index) = -1;
+                            case 2
+                                %flip head/tail before
+                                Track.Centerlines(:,:,1:current_frame) = flip(Track.Centerlines(:,:,1:current_frame),1);
+                            case 3
+                                %flip head/tail after
+                                Track.Centerlines(:,:,current_frame:end) = flip(Track.Centerlines(:,:,current_frame:end),1);
+                            case 4
+                                %delete track
+                                Modifications(modifications_index).TrackIndex = track_index;
+                                Modifications(modifications_index).Action = 1; %delete
+                                modifications_index = modifications_index + 1;
+                                break
+                            case 5
+                                %delete section and split track
+                                Modifications(modifications_index).TrackIndex = track_index;
+                                Modifications(modifications_index).Action = 2;
+                                Modifications(modifications_index).StartFrame = Track.Frames(worm_frame_start_index);
+                                Modifications(modifications_index).EndFrame = Track.Frames(worm_frame_end_index);
+                                modifications_index = modifications_index + 1;
+                        end
                     end
+                    worm_frame_start_index = worm_frame_end_index + 1;
                 end
-                worm_frame_start_index = worm_frame_end_index + 1;
             end
         end
     end
@@ -119,9 +133,10 @@ function [newTracks] = resolve_problems(curDir, Prefs)
                     save([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index+saveindex-1), '.mat'], 'worm_images');
                 end
                 
-                split_tracks = rmfield(split_tracks, 'WormImages');
-                
-                newTracks = [newTracks, split_tracks];
+                if ~isempty(split_tracks)
+                    split_tracks = rmfield(split_tracks, 'WormImages');
+                    newTracks = [newTracks, split_tracks];
+                end
                 current_track_index = length(newTracks) + 1;
             end
         else

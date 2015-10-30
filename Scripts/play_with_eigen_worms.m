@@ -1,4 +1,4 @@
-center_lines = cat(3,Tracks(47).Centerlines);
+center_lines = cat(3,Tracks.Centerlines);
 thetas = centerlines_to_angles(center_lines);
 
 [eigen_values, eigen_vectors] = myPCA(thetas);
@@ -28,23 +28,19 @@ axis([0 PCsToPlot 0 110]);
 % %the first two principal componets explain 66.42 percent of the variance
 
 %plot the first 4 principle components
+PCsToPlot = 19;
 figure
-plot(1:length(eigen_vectors), eigen_vectors(:,1))
-xlabel('Position Along the Worm')
-ylabel('PC1 Loadings')
-figure
-plot(1:length(eigen_vectors), eigen_vectors(:,2))
-xlabel('Position Along the Worm')
-ylabel('PC2 Loadings')
-figure
-plot(1:length(eigen_vectors), eigen_vectors(:,3))
-xlabel('Position Along the Worm')
-ylabel('PC3 Loadings')
-figure
-plot(1:length(eigen_vectors), eigen_vectors(:,4))
-xlabel('Position Along the Worm')
-ylabel('PC4 Loadings')
-
+hold all
+my_legend = {};
+for pc = 1:PCsToPlot
+    %subplot(4,ceil(PCsToPlot/4),pc)
+    plot(1:length(eigen_vectors), eigen_vectors(:,pc))
+    xlabel('Position Along the Worm')
+    %ylabel(['PC', num2str(pc), ' Loadings'])
+    my_legend = [my_legend, ['PC', num2str(pc)]];
+    ylabel('PC Loadings')
+end
+legend(my_legend)
 
 mean_centered_thetas = thetas - (diag(mean(thetas, 2))*ones(size(thetas)));
 projected_matrix = eigen_vectors\mean_centered_thetas; %inv(eigen_vectors)*mean_centered_thetas
