@@ -33,15 +33,19 @@ function [] = PlotExperimentGroup (Experiments)
         if plot_BTA
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(experiment_index-1) + BTA_plot_number);
             hold on
-            shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, Experiments(experiment_index).BTA, 2/sqrt(Experiments(experiment_index).pirouetteCount)*ones(1,length(Experiments(experiment_index).BTA)));
+            shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, Experiments(experiment_index).BTA, 2/sqrt(Experiments(experiment_index).pirouetteCount)*ones(1,length(Experiments(experiment_index).BTA)), {'-k', 'Linewidth', 3});
             meanLEDVoltageY = zeros(1,length(Experiments(experiment_index).BTA));
             meanLEDVoltageY(:) = Experiments(experiment_index).meanLEDVoltage;
-            plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r')
+            plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r', 'Linewidth', 3)
             hold off
-            xlabel(strcat('second (', num2str(Experiments(experiment_index).pirouetteCount), ' behaviors analyzed)')) % x-axis label
-            ylabel('voltage') % y-axis label
-            %axis([-10 2 0.64 0.84])
+            xlabel(strcat('Time (s) (', num2str(Experiments(experiment_index).pirouetteCount), ' reversals analyzed)')) % x-axis label
+            ylabel('Stimulus Intensity (V)') % y-axis label
+            axis([-10 2 0.64 0.84])
             %axis([-10 2 0 5])
+            ax = gca;
+            %ax.XTick = ;
+            ax.YTick = linspace(0.64,0.84,5);
+            ax.FontSize = 15;
         end
         
         %plot speed
@@ -93,17 +97,32 @@ function [] = PlotExperimentGroup (Experiments)
         end
         
         bin_centers = Experiments(experiment_index).bin_edges(1:end-1)+(diff(Experiments(experiment_index).bin_edges(1:2)/2));
+%        non_linearity_fit = fit(bin_centers',non_linearity','exp1');   %refit of necessary
         non_linearity_fit = Experiments(experiment_index).non_linearity_fit;
         Experiments(experiment_index).exp_fit_a = non_linearity_fit.a;
         Experiments(experiment_index).exp_fit_b = non_linearity_fit.b;
         
         %plot non linearity
         if plot_non_linearity
-            non_linearity = Experiments(experiment_index).filtered_signal_given_reversal_histogram ./ Experiments(experiment_index).filtered_signal_histogram;
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(experiment_index-1) + non_linearity_plot_number);
+            non_linearity = Experiments(experiment_index).filtered_signal_given_reversal_histogram ./ Experiments(experiment_index).filtered_signal_histogram*60*fps;
+            fig = gcf;
+            prev_line_marker_size = get(fig,'DefaultLineMarkerSize');
+            prev_line_width = get(fig,'DefaultLineLineWidth');
+            set(fig,'DefaultLineMarkerSize',30);
+            set(fig,'DefaultLineLineWidth',5)
             plot(non_linearity_fit,bin_centers,non_linearity)
-            xlabel('filtered signal (a.u.)') % x-axis label
-            ylabel('reversal rate (behaviors/worm/min)') % y-axis label
+            axis([-3 4 0 3])
+            ax = gca;
+            %ax.XTick = ;
+            %ax.YTick = linspace(0.64,0.84,5);
+            ax.FontSize = 15;
+
+            xlabel('Filtered Signal (a.u.)') % x-axis label
+            ylabel('Reversal Rate (Reversals/Min)') % y-axis label
+            legend('off')
+            set(fig,'DefaultLineMarkerSize',prev_line_marker_size);
+            set(fig,'DefaultLineLineWidth',prev_line_width)
         end
         
         %plot it along along with the rate of behaviors
@@ -112,7 +131,6 @@ function [] = PlotExperimentGroup (Experiments)
             hold on
             %plot(Experiments(experiment_index).FilteredSignal/max(Experiments(experiment_index).FilteredSignal));
             %plot(Experiments(experiment_index).ReversalRate/max(Experiments(experiment_index).ReversalRate));
-            
             plot(Experiments(experiment_index).ReversalRate, 'bo-')
             xlabel(['minutes (', num2str(sum(Experiments(experiment_index).ReversalCounts)), ' reversals analyzed) average reversal rate = ', num2str(sum(Experiments(experiment_index).ReversalCounts)/sum(Experiments(experiment_index).FrameCounts)*fps*60)]) % x-axis label
             ylabel('reversals per worm per min') % y-axis label
