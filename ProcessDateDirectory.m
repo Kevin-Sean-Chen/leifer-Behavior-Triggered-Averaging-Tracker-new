@@ -156,7 +156,6 @@ if finding_centerline
             save(saveFileName, 'Tracks');
             AutoSave(curDir, Prefs.DefaultPath);
         end
-
     end 
     poolobj = gcp('nocreate'); 
     delete(poolobj);
