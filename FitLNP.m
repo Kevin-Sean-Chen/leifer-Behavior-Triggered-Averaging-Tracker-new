@@ -65,7 +65,7 @@ function [linear_kernel, non_linearity_fit, BTA, meanLEDVoltage, pirouetteCount,
 %     bar(bin_edges(1:end-1), filtered_signal_given_reversal_histogram');
 %     set(gca,'XTick',round(bin_edges*100)/100)
 
-    non_linearity = filtered_signal_given_reversal_histogram ./ filtered_signal_histogram;
+    non_linearity = filtered_signal_given_reversal_histogram ./ filtered_signal_histogram * 60 *fps;
     bin_centers = bin_edges(1:end-1)+(diff(bin_edges(1:2)/2));
     non_linearity_fit = fit(bin_centers',non_linearity','exp1');
 
