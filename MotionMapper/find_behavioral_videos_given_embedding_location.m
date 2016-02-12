@@ -28,23 +28,58 @@ hold off
 close
 selected_point = [x(1), y(1)];
 
-%get N complete training points
-[~,training_indecies_ordered_by_distance] = pdist2(trainingEmbedding,selected_point,'euclidean','Smallest',size(trainingEmbedding,1));
-possible_tracks = trainingTracks(training_indecies_ordered_by_distance);
-possible_frames = trainingFrames(training_indecies_ordered_by_distance);
+% %get N complete training points based on closeness to the selected point
+% [~,training_indecies_ordered_by_distance] = pdist2(trainingEmbedding,selected_point,'euclidean','Smallest',size(trainingEmbedding,1));
+% possible_tracks = trainingSetTracks(training_indecies_ordered_by_distance);
+% possible_frames = trainingSetFrames(training_indecies_ordered_by_distance);
+
+% get N complete training points based on watershed region
+
+watershed_x = SpaceMapping(selected_point(1),xx);
+watershed_y = SpaceMapping(selected_point(2),xx);
+watershed_region = L(watershed_y, watershed_x); %get the watershed region index
+
+%find all training points in the region
+[watershed_ii,watershed_jj] = find(L==watershed_region);
+watershed_space_embedding = SpaceMapping(trainingEmbedding,xx);
+training_indecies_in_watershed = find(ismember(watershed_space_embedding,[watershed_jj,watershed_ii],'rows'));
+training_indecies_in_watershed = training_indecies_in_watershed(randperm(length(training_indecies_in_watershed))); %randomize order
+possible_tracks = trainingSetTracks(training_indecies_in_watershed);
+possible_frames = trainingSetFrames(training_indecies_in_watershed);
+
 selected_training_indecies = [];
+selected_tracks = [];
+selected_frames = [];
 current_index = 1;
 while length(selected_training_indecies) < N
-    current_track_length = length(allTracks(possible_tracks(current_index)).Frames);
+    current_track_number = possible_tracks(current_index);
+    current_track_length = length(allTracks(current_track_number).Frames);
     current_frame_number = possible_frames(current_index);
     if current_frame_number - frames_before < 1 || current_frame_number + frames_after > current_track_length
-        %this point will be cut out
+        %this point will be cut out at some point, throw it out
     else
-        selected_training_indecies = [selected_training_indecies, training_indecies_ordered_by_distance(current_index)];
+        data_point_accepted = false;
+        if ismember(current_track_number, selected_tracks)
+            previously_found_indecies = find(selected_tracks==current_track_number);
+            previously_found_frames = selected_frames(previously_found_indecies);
+            covered_frames = current_frame_number-frames_before:current_frame_number+frames_after;
+            if ~sum(ismember(previously_found_frames,covered_frames))               
+                %this track has been represented, but this behavior is out
+                %of range
+                data_point_accepted = true;
+            end
+        else
+            %this track has not been represented
+            data_point_accepted = true;
+        end
+        if data_point_accepted
+            selected_training_indecies = [selected_training_indecies, training_indecies_in_watershed(current_index)];
+            selected_tracks = [selected_tracks, current_track_number];
+            selected_frames = [selected_frames, current_frame_number];  
+        end
     end
     current_index = current_index + 1;
 end
-
 
 selected_embedded_points = trainingEmbedding(selected_training_indecies, :);
 
@@ -52,8 +87,8 @@ selected_embedded_points = trainingEmbedding(selected_training_indecies, :);
 figure('Position', [500, 500, size(xx,2), size(xx,2)])
 hold on
 imagesc(xx,xx,density)
-%plot(selected_embedded_points(:,1), selected_embedded_points(:,2), '.m', 'MarkerSize', 50)
-plot(selected_point(:,1), selected_point(:,2), 'om', 'MarkerSize', 30, 'LineWidth', 3)
+plot(selected_embedded_points(:,1), selected_embedded_points(:,2), '*m', 'MarkerSize', 10)
+%plot(selected_point(:,1), selected_point(:,2), 'om', 'MarkerSize', 30, 'LineWidth', 3)
 plot(xx(jj),xx(ii),'k.')
 axis equal tight off xy
 caxis([0 maxDensity * .8])
@@ -62,8 +97,8 @@ hold off
 set(gca,'position',[0 0 1 1],'units','normalized')
 
 %% plot the behaviors
-selected_tracks = trainingTracks(selected_training_indecies);
-selected_frames = trainingFrames(selected_training_indecies);
+selected_tracks = trainingSetTracks(selected_training_indecies);
+selected_frames = trainingSetFrames(selected_training_indecies);
 
 %load the worm images
 required_worm_images(N).worm_images = [];
@@ -74,7 +109,7 @@ for worm_images_index = 1:N
 end
 
 
-behavior_figure = figure('Position', [100, 100, 400, 400]);
+behavior_figure = figure('Position', [500, 500, 400, 400]);
 outputVideo = VideoWriter('debug.mp4','MPEG-4');
 outputVideo.FrameRate = 14;
 open(outputVideo)

@@ -45,7 +45,7 @@ function [zValues,outputStatistics] = ...
     numModes = parameters.pcaModes;
     numPeriods = parameters.numPeriods;
     
-    if d == numModes*numPeriods
+%     if d == numModes*numPeriods
         
         data = projections;
         data(:) = bsxfun(@rdivide,data,sum(data,2));
@@ -55,13 +55,13 @@ function [zValues,outputStatistics] = ...
         Ts = minT.*2.^((0:numPeriods-1).*log(maxT/minT)/(log(2)*(numPeriods-1)));
         f = fliplr(1./Ts);
         
-    else
-        
-        fprintf(1,'Finding Wavelets\n');
-        [data,f] = findWavelets(projections,numModes,parameters);
-        data(:) = bsxfun(@rdivide,data,sum(data,2));
-        
-    end
+%     else
+%         
+%         fprintf(1,'Finding Wavelets\n');
+%         [data,f] = findWavelets(projections,numModes,parameters);
+%         data(:) = bsxfun(@rdivide,data,sum(data,2));
+%         
+%     end
     
     fprintf(1,'Finding Embeddings\n');
     [zValues,zCosts,zGuesses,inConvHull,meanMax,exitFlags] = ...

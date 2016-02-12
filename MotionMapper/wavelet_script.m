@@ -1,7 +1,16 @@
-% Projections = {Tracks.ProjectedEigenValues};
-% Projections = cellfun(@transpose, Projections, 'UniformOutput', false);
+%% STEP 1: set up parameters
+parameters.numProcessors = 7;
+parameters.numProjections = 19;
+parameters.pcaModes = 5;
+parameters.samplingFreq = 14;
+parameters.minF = 0.3;
+parameters.maxF = 7;
+parameters.trainingSetSize = 25000;
+parameters.subsamplingIterations = 10;
+parameters = setRunParameters(parameters);
+SaveIndividualImages = 1;
 
-%% get the experiment folders
+%% STEP 2: get the experiment folders
 folders = [];
 while true
     if isempty(folders)
@@ -16,8 +25,81 @@ while true
         folders{length(folders)+1} = folder_name;
     end
 end
+%% STEP 2: Load the analysis preferences from Excel %%
+'Initializing...'
+if ~exist('Prefs', 'var')
+    Prefs = load('EigenVectors.mat'); %load eigenvectors for eigenworms
+    Prefs.SaveIndividualImages = SaveIndividualImages;
+    [~, ComputerName] = system('hostname'); %get the computer name
 
-%% load the tracks
+    %Get Tracker default Prefs from Excel file
+    ExcelFileName = 'Worm Tracker Preferences';
+    WorkSheet = 'Tracker Prefs';
+    [N, T, D] = xlsread(ExcelFileName, WorkSheet);
+    for computer_index = 1:size(T,2)
+        if strcmp(T{1,computer_index}, strtrim(ComputerName))
+            break
+        end
+    end
+    computer_index = computer_index - 1; % the first column does not count
+    Prefs.MinWormArea = N(1,computer_index);
+    Prefs.MaxWormArea = N(2,computer_index);
+    Prefs.MaxDistance = N(3,computer_index);
+    Prefs.SizeChangeThreshold = N(4,computer_index);
+    Prefs.MinTrackLength = N(5,computer_index);
+    Prefs.AutoThreshold = N(6,computer_index);
+    Prefs.CorrectFactor = N(7,computer_index);
+    Prefs.ManualSetLevel = N(8,computer_index);
+    Prefs.DarkObjects = N(9,computer_index);
+    Prefs.PlotRGB = N(10,computer_index);
+    Prefs.PauseDuringPlot = N(11,computer_index);
+    Prefs.PlotObjectSizeHistogram = N(12,computer_index);
+    if exist(T{14,computer_index+1}, 'file')
+       %get the mask
+       Prefs.Mask = imread(T{14,computer_index+1}); 
+    else
+       Prefs.Mask = 0;
+    end
+    Prefs.MaxObjects = N(14,computer_index);
+    Prefs.PlottingFrameRate = N(15,computer_index);
+    Prefs.IndividualVideoPlottingFrameRate = N(16,computer_index);
+    
+    WorkSheet = 'Analysis Prefs';
+    [N, T, D] = xlsread(ExcelFileName, WorkSheet);
+    for computer_index = 1:size(T,2)
+        if strcmp(T{1,computer_index}, strtrim(ComputerName))
+            break
+        end
+    end
+    computer_index = computer_index - 1; % the first column does not count
+    Prefs.SampleRate = N(1,computer_index);
+    Prefs.SmoothWinSize = N(2,computer_index);
+    Prefs.StepSize = N(3,computer_index);
+    Prefs.PlotDirection = N(4,computer_index);
+    Prefs.PlotSpeed = N(5,computer_index);
+    Prefs.PlotAngSpeed = N(6,computer_index);
+    Prefs.PirThresh = N(7,computer_index);
+    Prefs.MaxShortRun = N(8,computer_index);
+    Prefs.FFSpeed = N(9,computer_index);
+    Prefs.PixelSize = 1/N(10,computer_index);
+    Prefs.BinSpacing = N(11,computer_index);
+    Prefs.MaxSpeedBin = N(12,computer_index);
+    Prefs.P_MaxSpeed = N(13,computer_index);
+    Prefs.P_TrackFraction = N(14,computer_index);
+    Prefs.P_WriteExcel = N(15,computer_index);
+    Prefs.MinDisplacement = N(17,computer_index);
+    Prefs.PirSpeedThresh = N(18,computer_index);
+    Prefs.EccentricityThresh = N(19,computer_index);
+    Prefs.PauseSpeedThresh = N(20,computer_index);
+    Prefs.MinPauseDuration = N(21,computer_index);   
+    Prefs.MaxBackwardsFrames = N(22,computer_index) * Prefs.SampleRate;
+    Prefs.DefaultPath = T{17,computer_index+1};
+    Prefs.ImageSize = [N(23,computer_index), N(23,computer_index)];   
+    Prefs.MinAverageWormArea = N(24,computer_index);
+    Prefs.ProgressDir = pwd;
+end
+
+%% STEP 3: load the tracks into memory
 allTracks = struct([]);
 folder_indecies = [];
 track_indecies = [];
@@ -34,28 +116,34 @@ end
 
 Projections = {allTracks.ProjectedEigenValues};
 clear('Tracks');
-
-%% set up parameters
-parameters.numProcessors = 7;
-parameters.numProjections = 19;
-parameters.pcaModes = 5;
-parameters.samplingFreq = 14;
-parameters.minF = 0.3;
-parameters.maxF = 7;
-parameters.trainingSetSize = 25000;
-parameters = setRunParameters(parameters);
-
 L = length(Projections);
 
 
-%% generate spectra
+%% STEP 4: generate spectra
 poolobj = gcp('nocreate'); 
 if isempty(poolobj)
     parpool(7)
 end
-Spectra = cell(size(Projections));
+Spectra = cell(1,L); %full wavelet transform
+SpectraFrames = cell(1,L); %keep track of each datapoint's frame indecies
+SpectraTracks = cell(1,L); %keep track of each datapoint's track index
+%datapoint_count = 1;
 for track_index = 1:L
-    [Spectra{track_index},f] = findWavelets(Projections{track_index}',parameters.pcaModes,parameters);  
+    [feature_vector,f] = findWavelets(Projections{track_index}',parameters.pcaModes,parameters);  
+    
+    %find phase velocity and add it to the spectra
+    phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, Prefs);
+    forward_vector = zeros(length(phi_dt),1);
+    forward_vector(phi_dt > 0) = 1;
+    forward_vector = forward_vector + 1;
+    Spectra{track_index} = [feature_vector, forward_vector];
+    
+    SpectraFrames{track_index} = 1:size(Spectra{track_index},1);
+    SpectraTracks{track_index} = repmat(track_index,1,size(Spectra{track_index},1));
+    
+    
+%    SpectraFrames{track_index} = datapoint_count:datapoint_count+size(Spectra{track_index},1);
+%    datapoint_count = datapoint_count + size(Spectra{track_index},1) + 1;
 end
 poolobj = gcp('nocreate'); 
 delete(poolobj);
@@ -80,60 +168,167 @@ f = fliplr(f);
 %     end
 % end
 
-%% Embed training set
-data = vertcat(Spectra{:});
+
+%% STEP 5: Get a set of "training spectra" without edge effects
+TrainingSpectra = cell(1,L);
+TrainingSpectraFrames = cell(1,L);
+TrainingSpectraTracks = cell(1,L);
+edgeEffectTime = round(sqrt(1/parameters.minF)*parameters.samplingFreq);
+for track_index = 1:L
+    TrainingSpectra{track_index} = Spectra{track_index}(edgeEffectTime:end-edgeEffectTime,:);
+    TrainingSpectraFrames{track_index} = SpectraFrames{track_index}(edgeEffectTime:end-edgeEffectTime);
+    TrainingSpectraTracks{track_index} = SpectraTracks{track_index}(edgeEffectTime:end-edgeEffectTime);  
+end
+
+%% STEP 6A: initialize training input
+training_input_data = vertcat(TrainingSpectra{:}); %these timpoints will be randomly sampled from
+training_input_frames = [TrainingSpectraFrames{:}];
+training_input_tracks = [TrainingSpectraTracks{:}];
+
+%% STEP 6B Option 1: Find training set by sampling uniformly
+data = vertcat(TrainingSpectra{:});
+% weigh the phase velocity as a PCA mode (1/5)
+phase_velocity = data(:,end) ./ parameters.pcaModes;
+
+% normalize without the phase velocity
+data = data(:,1:end-1);
+amps = sum(data,2);
+data(:) = bsxfun(@rdivide,data,amps);
+data = [data, phase_velocity];
+
 amps = sum(data,2);
 data(:) = bsxfun(@rdivide,data,amps);
 
 skipLength = round(length(data(:,1))/parameters.trainingSetSize);
 
 trainingSetData = data(skipLength:skipLength:end,:);
-trainingAmps = amps(skipLength:skipLength:end);
-trainingKey = 1:size(data,1);
-trainingKey = trainingKey(skipLength:skipLength:end);
-parameters.signalLabels = log10(trainingAmps);
+trainingSetAmps = amps(skipLength:skipLength:end);
+
+trainingSetFrames = training_input_frames(skipLength:skipLength:end);
+trainingSetTracks = training_input_tracks(skipLength:skipLength:end);
+
+
+% %% STEP 6B Option 2: Find training set by embedding several iterations
+% 
+% %normalize by power
+% training_input_amps = sum(training_input_data,2);
+% training_input_data(:) = bsxfun(@rdivide,training_input_data,training_input_amps); 
+% training_input_data(:,end) = training_input_data(:,end) * length(f); %the weight of the binary phase velocity vector is set to be 1 PCA
+% 
+% %constants
+% N = parameters.trainingSetSize;
+% iterations = parameters.subsamplingIterations;
+% numPerDataSet = round(N/iterations);
+% 
+% if iterations*N > size(training_input_data, 1)
+%     error('too many t-SNE iterations, not enough data')
+% end
+% 
+% trainingSetData = zeros(numPerDataSet*iterations,size(training_input_data,2));
+% trainingSetAmps = zeros(numPerDataSet*iterations,1);
+% trainingSetTracks = zeros(numPerDataSet*iterations,1);
+% trainingSetFrames = zeros(numPerDataSet*iterations,1);
+% 
+% for iteration_index = 1:iterations
+%     fprintf(1,['Finding training set contributions from data set #' ...
+%     num2str(iteration_index) '\n']);
+% 
+%     currentIdx = (1:numPerDataSet) + (iteration_index-1)*numPerDataSet;
+% 
+%     %randomly sample without replacement from our data
+%     [iteration_data, sampled_indecies] = datasample(training_input_data,N,1,'replace',false);
+%     iteration_amps = training_input_amps(sampled_indecies,:);
+%     
+%     %run t-SNE embedding
+%     [iterationEmbedding,~,~,~] = run_tSne(iteration_data,parameters);
+% 
+%     %find the templates
+%     [trainingSetData(currentIdx,:),trainingSetAmps(currentIdx),selectedIndecies] = ...
+%     findTemplatesFromData(iteration_data,iterationEmbedding,iteration_amps,...
+%                         numPerDataSet,parameters,sampled_indecies);
+%     trainingSetFrames(currentIdx) = training_input_frames(selectedIndecies);
+%     trainingSetTracks(currentIdx) = training_input_tracks(selectedIndecies);
+%     
+%     %delete the points because we are sampling without replacement
+%     training_input_data(sampled_indecies, :) = [];
+%     training_input_amps(sampled_indecies, :) = [];
+%     training_input_frames(sampled_indecies) = [];
+%     training_input_tracks(sampled_indecies) = [];    
+% end
+% 
+% %clean memory
+% clear iteration_data iteration_amps sampled_indecies iterationEmbedding
+% clear training_input_data training_input_frames training_input_tracks training_input_amps
+
+%% STEP 7: Embed the training set 
+%clear memory
+clear TrainingSpectra TrainingSpectraFrames TrainingSpectraTracks
+
+parameters.signalLabels = log10(trainingSetAmps);
 
 fprintf(1,'Finding t-SNE Embedding for Training Set\n');
 [trainingEmbedding,betas,P,errors] = run_tSne(trainingSetData,parameters);
 
 
-%% Find All Embeddings
-
+%% STEP 8: Find All Embeddings
 fprintf(1,'Finding t-SNE Embedding for all Data\n');
 % embeddingValues = cell(L,1);
 % i=1;
+data = vertcat(Spectra{:});
+% weigh the phase velocity as a PCA mode (1/5)
+phase_velocity = data(:,end) ./ parameters.pcaModes;
+
+% normalize without the phase velocity
+data = data(:,1:end-1);
+amps = sum(data,2);
+data(:) = bsxfun(@rdivide,data,amps);
+data = [data, phase_velocity];
+
+amps = sum(data,2);
+data(:) = bsxfun(@rdivide,data,amps);
 
 [embeddingValues,~] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters); %[embeddingValues{i},~]
+clear data
 
-
-%% cut the embeddings and generate trainingTracks and trainingFrames
+%% STEP 9: cut the embeddings
 Embeddings = cell(size(Spectra));
-trainingTracks = zeros(length(trainingKey),1);
-trainingFrames = zeros(length(trainingKey),1);
+% trainingTracks = zeros(length(trainingKey),1);
+% trainingFrames = zeros(length(trainingKey),1);
 start_index = 1;
 training_start_index = 1;
 for track_index = 1:length(Spectra)
     end_index = start_index + size(Spectra{track_index},1) - 1;
     Embeddings{track_index} = embeddingValues(start_index:end_index, :);
-    dataIndecies = trainingKey(trainingKey >= start_index & trainingKey <= end_index);
-    training_end_index = training_start_index + length(dataIndecies) - 1;
-    trainingTracks(training_start_index:training_end_index) = track_index;
-    trainingFrames(training_start_index:training_end_index) = dataIndecies - start_index + 1;
-    
-    training_start_index = training_end_index + 1;
+%     dataIndecies = trainingKey(trainingKey >= start_index & trainingKey <= end_index);
+%     training_end_index = training_start_index + length(dataIndecies) - 1;
+%     trainingTracks(training_start_index:training_end_index) = track_index;
+%     trainingFrames(training_start_index:training_end_index) = dataIndecies - start_index + 1;
+%     
+%     training_start_index = training_end_index + 1;
     start_index = end_index + 1;
 end
 clear trainingKey
 
-%% Make density plots
-maxVal = max(max(abs(combineCells(Embeddings))));
+%% STEP 10: Find watershed regions
+maxVal = max(max(abs(embeddingValues)));
 maxVal = round(maxVal * 1.1);
+% NS = createns(yData);
+% [~,D] = knnsearch(NS,yData,'K',kdNeighbors+1);
+sigma = 2.5;%median(D(:,kdNeighbors+1));
+[xx,density] = findPointDensity(embeddingValues,sigma,501,[-maxVal maxVal]);
+density(density < 10e-6) = 0;
+L = watershed(-density,8);
+[ii,jj] = find(L==0);
 
-sigma = maxVal / 40;
-numPoints = 501;
-rangeVals = [-maxVal maxVal];
-
-[xx,density] = findPointDensity(combineCells(Embeddings),sigma,numPoints,rangeVals);
+%% STEP 11: Make density plots
+% maxVal = max(max(abs(embeddingValues)));
+% maxVal = round(maxVal * 1.1);
+% 
+% sigma = maxVal / 40;
+% numPoints = 501;
+% rangeVals = [-maxVal maxVal];
+% 
+% [xx,density] = findPointDensity(embeddingValues,sigma,numPoints,rangeVals);
 maxDensity = max(density(:));
 
 % densities = zeros(numPoints,numPoints,L);
@@ -148,7 +343,7 @@ for track_index = 1:length(allTracks);
     save_file = fullfile([folders{folder_indecies(track_index)}, '\individual_worm_imgs\behaviormap_', num2str(track_indecies(track_index))]);
     load(image_file);
 
-    behavior_figure = figure('Position', [100, 100, 500, 250]);
+    behavior_figure = figure('Position', [500, 500, 500, 250]);
     outputVideo = VideoWriter(save_file,'MPEG-4');
     outputVideo.FrameRate = 14;
     open(outputVideo)

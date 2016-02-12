@@ -1,13 +1,16 @@
-function [signalData,signalAmps] = findTemplatesFromData(...
-                    signalData,yData,signalAmps,numPerDataSet,parameters)
+function [signalData,signalAmps,signalIndecies] = findTemplatesFromData(...
+                    signalData,yData,signalAmps,numPerDataSet,parameters,signalIndecies)
 %findTemplatesFromData finds the training set contributions 
 %from a single file (called by runEmbeddingSubSampling.m) 
-
+    
+    if nargin < 6
+        signalIndecies = 1:size(signalData,1);
+    end
 
     kdNeighbors = parameters.kdNeighbors;
     minTemplateLength = parameters.minTemplateLength;
     
-    plotsOn = false;
+    plotsOn = true;
     
     
     fprintf(1,'\t Finding Templates\n');
@@ -20,6 +23,7 @@ function [signalData,signalAmps] = findTemplatesFromData(...
     d = length(signalData(1,:));
     selectedData = zeros(numPerDataSet,d);
     selectedAmps = zeros(numPerDataSet,1);
+    selectedIndecies = zeros(numPerDataSet,1);
     
     numInGroup = round(numPerDataSet*templateLengths/sum(templateLengths));
     numInGroup(numInGroup == 0) = 1;
@@ -46,14 +50,16 @@ function [signalData,signalAmps] = findTemplatesFromData(...
     for j=1:N;
         
         amps = signalAmps(vals == j);
+        indecies = signalIndecies(vals == j);
         
         idx2 = randperm(length(templates{j}(:,1)),numInGroup(j));
         selectedData(cumSumGroupVals(j)+1:cumSumGroupVals(j+1),:) = templates{j}(idx2,:);
         selectedAmps(cumSumGroupVals(j)+1:cumSumGroupVals(j+1)) = amps(idx2);
+        selectedIndecies(cumSumGroupVals(j)+1:cumSumGroupVals(j+1)) = indecies(idx2);
         
     end
     
     signalData = selectedData;
     signalAmps = selectedAmps;
-    
+    signalIndecies = selectedIndecies;
     

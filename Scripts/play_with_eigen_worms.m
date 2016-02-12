@@ -1,7 +1,7 @@
 center_lines = cat(3,Tracks.Centerlines);
 thetas = centerlines_to_angles(center_lines);
 
-[eigen_values, eigen_vectors] = myPCA(thetas);
+[eigen_values, EigenVectors] = myPCA(thetas);
 eigen_values = sum(eigen_values,2);
 totalvar = sum(sum(eigen_values,2));
 
@@ -33,24 +33,27 @@ figure
 hold all
 my_legend = {};
 for pc = 1:PCsToPlot
-    %subplot(4,ceil(PCsToPlot/4),pc)
-    plot(1:length(eigen_vectors), eigen_vectors(:,pc))
+    subplot(4,ceil(PCsToPlot/4),pc)
+    plot(1:length(EigenVectors), EigenVectors(:,pc))
     xlabel('Position Along the Worm')
-    %ylabel(['PC', num2str(pc), ' Loadings'])
-    my_legend = [my_legend, ['PC', num2str(pc)]];
-    ylabel('PC Loadings')
+    ylabel(['PC', num2str(pc), ' Loadings'])
+    %my_legend = [my_legend, ['PC', num2str(pc)]];
+    %('PC Loadings')
 end
-legend(my_legend)
+%legend(my_legend)
 
-mean_centered_thetas = thetas - (diag(mean(thetas, 2))*ones(size(thetas)));
-projected_matrix = eigen_vectors\mean_centered_thetas; %inv(eigen_vectors)*mean_centered_thetas
+MeanAngles = mean(thetas, 2);
+mean_centered_thetas = thetas - (diag(MeanAngles)*ones(size(thetas)));
+projected_matrix = EigenVectors\mean_centered_thetas; %inv(eigen_vectors)*mean_centered_thetas
 
-x = transpose(projected_matrix(1,:));
-y = transpose(projected_matrix(2,:));
+x = transpose(projected_matrix(2,:));
+y = transpose(projected_matrix(3,:));
 
 %normalize x and y to be on the same scale (this is done in the paper)
-x = x / sqrt((dot(x,x)/size(x,1)));
-y = y / sqrt((dot(y,y)/size(y,1)));
+PCxScale = sqrt((dot(x,x)/size(x,1)));
+PCyScale = sqrt((dot(y,y)/size(y,1)));
+x = x / PCxScale;
+y = y / PCyScale;
 %make a histogram
 N = hist3([x y],{-2:.1:2,-2:.1:2}); %count up the frequencies for this bivariate histogram
 N = N / sum(sum(N)); %normalize so that N is a proper probability distribution

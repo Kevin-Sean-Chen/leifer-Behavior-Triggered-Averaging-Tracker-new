@@ -191,9 +191,8 @@ function parameters = setRunParameters(parameters)
     %minimum training set template length
     minTemplateLength = 1;
     
-    
-    
-    
+    %number of iterataions of t-SNE to perform to subsample
+    subsamplingIterations = 10;
     
     
     
@@ -477,6 +476,9 @@ function parameters = setRunParameters(parameters)
         parameters.minTemplateLength = minTemplateLength;
     end
     
+    if ~isfield(parameters,'subsamplingIterations') || isempty(parameters.subsamplingIterations)
+        parameters.subsamplingIterations = subsamplingIterations;
+    end
     
     if ~isfield(parameters,'pcaNumPerFile') || isempty(parameters.pcaNumPerFile)
         parameters.pcaNumPerFile = pcaNumPerFile;
