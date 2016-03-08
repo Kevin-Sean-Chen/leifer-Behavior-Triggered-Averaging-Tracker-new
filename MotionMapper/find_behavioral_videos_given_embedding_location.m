@@ -1,4 +1,4 @@
-%% plotting constants 
+%% STEP 1: establish plotting constants 
 N_rows = 4;
 N_columns = 4;
 N = N_rows*N_columns;
@@ -6,7 +6,16 @@ fps = 14;
 frames_before = 5*fps-1;
 frames_after = 5*fps;
 
-%% allow user to select the point
+%% STEP 2: allow user to select the filename to save as
+[filename,pathname] = uiputfile('*.mp4','Save Watershed Region As');
+if isequal(filename,0) || isequal(pathname,0)
+    %cancel
+   return
+end
+saveFileName = fullfile(pathname,filename);
+
+
+%% STEP 3: allow user to select the point
 % maxVal = max(max(abs(combineCells(Embeddings))));
 % maxVal = round(maxVal * 1.1);
 % sigma = maxVal / 40;
@@ -28,25 +37,25 @@ hold off
 close
 selected_point = [x(1), y(1)];
 
-% %get N complete training points based on closeness to the selected point
-% [~,training_indecies_ordered_by_distance] = pdist2(trainingEmbedding,selected_point,'euclidean','Smallest',size(trainingEmbedding,1));
-% possible_tracks = trainingSetTracks(training_indecies_ordered_by_distance);
-% possible_frames = trainingSetFrames(training_indecies_ordered_by_distance);
+%% STEP 4a: get example points based on closeness to the selected point
+[~,possible_training_indecies] = pdist2(trainingEmbedding,selected_point,'euclidean','Smallest',size(trainingEmbedding,1));
+possible_tracks = trainingSetTracks(possible_training_indecies);
+possible_frames = trainingSetFrames(possible_training_indecies);
 
-% get N complete training points based on watershed region
+% %% STEP 4b: get example points based on watershed region
+% watershed_x = SpaceMapping(selected_point(1),xx);
+% watershed_y = SpaceMapping(selected_point(2),xx);
+% watershed_region = L(watershed_y, watershed_x); %get the watershed region index
+% 
+% %find all training points in the region
+% [watershed_ii,watershed_jj] = find(L==watershed_region);
+% watershed_space_embedding = SpaceMapping(trainingEmbedding,xx);
+% possible_training_indecies = find(ismember(watershed_space_embedding,[watershed_jj,watershed_ii],'rows'));
+% possible_training_indecies = possible_training_indecies(randperm(length(possible_training_indecies))); %randomize order
+% possible_tracks = trainingSetTracks(possible_training_indecies);
+% possible_frames = trainingSetFrames(possible_training_indecies);
 
-watershed_x = SpaceMapping(selected_point(1),xx);
-watershed_y = SpaceMapping(selected_point(2),xx);
-watershed_region = L(watershed_y, watershed_x); %get the watershed region index
-
-%find all training points in the region
-[watershed_ii,watershed_jj] = find(L==watershed_region);
-watershed_space_embedding = SpaceMapping(trainingEmbedding,xx);
-training_indecies_in_watershed = find(ismember(watershed_space_embedding,[watershed_jj,watershed_ii],'rows'));
-training_indecies_in_watershed = training_indecies_in_watershed(randperm(length(training_indecies_in_watershed))); %randomize order
-possible_tracks = trainingSetTracks(training_indecies_in_watershed);
-possible_frames = trainingSetFrames(training_indecies_in_watershed);
-
+%% STEP 5: get N points that fits the criteria
 selected_training_indecies = [];
 selected_tracks = [];
 selected_frames = [];
@@ -73,7 +82,7 @@ while length(selected_training_indecies) < N
             data_point_accepted = true;
         end
         if data_point_accepted
-            selected_training_indecies = [selected_training_indecies, training_indecies_in_watershed(current_index)];
+            selected_training_indecies = [selected_training_indecies, possible_training_indecies(current_index)];
             selected_tracks = [selected_tracks, current_track_number];
             selected_frames = [selected_frames, current_frame_number];  
         end
@@ -82,12 +91,17 @@ while length(selected_training_indecies) < N
 end
 
 selected_embedded_points = trainingEmbedding(selected_training_indecies, :);
+selected_feature_vectors = trainingSetData(selected_training_indecies,:);
 
-%% plot the training points selected
-figure('Position', [500, 500, size(xx,2), size(xx,2)])
+%% STEP 6: plot the training points selected
+sample_figure = figure('Position', [0, 0, size(xx,2), size(xx,2)])
 hold on
 imagesc(xx,xx,density)
-plot(selected_embedded_points(:,1), selected_embedded_points(:,2), '*m', 'MarkerSize', 10)
+for i = 1:N
+    text(selected_embedded_points(i,1), selected_embedded_points(i,2),num2str(i),'VerticalAlignment','middle','HorizontalAlignment','center','Color','m')
+    %plot(selected_embedded_points(:,1), selected_embedded_points(:,2), '*m', 'MarkerSize', 10)
+end
+%plot(selected_embedded_points(:,1), selected_embedded_points(:,2), '*m', 'MarkerSize', 10)
 %plot(selected_point(:,1), selected_point(:,2), 'om', 'MarkerSize', 30, 'LineWidth', 3)
 plot(xx(jj),xx(ii),'k.')
 axis equal tight off xy
@@ -96,9 +110,9 @@ colormap(jet)
 hold off
 set(gca,'position',[0 0 1 1],'units','normalized')
 
-%% plot the behaviors
-selected_tracks = trainingSetTracks(selected_training_indecies);
-selected_frames = trainingSetFrames(selected_training_indecies);
+saveas(sample_figure,fullfile(pathname,[filename(1:end-4), '.png']),'png');
+
+%% STEP 7: plot the behaviors
 
 %load the worm images
 required_worm_images(N).worm_images = [];
@@ -109,8 +123,8 @@ for worm_images_index = 1:N
 end
 
 
-behavior_figure = figure('Position', [500, 500, 400, 400]);
-outputVideo = VideoWriter('debug.mp4','MPEG-4');
+behavior_figure = figure('Position', [0, 0, 400, 400]);
+outputVideo = VideoWriter(saveFileName,'MPEG-4');
 outputVideo.FrameRate = 14;
 open(outputVideo)
 
@@ -151,3 +165,9 @@ for relative_frame_index = -frames_before:frames_after
 end
 close(outputVideo)
 close(behavior_figure)
+
+%% STEP 8: plot feature vectors
+feature_vector_figure = figure('Position', [0, 0, 800, 800]);
+imagesc(selected_feature_vectors);
+colorbar
+saveas(feature_vector_figure,fullfile(pathname,[filename(1:end-4), '_featurevector.png']),'png');

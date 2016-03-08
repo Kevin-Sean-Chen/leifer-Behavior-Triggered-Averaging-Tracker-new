@@ -1,11 +1,11 @@
 %% STEP 1: set up parameters
-parameters.numProcessors = 7;
+parameters.numProcessors = 15;
 parameters.numProjections = 19;
 parameters.pcaModes = 5;
 parameters.samplingFreq = 14;
 parameters.minF = 0.3;
-parameters.maxF = 7;
-parameters.trainingSetSize = 25000;
+parameters.maxF = parameters.samplingFreq ./ 2; %nyquist frequency
+parameters.trainingSetSize = 40000;
 parameters.subsamplingIterations = 10;
 parameters = setRunParameters(parameters);
 SaveIndividualImages = 1;
@@ -114,15 +114,15 @@ for folder_index = 1:length(folders)
     end
 end
 
-Projections = {allTracks.ProjectedEigenValues};
 clear('Tracks');
-L = length(Projections);
 
 
 %% STEP 4: generate spectra
+Projections = {allTracks.ProjectedEigenValues};
+L = length(Projections);
 poolobj = gcp('nocreate'); 
 if isempty(poolobj)
-    parpool(7)
+    parpool(parameters.numProcessors)
 end
 Spectra = cell(1,L); %full wavelet transform
 SpectraFrames = cell(1,L); %keep track of each datapoint's frame indecies
@@ -132,18 +132,21 @@ for track_index = 1:L
     [feature_vector,f] = findWavelets(Projections{track_index}',parameters.pcaModes,parameters);  
     
     %find phase velocity and add it to the spectra
-    phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, Prefs);
+    phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, Prefs)';
+    
+%     %using phase velocity directly option
+%     Spectra{track_index} = [feature_vector, phi_dt];
+    
+    %binary option
     forward_vector = zeros(length(phi_dt),1);
     forward_vector(phi_dt > 0) = 1;
     forward_vector = forward_vector + 1;
+    forward_vector = forward_vector ./ parameters.pcaModes ./ 2; %scale it as 1 PCA mode
     Spectra{track_index} = [feature_vector, forward_vector];
     
     SpectraFrames{track_index} = 1:size(Spectra{track_index},1);
     SpectraTracks{track_index} = repmat(track_index,1,size(Spectra{track_index},1));
     
-    
-%    SpectraFrames{track_index} = datapoint_count:datapoint_count+size(Spectra{track_index},1);
-%    datapoint_count = datapoint_count + size(Spectra{track_index},1) + 1;
 end
 poolobj = gcp('nocreate'); 
 delete(poolobj);
@@ -187,14 +190,17 @@ training_input_tracks = [TrainingSpectraTracks{:}];
 
 %% STEP 6B Option 1: Find training set by sampling uniformly
 data = vertcat(TrainingSpectra{:});
-% weigh the phase velocity as a PCA mode (1/5)
-phase_velocity = data(:,end) ./ parameters.pcaModes;
 
-% normalize without the phase velocity
-data = data(:,1:end-1);
-amps = sum(data,2);
-data(:) = bsxfun(@rdivide,data,amps);
-data = [data, phase_velocity];
+phi_dt = data(:,end); %get phase velocity
+% phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
+% phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
+% phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
+
+% % normalize without the phase velocity
+% data = data(:,1:end-1);
+% amps = sum(data,2);
+% data(:) = bsxfun(@rdivide,data,amps);
+% data = [data, phi_dt];
 
 amps = sum(data,2);
 data(:) = bsxfun(@rdivide,data,amps);
@@ -275,14 +281,17 @@ fprintf(1,'Finding t-SNE Embedding for all Data\n');
 % embeddingValues = cell(L,1);
 % i=1;
 data = vertcat(Spectra{:});
-% weigh the phase velocity as a PCA mode (1/5)
-phase_velocity = data(:,end) ./ parameters.pcaModes;
 
-% normalize without the phase velocity
-data = data(:,1:end-1);
-amps = sum(data,2);
-data(:) = bsxfun(@rdivide,data,amps);
-data = [data, phase_velocity];
+% phi_dt = data(:,end); %get phase velocity
+% phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
+% phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
+% phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
+
+% % normalize without the phase velocity
+% data = data(:,1:end-1);
+% amps = sum(data,2);
+% data(:) = bsxfun(@rdivide,data,amps);
+% data = [data, phi_dt];
 
 amps = sum(data,2);
 data(:) = bsxfun(@rdivide,data,amps);
@@ -299,12 +308,6 @@ training_start_index = 1;
 for track_index = 1:length(Spectra)
     end_index = start_index + size(Spectra{track_index},1) - 1;
     Embeddings{track_index} = embeddingValues(start_index:end_index, :);
-%     dataIndecies = trainingKey(trainingKey >= start_index & trainingKey <= end_index);
-%     training_end_index = training_start_index + length(dataIndecies) - 1;
-%     trainingTracks(training_start_index:training_end_index) = track_index;
-%     trainingFrames(training_start_index:training_end_index) = dataIndecies - start_index + 1;
-%     
-%     training_start_index = training_end_index + 1;
     start_index = end_index + 1;
 end
 clear trainingKey

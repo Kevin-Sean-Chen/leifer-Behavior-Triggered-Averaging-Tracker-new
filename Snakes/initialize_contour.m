@@ -73,7 +73,7 @@ function [center_line_interp, thin_image_returned, BW, isGoodFrame, thinning_ite
         pixels_left = [pixels_left_x, pixels_left_y];
         [~, next_index] = pdist2(pixels_left, center_line(end,:),'euclidean', 'Smallest', 1);
         center_line = [center_line; pixels_left(next_index,:)];
-        if endpoints(2,1) == pixels_left(next_index,1) && endpoints(2,2) == pixels_left(next_index,2)
+        if size(endpoints,1) >= 2 && endpoints(2,1) == pixels_left(next_index,1) && endpoints(2,2) == pixels_left(next_index,2)
             %the second endpoint reached, stop
             break
         else
