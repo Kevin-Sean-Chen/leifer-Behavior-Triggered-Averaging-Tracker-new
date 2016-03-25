@@ -28,15 +28,21 @@ axis([0 PCsToPlot 0 110]);
 % %the first two principal componets explain 66.42 percent of the variance
 
 %plot the first 4 principle components
-PCsToPlot = 19;
+PCsToPlot = 5;
 figure
 hold all
 my_legend = {};
 for pc = 1:PCsToPlot
-    subplot(4,ceil(PCsToPlot/4),pc)
-    plot(1:length(EigenVectors), EigenVectors(:,pc))
+    %subplot(4,ceil(PCsToPlot/4),pc)
+    subplot(PCsToPlot,1,pc)
+    plot(1:length(EigenVectors), EigenVectors(:,pc), 'linewidth', 3)
     xlabel('Position Along the Worm')
     ylabel(['PC', num2str(pc), ' Loadings'])
+    if pc == 4
+        ylim([-0.4 0])
+    else
+        ylim([-0.4 0.4])
+    end
     %my_legend = [my_legend, ['PC', num2str(pc)]];
     %('PC Loadings')
 end

@@ -2,7 +2,7 @@
 tracking = 1;
 finding_centerline = 1;
 resolving_problems =1;
-plotting = 0;
+plotting = 1;
 SaveIndividualImages = 1;
 
 %% STEP 1: Get folders
@@ -126,7 +126,7 @@ if tracking
         parfor folder_index = 1:folder_count
 %         for folder_index = 1:folder_count
             folder_name = folders{folder_index};
-            TrackImageDirectory(folder_name, 'continue', Prefs);
+            TrackImageDirectory(folder_name, 'all', Prefs);
         end
         parfor_progress(Prefs.ProgressDir, 0);
         poolobj = gcp('nocreate'); 

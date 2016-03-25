@@ -45,6 +45,14 @@ function success = PlotImageDirectory(curDir, Prefs)
     % Setup figure for plotting tracker results
     % -----------------------------------------
     WTFigH = findobj('Tag', 'WTFIG');
+%     preprocessedFigH = findobj('Tag', 'preprocessedFig');
+%     if isempty(preprocessedFigH)
+%         preprocessedFigH = figure('Name', 'Raw Video', ...
+%             'NumberTitle', 'off', ...
+%             'Tag', 'preprocessedFig');
+%     else
+%         figure(preprocessedFigH);
+%     end
     if isempty(WTFigH)
         WTFigH = figure('Name', 'Tracking Results', ...
             'NumberTitle', 'off', ...
@@ -59,6 +67,10 @@ function success = PlotImageDirectory(curDir, Prefs)
     outputVideo = VideoWriter(fullfile([curDir, '\', 'processed']),'MPEG-4');
     outputVideo.FrameRate = Prefs.PlottingFrameRate;
     open(outputVideo)
+    
+%     rawOutputVideo = VideoWriter(fullfile([curDir, '\', 'raw']),'MPEG-4');
+%     rawOutputVideo.FrameRate = Prefs.PlottingFrameRate;
+%     open(rawOutputVideo)
     
     for frame_index = 1:frames_per_plot_time:length(image_files) - 1
         % Get Frame
@@ -87,9 +99,13 @@ function success = PlotImageDirectory(curDir, Prefs)
         PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDVoltages(frame_index));
         FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
         set(WTFigH, 'Name', FigureName);
-
         writeVideo(outputVideo, getframe(WTFigH));
+        
+%         figure(preprocessedFigH)
+%         imshow(curImage);
+%         writeVideo(rawOutputVideo, getframe(preprocessedFigH));
     end
     close(outputVideo) 
+%     close(rawOutputVideo)
     close(WTFigH)
 end

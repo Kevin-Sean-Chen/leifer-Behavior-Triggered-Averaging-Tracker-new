@@ -4,7 +4,7 @@ figure(FigH)
 imshow(Frame);
 hold on;
 
-global Prefs;
+%global Prefs;
 
 % figure(FigH+1)
 % imshow(RGB);
@@ -45,36 +45,36 @@ else
                 
                 plot(Tracks(i).Path(1:in_track_index,1), Tracks(i).Path(1:in_track_index,2), 'Color', myColors(currentActiveTrack,:));
 
-                %find out if worm is in the middle of a reversal
-                pirouettes = Tracks(i).Pirouettes;
-                %pirouettes = Tracks(i).Runs;
-                pirouetting = 0;
-                for pirouette_index = 1:size(pirouettes,1)
-                    pirouetteStart = pirouettes(pirouette_index,1);
-                    pirouetteEnd = pirouettes(pirouette_index,2);
-                    if in_track_index >= pirouetteStart && in_track_index <= pirouetteEnd
-                        pirouetting = 1;
-                    end
-                    if in_track_index >= pirouetteEnd
-                        plot(Tracks(i).Path(pirouetteStart:pirouetteEnd,1), Tracks(i).Path(pirouetteStart:pirouetteEnd,2), 'x', 'Color', myColors(currentActiveTrack,:));
-                    elseif in_track_index >= pirouetteStart && in_track_index < pirouetteEnd
-                        plot(Tracks(i).Path(pirouetteStart:in_track_index,1), Tracks(i).Path(pirouetteStart:in_track_index,2), 'rx');
-                    end
-                end
-                
+%                 %find out if worm is in the middle of a reversal
+%                 pirouettes = Tracks(i).Pirouettes;
+%                 %pirouettes = Tracks(i).Runs;
+%                 pirouetting = 0;
+%                 for pirouette_index = 1:size(pirouettes,1)
+%                     pirouetteStart = pirouettes(pirouette_index,1);
+%                     pirouetteEnd = pirouettes(pirouette_index,2);
+%                     if in_track_index >= pirouetteStart && in_track_index <= pirouetteEnd
+%                         pirouetting = 1;
+%                     end
+%                     if in_track_index >= pirouetteEnd
+%                         plot(Tracks(i).Path(pirouetteStart:pirouetteEnd,1), Tracks(i).Path(pirouetteStart:pirouetteEnd,2), 'x', 'Color', myColors(currentActiveTrack,:));
+%                     elseif in_track_index >= pirouetteStart && in_track_index < pirouetteEnd
+%                         plot(Tracks(i).Path(pirouetteStart:in_track_index,1), Tracks(i).Path(pirouetteStart:in_track_index,2), 'rx');
+%                     end
+%                 end
+%                 
 
-                if pirouetting
-                    %worm is reversing
-                    plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'ro', 'LineWidth', 1);
-                     %plot the track number and size
-                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, num2str(i), 'Color', 'r')
-%                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', 'r')
-                else
+%                 if pirouetting
+%                     %worm is reversing
+%                     plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'ro', 'LineWidth', 1);
+%                      %plot the track number and size
+%                      text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, num2str(i), 'Color', 'r')
+% %                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', 'r')
+%                 else
                     plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'Marker', 'o', 'Color', myColors(currentActiveTrack,:));
                      %plot the track number and size
                      text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, num2str(i), 'Color', myColors(currentActiveTrack,:))
 %                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', myColors(currentActiveTrack,:))
-               end
+%                end
                 
                 
 %                 if abs(Tracks(i).AngSpeed(in_track_index)) < Prefs.PirThresh
