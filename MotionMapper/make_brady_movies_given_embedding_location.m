@@ -128,6 +128,9 @@ while length(selected_indecies) < N
 end
 
 selected_embedded_points = embeddingValues(selected_indecies, :);
+if ~exist('data', 'var')
+    data = vertcat(Spectra{:});
+end
 selected_feature_vectors = data(selected_indecies,:);
 
 %% STEP 6: plot the training points selected

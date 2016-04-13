@@ -2,7 +2,8 @@
 maxVal = max(max(abs(embeddingValues)));
 maxVal = round(maxVal * 1.1);
 
-sigma = maxVal / 40; %change smoothing factor if necessary
+% sigma = maxVal / 40; %change smoothing factor if necessary
+sigma = 6; %change smoothing factor if necessary
 numPoints = 501;
 rangeVals = [-maxVal maxVal];
 

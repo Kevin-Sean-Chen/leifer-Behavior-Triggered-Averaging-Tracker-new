@@ -16,10 +16,10 @@ function [] = plot_worm_frame(I, center_lines, UncertainTips, eccentricity, dire
 
     hold on
     plot(center_lines(:,2), center_lines(:,1), '-g','LineWidth',1)
-%   plot(center_lines(:,2), center_lines(:,1), '-g','LineWidth',3)
+%     plot(center_lines(:,2), center_lines(:,1), '-g','LineWidth',3)
     %head
     plot(center_lines(1,2), center_lines(1,1), '.g','markersize',20)
-%   plot(center_lines(1,2), center_lines(1,1), '.g','markersize',50)
+%     plot(center_lines(1,2), center_lines(1,1), '.g','markersize',50)
     
 %     %uncertain tips
 %     if ~isempty(UncertainTips.Tips)
@@ -30,9 +30,9 @@ function [] = plot_worm_frame(I, center_lines, UncertainTips, eccentricity, dire
 % 
 %     
 %     %direction
-%     quiver(size(I,2)/2, size(I,1)/2, sind(direction)*speed*100, -cosd(direction)*speed*100, 'AutoScale','off');
+%     quiver(size(I,2)/2, size(I,1)/2, sind(direction)*speed*100, -cosd(direction)*speed*100, 'AutoScale','off', 'Linewidth', 1.5);
 %     %title (['Eccentricity = ', num2str(eccentricity)]);    
-% %     title (['( ', num2str(centroid(1,1)),' , ', num2str(centroid(1,1)),' )']);
+%     title (['( ', num2str(centroid(1,1)),' , ', num2str(centroid(1,1)),' )']);
 %     %score
 %     text(10, 10, num2str(score), 'Color', 'y');
 %     %eccentricity

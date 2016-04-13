@@ -101,9 +101,9 @@ function [ydata,errors] = tsne_p_sparse(P, parameters, no_dims, relTol)
     % Run the iterations
     errors = zeros(max_iter,1);
     for iter=1:max_iter
-        
+%         all_distances = findAllDistances(ydata); %mex method
         %find distances
-        Q = 1 ./ (1 + findAllDistances(ydata).^2);
+        Q = squareform(1 ./ (1 + pdist(ydata).^2));
         Q(1:n+1:end) = 0;
         Z = sum(Q(:));
         Q = Q./Z;
@@ -153,6 +153,7 @@ function [ydata,errors] = tsne_p_sparse(P, parameters, no_dims, relTol)
                     axis equal 
                 end
                 drawnow;
+                saveas(gcf,fullfile(['iteration ' num2str(iter) '.png']),'png');
             end
             
             
@@ -167,4 +168,3 @@ function [ydata,errors] = tsne_p_sparse(P, parameters, no_dims, relTol)
     
     
     errors = errors(1:iter);
-    

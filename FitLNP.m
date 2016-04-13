@@ -1,15 +1,15 @@
-function [linear_kernel, non_linearity_fit, BTA, meanLEDVoltage, pirouetteCount, bin_edges, filtered_signal_histogram, filtered_signal_given_reversal_histogram] = FitLNP(Tracks)
+function [linear_kernel, non_linearity_fit, BTA, meanLEDVoltage, trigger_count, bin_edges, filtered_signal_histogram, filtered_signal_given_reversal_histogram] = FitLNP(Tracks)
 %FitLNP takes in tracks and outputs the parameters of the LNP
 %   Detailed explanation goes here
 
     fps = 14;
     BTA_seconds_before = 10;
-    BTA_seconds_after = 1;
+    BTA_seconds_after = 10;
     kernel_seconds_before = 6;
     numbins = 10;
     
     meanLEDVoltage = mean([Tracks.LEDVoltages]);
-    [BTA, pirouetteCount] = BehaviorTriggeredAverage([], Tracks);
+    [BTA, trigger_count] = BehaviorTriggeredAverage([], Tracks);
     linear_kernel = BTA((BTA_seconds_before-kernel_seconds_before)*fps+1:length(BTA)-(BTA_seconds_after*fps)); %will have size fps*kernel_seconds_before+1 because frame at 0 is also counted
     linear_kernel = fliplr(linear_kernel - meanLEDVoltage); %time in BTA is reversed in linear kernel
 % 
@@ -67,6 +67,12 @@ function [linear_kernel, non_linearity_fit, BTA, meanLEDVoltage, pirouetteCount,
 
     non_linearity = filtered_signal_given_reversal_histogram ./ filtered_signal_histogram * 60 *fps;
     bin_centers = bin_edges(1:end-1)+(diff(bin_edges(1:2)/2));
+    
+    %remove NaNs
+    nan_indecies = isnan(non_linearity);
+    non_linearity = non_linearity(~nan_indecies);
+    bin_centers = bin_centers(~nan_indecies);
+    
     non_linearity_fit = fit(bin_centers',non_linearity','exp1');
 
     

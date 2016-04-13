@@ -3,7 +3,7 @@ function [] = PlotExperimentGroup (Experiments)
 %   Detailed explanation goes here
     fps = 14;
     BTA_seconds_before = 10;
-    BTA_seconds_after = 1;
+    BTA_seconds_after = 10;
     rows_per_page = 3;
     
     figure
@@ -40,7 +40,7 @@ function [] = PlotExperimentGroup (Experiments)
             hold off
             xlabel(strcat('Time (s) (', num2str(Experiments(experiment_index).pirouetteCount), ' reversals analyzed)')) % x-axis label
             ylabel('Stimulus Intensity (V)') % y-axis label
-            axis([-10 2 0.64 0.84])
+            axis([-10 10 0.64 0.84])
             %axis([-10 2 0 5])
             ax = gca;
             %ax.XTick = ;

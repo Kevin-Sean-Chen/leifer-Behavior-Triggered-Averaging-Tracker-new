@@ -1,8 +1,8 @@
 
-function [BTA, behaviorCount] = BehaviorTriggeredAverage(folders, allTracks, behavior)
+function [BTA, behaviorCount] = BehaviorTriggeredAverage(folders, allTracks)
     fps = 14;
     seconds_before = 10;
-    seconds_after = 1;
+    seconds_after = 10;
     numbins = 10;
         
     if nargin < 1 %no folders are given, ask user to select
@@ -31,38 +31,25 @@ function [BTA, behaviorCount] = BehaviorTriggeredAverage(folders, allTracks, beh
         end
     end
     
-    if nargin < 3 %no behavior is given
-        behavior = 'reversal_start';
-    end
-    
+   
     tracksCentered = [];
     behaviorCount = 0;
 
-    for track = 1:length(allTracks)
-        if strcmp(behavior, 'reversal_start')
-            pirouettes = allTracks(track).Pirouettes;
-            for pirouette_index = 1:size(pirouettes,1)
-                pirouetteStart = pirouettes(pirouette_index,1);
-                LEDVoltages = allTracks(track).LEDVoltages;
-                if pirouetteStart - (fps*seconds_before) < 1 || pirouetteStart + (fps*seconds_after) > length(LEDVoltages)
+    for track_index = 1:length(allTracks)
+        if isfield(allTracks, 'Behaviors')
+            triggers = find(allTracks(track_index).Behaviors);
+            for trigger_index = 1:length(triggers)
+                current_trigger = triggers(trigger_index);
+                LEDVoltages = allTracks(track_index).LEDVoltages;
+                if current_trigger - (fps*seconds_before) < 1 || current_trigger + (fps*seconds_after) > length(LEDVoltages)
                     %pad voltages with 0s if needed, but otherwise just ignore it
                 else
-                    tracksCentered = cat(1, tracksCentered, LEDVoltages(:, pirouetteStart-(fps*seconds_before):pirouetteStart+(fps*seconds_after)));
+                    tracksCentered = cat(1, tracksCentered, LEDVoltages(:, current_trigger-(fps*seconds_before):current_trigger+(fps*seconds_after)));
                     behaviorCount = behaviorCount + 1;
                 end
             end
-        elseif strcmp(behavior, 'omega_turn_start')
-            OmegaTurns = allTracks(track).OmegaTurns;
-            for omega_turn_index = 1:size(OmegaTurns,1)
-                OmegaTurnStart = OmegaTurns(omega_turn_index,1);
-                LEDVoltages = allTracks(track).LEDVoltages;
-                if OmegaTurnStart - (fps*seconds_before) < 1 || OmegaTurnStart + (fps*seconds_after) > length(LEDVoltages)
-                    %pad voltages with 0s if needed, but otherwise just ignore it
-                else
-                    tracksCentered = cat(1, tracksCentered, LEDVoltages(:, OmegaTurnStart-(fps*seconds_before):OmegaTurnStart+(fps*seconds_after)));
-                    behaviorCount = behaviorCount + 1;
-                end
-            end
+        else
+            
         end
     end
 
