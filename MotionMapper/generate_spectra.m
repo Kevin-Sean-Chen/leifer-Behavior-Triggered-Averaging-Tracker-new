@@ -14,9 +14,8 @@ function [Spectra, SpectraFrames, SpectraTracks, f] = generate_spectra(allTracks
         %find phase velocity and add it to the spectra
         phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, Prefs)';
 
-    %     %using phase velocity directly option
-    %     Spectra{track_index} = [feature_vector, phi_dt];
-%          Spectra{track_index} = feature_vector;
+        %using phase velocity directly option
+%         Spectra{track_index} = [feature_vector, phi_dt];
 
         %binary option
         forward_vector = zeros(length(phi_dt),1);
@@ -25,6 +24,9 @@ function [Spectra, SpectraFrames, SpectraTracks, f] = generate_spectra(allTracks
     %     forward_vector = forward_vector ./ parameters.pcaModes ./ 2; %scale it as 1 PCA mode
         Spectra{track_index} = [feature_vector, forward_vector];
 
+%         %no phase velocity option
+%         Spectra{track_index} = feature_vector;
+        
         SpectraFrames{track_index} = 1:size(Spectra{track_index},1);
         SpectraTracks{track_index} = repmat(track_index,1,size(Spectra{track_index},1));
 

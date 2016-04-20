@@ -6,7 +6,7 @@ function [] = plot_worm_frame(I, center_lines, UncertainTips, eccentricity, dire
 %         figure(IWFig);
 %     end
     %used for debugging
-    hold off;
+%     hold off;
     if nargin > 8
         %debugimage inputted
         imshow(I + debugimage, [], 'InitialMagnification', 300, 'Border','tight');

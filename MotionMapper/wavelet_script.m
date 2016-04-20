@@ -11,43 +11,17 @@ parameters = setRunParameters(parameters);
 SaveIndividualImages = 1;
 
 %% STEP 2: get the experiment folders
-folders = [];
-while true
-    if isempty(folders)
-        start_path = '';
-    else
-        start_path = fileparts(fullfile(folders{length(folders)}, '..', 'tracks.mat')); %display the parent folder
-    end
-    folder_name = uigetdir(start_path, 'Select Experiment Folder')
-    if folder_name == 0
-        break
-    else
-        folders{length(folders)+1} = folder_name;
-    end
-end
+folders = getfolders();
+
 %% STEP 2: Load the analysis preferences from Excel %%
 'Initializing...'
 if ~exist('Prefs', 'var')
     Prefs = load_excel_prefs();
 end
 
-
 %% STEP 3: load the tracks into memory
-allTracks = struct([]);
-folder_indecies = [];
-track_indecies = [];
-
-for folder_index = 1:length(folders)
-    curDir = folders{folder_index};
-    if exist([curDir, '\tracks.mat'], 'file') == 2
-        load([curDir, '\tracks.mat'])
-        allTracks = [allTracks, Tracks];
-        folder_indecies = [folder_indecies, repmat(folder_index,1,length(Tracks))];
-        track_indecies = [track_indecies, 1:length(Tracks)];
-    end
-end
+allTracks = loadtracks(folders);
 L = length(allTracks);
-clear('Tracks');
 
 
 %% STEP 4: generate spectra
@@ -102,8 +76,8 @@ training_input_tracks = [TrainingSpectraTracks{:}];
 data = vertcat(TrainingSpectra{:});
 
 phi_dt = data(:,end); %get phase velocity
-% phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
-% phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
+phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
+phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
 % phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
 
 % % normalize without the phase velocity
@@ -192,9 +166,9 @@ fprintf(1,'Finding t-SNE Embedding for all Data\n');
 % i=1;
 data = vertcat(Spectra{:});
 
-% phi_dt = data(:,end); %get phase velocity
-% phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
-% phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
+phi_dt = data(:,end); %get phase velocity
+phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
+phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
 % phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
 
 % % normalize without the phase velocity

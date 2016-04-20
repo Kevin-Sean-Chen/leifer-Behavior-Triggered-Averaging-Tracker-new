@@ -3,7 +3,7 @@ maxVal = max(max(abs(embeddingValues)));
 maxVal = round(maxVal * 1.1);
 
 % sigma = maxVal / 40; %change smoothing factor if necessary
-sigma = 6; %change smoothing factor if necessary
+sigma = 4; %change smoothing factor if necessary
 numPoints = 501;
 rangeVals = [-maxVal maxVal];
 
@@ -12,10 +12,22 @@ density(density < 10e-6) = 0;
 L = watershed(-density,8);
 [ii,jj] = find(L==0);
 
+watershed_centroids = regionprops(L, 'centroid');
+watershed_centroids = vertcat(watershed_centroids.Centroid);
+watershed_centroids = round(watershed_centroids);
+
+figure
 hold on
 imagesc(xx,xx,density)
+plot(xx(jj),xx(ii),'k.')
 axis equal tight off xy
 caxis([0 maxDensity * .8])
 colormap(jet)
-plot(xx(jj),xx(ii),'k.') %watershed borders
+for region_index = 1:size(watershed_centroids,1)
+    text(xx(watershed_centroids(region_index,1)), ...
+        xx(watershed_centroids(region_index,2)), ...
+        num2str(region_index), 'color', 'k', ...
+        'fontsize', 12, 'horizontalalignment', 'center', ...
+        'verticalalignment', 'middle');
+end
 hold off

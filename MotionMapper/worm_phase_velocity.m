@@ -29,7 +29,7 @@ function phi_dt = worm_phase_velocity(ProjectedEigenValues, Prefs)
 
     %gaussian smooth the result 
 %     phi_dt = smoothts(phi_dt, 'g', Prefs.StepSize*5, Prefs.StepSize*5);
-    phi_dt = smoothts(phi_dt, 'g', Prefs.StepSize, Prefs.StepSize);
+    phi_dt = -smoothts(phi_dt, 'g', Prefs.StepSize, Prefs.StepSize);
     
 %     image_size = [70, 70];
 %     direction_vector = [[Track.Speed].*-cosd([Track.Direction]); [Track.Speed].*sind([Track.Direction])];

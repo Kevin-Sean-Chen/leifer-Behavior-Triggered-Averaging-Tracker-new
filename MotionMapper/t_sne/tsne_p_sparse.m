@@ -153,7 +153,7 @@ function [ydata,errors] = tsne_p_sparse(P, parameters, no_dims, relTol)
                     axis equal 
                 end
                 drawnow;
-                saveas(gcf,fullfile(['iteration ' num2str(iter) '.png']),'png');
+%                 saveas(gcf,fullfile(['iteration ' num2str(iter) '.png']),'png');
             end
             
             

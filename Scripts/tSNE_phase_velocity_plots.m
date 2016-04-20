@@ -15,7 +15,7 @@ end
 mean_observations = zeros(size(observations));
 for row_index = 1:size(observations,1)
     for column_index = 1:size(observations,2)
-        mean_observations(row_index, column_index) = std(observations{row_index, column_index});
+        mean_observations(row_index, column_index) = mean(observations{row_index, column_index});
     end
 end
 

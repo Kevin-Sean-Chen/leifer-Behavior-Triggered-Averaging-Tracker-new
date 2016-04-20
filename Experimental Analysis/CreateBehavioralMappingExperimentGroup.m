@@ -76,8 +76,7 @@ function Experiments = CreateBehavioralMappingExperimentGroup()
                 frames = experiment_parameters{1,{'FrameCount'}};
             end
             
-             if ~isfield(Tracks, 'BehavioralTransition')
-            
+            if ~isfield(Tracks, 'BehavioralTransition')
                 %get the spectra
                 [Spectra, ~, ~, ~] = generate_spectra(Tracks, parameters, Prefs);
 
@@ -100,11 +99,11 @@ function Experiments = CreateBehavioralMappingExperimentGroup()
                 %get the stereotyped behaviors
                 Tracks = find_stereotyped_behaviors(Tracks, L, xx);
 
+                %autosave
                 saveFileName = [folder_name '\tracks.mat'];
                 save(saveFileName, 'Tracks');
                 AutoSave(folder_name, Prefs.DefaultPath);
-            
-             end
+            end
             
             % Get binary array of when certain behaviors start
             Tracks(1).Behaviors = [];
