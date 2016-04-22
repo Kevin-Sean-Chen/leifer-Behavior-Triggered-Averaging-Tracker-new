@@ -1,6 +1,10 @@
 function [Spectra, SpectraFrames, SpectraTracks, f] = generate_spectra(allTracks, parameters, Prefs)
-%UNTITLED Summary of this function goes here
+%This function gets the wavelet transform given tracks
 %   Detailed explanation goes here
+    poolobj = gcp('nocreate'); 
+    if isempty(poolobj)
+        parpool(parameters.numProcessors)
+    end
 
     Projections = {allTracks.ProjectedEigenValues};
     L = length(Projections);
@@ -30,7 +34,46 @@ function [Spectra, SpectraFrames, SpectraTracks, f] = generate_spectra(allTracks
         SpectraFrames{track_index} = 1:size(Spectra{track_index},1);
         SpectraTracks{track_index} = repmat(track_index,1,size(Spectra{track_index},1));
 
+        
+%         %debug
+%         Track = allTracks(track_index);
+%         image_size = [70, 70];
+%         direction_vector = [[Track.Speed].*-cosd([Track.Direction]); [Track.Speed].*sind([Track.Direction])];
+%         head_vector = reshape(Track.Centerlines(1,:,:),2,[]) - (image_size(1)/2);    
+%         %normalize into unit vector
+%         head_normalization = hypot(head_vector(1,:), head_vector(2,:));
+%         head_vector = head_vector ./ repmat(head_normalization, 2, 1);
+%         head_direction_dot_product = dot(head_vector, direction_vector);
+% 
+%         hold all
+%         plot(phi_dt/max(phi_dt))
+%         plot(head_direction_dot_product/max(head_direction_dot_product))
+%         xlabel('Time (frames)')
+%         ylabel('Normalized Phase Velocity and direction vector')
+        
     end
-
+    
+    poolobj = gcp('nocreate'); 
+    delete(poolobj);
+    f = fliplr(f);
+    
+    % plot_data = flipud(Spectra{2}');
+    % pcaSpectra = flipud(mat2cell(plot_data, repmat(parameters.numPeriods, 1, parameters.pcaModes)));
+    % %pcaSpectra{5} = pcaSpectra{2} - pcaSpectra{3};
+    % figure
+    % for i = 1:length(pcaSpectra)
+    %     subplot(length(pcaSpectra), 1, i)
+    %     imagesc(pcaSpectra{i});
+    %     ax = gca;
+    %     ax.YTick = 1:5:parameters.numPeriods;
+    %     ax.YTickLabel = num2cell(round(f(mod(1:length(f),5) == 1), 1));
+    %     ylabel({['PCA Mode ', num2str(i)], 'Frequency (Hz)'});
+    %     
+    %     ax.XTickLabel = round(ax.XTick/parameters.samplingFreq, 1);
+    %     
+    %     if i == length(pcaSpectra)
+    %         xlabel('Time (s)');
+    %     end
+    % end
 end
 

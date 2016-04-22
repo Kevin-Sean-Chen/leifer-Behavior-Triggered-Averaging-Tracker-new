@@ -5,56 +5,24 @@ parameters.pcaModes = 5;
 parameters.samplingFreq = 14;
 parameters.minF = 0.3;
 parameters.maxF = parameters.samplingFreq ./ 2; %nyquist frequency
-parameters.trainingSetSize = 55000;
+parameters.trainingSetSize = 25000;
 parameters.subsamplingIterations = 10;
 parameters = setRunParameters(parameters);
-SaveIndividualImages = 1;
 
 %% STEP 2: get the experiment folders
 folders = getfolders();
 
 %% STEP 2: Load the analysis preferences from Excel %%
-'Initializing...'
 if ~exist('Prefs', 'var')
     Prefs = load_excel_prefs();
 end
 
 %% STEP 3: load the tracks into memory
-allTracks = loadtracks(folders);
+[allTracks, folder_indecies, track_indecies ] = loadtracks(folders);
 L = length(allTracks);
 
-
 %% STEP 4: generate spectra
-poolobj = gcp('nocreate'); 
-if isempty(poolobj)
-    parpool(parameters.numProcessors)
-end
-
 [Spectra, SpectraFrames, SpectraTracks, f] = generate_spectra(allTracks, parameters, Prefs);
-
-poolobj = gcp('nocreate'); 
-delete(poolobj);
-f = fliplr(f);
-
-% plot_data = flipud(Spectra{2}');
-% pcaSpectra = flipud(mat2cell(plot_data, repmat(parameters.numPeriods, 1, parameters.pcaModes)));
-% %pcaSpectra{5} = pcaSpectra{2} - pcaSpectra{3};
-% figure
-% for i = 1:length(pcaSpectra)
-%     subplot(length(pcaSpectra), 1, i)
-%     imagesc(pcaSpectra{i});
-%     ax = gca;
-%     ax.YTick = 1:5:parameters.numPeriods;
-%     ax.YTickLabel = num2cell(round(f(mod(1:length(f),5) == 1), 1));
-%     ylabel({['PCA Mode ', num2str(i)], 'Frequency (Hz)'});
-%     
-%     ax.XTickLabel = round(ax.XTick/parameters.samplingFreq, 1);
-%     
-%     if i == length(pcaSpectra)
-%         xlabel('Time (s)');
-%     end
-% end
-
 
 %% STEP 5: Get a set of "training spectra" without edge effects
 TrainingSpectra = cell(1,L);
@@ -76,15 +44,15 @@ training_input_tracks = [TrainingSpectraTracks{:}];
 data = vertcat(TrainingSpectra{:});
 
 phi_dt = data(:,end); %get phase velocity
-phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
-phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
-% phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
+% phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
+% phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
+phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
 
-% % normalize without the phase velocity
-% data = data(:,1:end-1);
-% amps = sum(data,2);
-% data(:) = bsxfun(@rdivide,data,amps);
-% data = [data, phi_dt];
+% normalize without the phase velocity
+data = data(:,1:end-1);
+amps = sum(data,2);
+data(:) = bsxfun(@rdivide,data,amps);
+data = [data, phi_dt];
 
 amps = sum(data,2);
 data(:) = bsxfun(@rdivide,data,amps);
@@ -167,15 +135,15 @@ fprintf(1,'Finding t-SNE Embedding for all Data\n');
 data = vertcat(Spectra{:});
 
 phi_dt = data(:,end); %get phase velocity
-phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
-phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
-% phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
+% phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
+% phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
+phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
 
-% % normalize without the phase velocity
-% data = data(:,1:end-1);
-% amps = sum(data,2);
-% data(:) = bsxfun(@rdivide,data,amps);
-% data = [data, phi_dt];
+% normalize without the phase velocity
+data = data(:,1:end-1);
+amps = sum(data,2);
+data(:) = bsxfun(@rdivide,data,amps);
+data = [data, phi_dt];
 
 amps = sum(data,2);
 data(:) = bsxfun(@rdivide,data,amps);

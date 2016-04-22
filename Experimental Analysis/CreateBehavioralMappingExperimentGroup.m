@@ -55,12 +55,7 @@ function Experiments = CreateBehavioralMappingExperimentGroup()
     end
     allTracks = struct([]);
     Experiments(length(folders)+1).Folder = [];
-%     %start parpool
-%     poolobj = gcp('nocreate');  
-%     if isempty(poolobj)
-%         parpool(parameters.numProcessors)
-%     end
-    
+
     for folder_index = 1:length(folders)+1
         if folder_index <= length(folders)
             %single experiment
@@ -149,8 +144,5 @@ function Experiments = CreateBehavioralMappingExperimentGroup()
     end
     PlotExperimentGroup(Experiments);
     save(saveFileName, 'Experiments');
-    
-%     %close parpool
-%     poolobj = gcp('nocreate'); 
-%     delete(poolobj);
+
  end
