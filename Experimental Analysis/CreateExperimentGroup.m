@@ -1,6 +1,6 @@
 % analyzes a group of experiments and saves the properties
 % they will be saved inside the first folder
-function Experiments = CreateExperimentGroup()
+%function Experiments = CreateExperimentGroup()
     %clear all;
     fps = 14;
     folders = {};
@@ -102,4 +102,4 @@ function Experiments = CreateExperimentGroup()
     PlotExperimentGroup(Experiments);
     save(saveFileName, 'Experiments');
     
- end
+% end

@@ -2,6 +2,12 @@
     %loop through threholds to see if there is a hole in the image, if so,
     %get the branching tips when the hole is the biggest
     
+    %enforce prev_head and prev_tail to be inside the image
+    prev_head = [max(prev_head(1),1), max(prev_head(2),1)];
+    prev_head = [min(prev_head(1),size(I,1)), min(prev_head(2),size(I,1))];
+    prev_tail = [max(prev_tail(1),1), max(prev_tail(2),1)];
+    prev_tail = [min(prev_tail(1),size(I,1)), min(prev_tail(2),size(I,1))];
+    
     max_tip_displacement_per_frame = 7; %pixels the tips are allowed to move
     prev_tips = [prev_head; prev_tail];
 
@@ -91,7 +97,12 @@
             cum_distances = find_cumulative_distance(boundary_points);
             perimeter = cum_distances(end);
             [~, second_branchpoint_index] = ismember(closest_boundary_point2, boundary_points, 'rows');
-            cw_distance = cum_distances(second_branchpoint_index);
+            if second_branchpoint_index == 0
+                %extreme case: no index found!
+                cw_distance = 0;
+            else
+               cw_distance = cum_distances(second_branchpoint_index);
+             end
             ccw_distance = perimeter - cw_distance;
             
             if min(cw_distance, ccw_distance) < 0.8*max(cw_distance, ccw_distance)

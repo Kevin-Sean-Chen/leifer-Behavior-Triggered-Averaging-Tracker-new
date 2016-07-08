@@ -1,4 +1,4 @@
-function [ folders ] = getfolders()
+function [folders, folder_count] = getfolders()
 %get the experimental folders
     folders = {};
     folder_count = 0;
@@ -8,7 +8,6 @@ function [ folders ] = getfolders()
         if folder_name == 0
             break
         else
-            start_path = fileparts(folder_name, '..', 'tracks.mat'); %display the parent folder
             if exist([folder_name, '\LEDVoltages.txt'],'file')
                 %this is a image folder
                 folder_count = folder_count + 1;
@@ -23,6 +22,7 @@ function [ folders ] = getfolders()
                     end
                 end
             end
+            start_path = fileparts([folder_name, '..', 'tracks.mat']); %display the parent folder
         end
     end    
 end

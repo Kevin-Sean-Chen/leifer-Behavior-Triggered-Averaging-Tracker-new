@@ -82,8 +82,17 @@ function [center_line_interp, thin_image_returned, BW, isGoodFrame, thinning_ite
     end
 
     dis=[0;cumsum(sqrt(sum((center_line(2:end,:)-center_line(1:end-1,:)).^2,2)))];
-
+    
+    if dis(end) == 0
+        %extreme case where there is no centerline, use the diagonal and
+        %interp
+        center_line = [1, 1; size(BW,1), size(BW,2)];
+        dis=[0;cumsum(sqrt(sum((center_line(2:end,:)-center_line(1:end-1,:)).^2,2)))];
+        isGoodFrame = false;
+    end
+    
     % Resample to make uniform points
     center_line_interp(:,1) = interp1(dis,center_line(:,1),linspace(0,dis(end),nPoints));
     center_line_interp(:,2) = interp1(dis,center_line(:,2),linspace(0,dis(end),nPoints));
+
 end

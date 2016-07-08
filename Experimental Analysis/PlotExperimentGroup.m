@@ -38,14 +38,14 @@ function [] = PlotExperimentGroup (Experiments)
             meanLEDVoltageY(:) = Experiments(experiment_index).meanLEDVoltage;
             plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r', 'Linewidth', 3)
             hold off
-            xlabel(strcat('Time (s) (', num2str(Experiments(experiment_index).pirouetteCount), ' reversals analyzed)')) % x-axis label
+            xlabel(strcat('Time (s) (', num2str(Experiments(experiment_index).pirouetteCount), ' behaviors analyzed)')) % x-axis label
             ylabel('Stimulus Intensity (V)') % y-axis label
             axis([-10 10 0.64 0.84])
             %axis([-10 2 0 5])
             ax = gca;
             %ax.XTick = ;
             ax.YTick = linspace(0.64,0.84,5);
-            ax.FontSize = 15;
+            ax.FontSize = 10;
         end
         
         %plot speed
@@ -116,7 +116,7 @@ function [] = PlotExperimentGroup (Experiments)
             ax = gca;
             %ax.XTick = ;
             %ax.YTick = linspace(0.64,0.84,5);
-            ax.FontSize = 15;
+            ax.FontSize = 10;
 
             xlabel('Filtered Signal (a.u.)') % x-axis label
             ylabel('Reversal Rate (Reversals/Min)') % y-axis label

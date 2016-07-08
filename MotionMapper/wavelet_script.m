@@ -3,10 +3,10 @@ parameters.numProcessors = 15;
 parameters.numProjections = 19;
 parameters.pcaModes = 5;
 parameters.samplingFreq = 14;
-parameters.minF = 0.3;
+parameters.minF = 0.5;
 parameters.maxF = parameters.samplingFreq ./ 2; %nyquist frequency
-parameters.trainingSetSize = 25000;
-parameters.subsamplingIterations = 10;
+parameters.trainingSetSize = 55000;
+parameters.subsamplingIterations = 1;
 parameters = setRunParameters(parameters);
 
 %% STEP 2: get the experiment folders
@@ -18,60 +18,48 @@ if ~exist('Prefs', 'var')
 end
 
 %% STEP 3: load the tracks into memory
-[allTracks, folder_indecies, track_indecies ] = loadtracks(folders);
+[allTracks, ~, ~] = loadtracks(folders);
 L = length(allTracks);
 
 %% STEP 4: generate spectra
-[Spectra, SpectraFrames, SpectraTracks, f] = generate_spectra(allTracks, parameters, Prefs);
+[Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(allTracks, parameters, Prefs);
+
+% delete the tracks
+clear allTracks
 
 %% STEP 5: Get a set of "training spectra" without edge effects
 TrainingSpectra = cell(1,L);
 TrainingSpectraFrames = cell(1,L);
 TrainingSpectraTracks = cell(1,L);
+TrainingAmps = cell(1,L);
+
 edgeEffectTime = round(sqrt(1/parameters.minF)*parameters.samplingFreq);
 for track_index = 1:L
     TrainingSpectra{track_index} = Spectra{track_index}(edgeEffectTime:end-edgeEffectTime,:);
     TrainingSpectraFrames{track_index} = SpectraFrames{track_index}(edgeEffectTime:end-edgeEffectTime);
     TrainingSpectraTracks{track_index} = SpectraTracks{track_index}(edgeEffectTime:end-edgeEffectTime);  
+    TrainingAmps{track_index} = Amps{track_index}(edgeEffectTime:end-edgeEffectTime); 
 end
-
 %% STEP 6A: initialize training input
 training_input_data = vertcat(TrainingSpectra{:}); %these timpoints will be randomly sampled from
 training_input_frames = [TrainingSpectraFrames{:}];
 training_input_tracks = [TrainingSpectraTracks{:}];
+training_amps = vertcat(TrainingAmps{:}); 
+
 
 %% STEP 6B Option 1: Find training set by sampling uniformly
-data = vertcat(TrainingSpectra{:});
-
-phi_dt = data(:,end); %get phase velocity
-% phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
-% phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
-phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
-
-% normalize without the phase velocity
-data = data(:,1:end-1);
-amps = sum(data,2);
-data(:) = bsxfun(@rdivide,data,amps);
-data = [data, phi_dt];
-
-amps = sum(data,2);
-data(:) = bsxfun(@rdivide,data,amps);
-
-skipLength = round(length(data(:,1))/parameters.trainingSetSize);
-
-trainingSetData = data(skipLength:skipLength:end,:);
-trainingSetAmps = amps(skipLength:skipLength:end);
-
+skipLength = round(length(training_input_data(:,1))/parameters.trainingSetSize);
+trainingSetData = training_input_data(skipLength:skipLength:end,:);
+trainingSetAmps = training_amps(skipLength:skipLength:end);
 trainingSetFrames = training_input_frames(skipLength:skipLength:end);
 trainingSetTracks = training_input_tracks(skipLength:skipLength:end);
 
 
 % %% STEP 6B Option 2: Find training set by embedding several iterations
 % 
-% %normalize by power
-% training_input_amps = sum(training_input_data,2);
-% training_input_data(:) = bsxfun(@rdivide,training_input_data,training_input_amps); 
-% training_input_data(:,end) = training_input_data(:,end) * length(f); %the weight of the binary phase velocity vector is set to be 1 PCA
+% %save workspace
+% save('temp.mat','-regexp','^(?!(training_input_data|amps)$).','-v7.3')
+% clearvars('-except','training_input_data', 'amps', 'parameters')
 % 
 % %constants
 % N = parameters.trainingSetSize;
@@ -92,14 +80,23 @@ trainingSetTracks = training_input_tracks(skipLength:skipLength:end);
 %     num2str(iteration_index) '\n']);
 % 
 %     currentIdx = (1:numPerDataSet) + (iteration_index-1)*numPerDataSet;
-% 
+%   
 %     %randomly sample without replacement from our data
 %     [iteration_data, sampled_indecies] = datasample(training_input_data,N,1,'replace',false);
-%     iteration_amps = training_input_amps(sampled_indecies,:);
+%     iteration_amps = amps(sampled_indecies,:);
+%     
+%     %save data
+%     save('training_input_data.mat', 'training_input_data', 'amps', '-v7.3')
+%     clear training_input_data amps
 %     
 %     %run t-SNE embedding
 %     [iterationEmbedding,~,~,~] = run_tSne(iteration_data,parameters);
-% 
+%     
+%     %re-load data
+%     if iteration_index > 1
+%         load('training_input_data.mat');
+%     end
+%     
 %     %find the templates
 %     [trainingSetData(currentIdx,:),trainingSetAmps(currentIdx),selectedIndecies] = ...
 %     findTemplatesFromData(iteration_data,iterationEmbedding,iteration_amps,...
@@ -109,14 +106,15 @@ trainingSetTracks = training_input_tracks(skipLength:skipLength:end);
 %     
 %     %delete the points because we are sampling without replacement
 %     training_input_data(sampled_indecies, :) = [];
-%     training_input_amps(sampled_indecies, :) = [];
+%     amps(sampled_indecies, :) = [];
 %     training_input_frames(sampled_indecies) = [];
-%     training_input_tracks(sampled_indecies) = [];    
+%     training_input_tracks(sampled_indecies) = [];
 % end
-% 
-% %clean memory
-% clear iteration_data iteration_amps sampled_indecies iterationEmbedding
-% clear training_input_data training_input_frames training_input_tracks training_input_amps
+
+%clean memory
+delete('training_input_data.mat')
+clear iteration_data iteration_amps sampled_indecies iterationEmbedding amps
+clear training_input_data training_input_frames training_input_tracks training_input_amps
 
 %% STEP 7: Embed the training set 
 %clear memory
@@ -127,6 +125,10 @@ parameters.signalLabels = log10(trainingSetAmps);
 fprintf(1,'Finding t-SNE Embedding for Training Set\n');
 [trainingEmbedding,betas,P,errors] = run_tSne(trainingSetData,parameters);
 
+% %reload
+% load('temp.mat')
+% delete('temp.mat')
+
 
 %% STEP 8: Find All Embeddings
 fprintf(1,'Finding t-SNE Embedding for all Data\n');
@@ -134,19 +136,19 @@ fprintf(1,'Finding t-SNE Embedding for all Data\n');
 % i=1;
 data = vertcat(Spectra{:});
 
-phi_dt = data(:,end); %get phase velocity
-% phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
-% phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
-phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
-
-% normalize without the phase velocity
-data = data(:,1:end-1);
-amps = sum(data,2);
-data(:) = bsxfun(@rdivide,data,amps);
-data = [data, phi_dt];
-
-amps = sum(data,2);
-data(:) = bsxfun(@rdivide,data,amps);
+% phi_dt = data(:,end); %get phase velocity
+% % phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
+% % phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
+% phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
+% 
+% % normalize the phase velocity
+% data = data(:,1:end-1);
+% amps = sum(data,2);
+% data(:) = bsxfun(@rdivide,data,amps);
+% data = [data, phi_dt];
+% 
+% amps = sum(data,2);
+% data(:) = bsxfun(@rdivide,data,amps);
 
 [embeddingValues,~] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters); %[embeddingValues{i},~]
 clear data
@@ -169,7 +171,7 @@ maxVal = max(max(abs(embeddingValues)));
 maxVal = round(maxVal * 1.1);
 % NS = createns(yData);
 % [~,D] = knnsearch(NS,yData,'K',kdNeighbors+1);
-sigma = 2.5;%median(D(:,kdNeighbors+1));
+sigma = 4;%median(D(:,kdNeighbors+1));
 [xx,density] = findPointDensity(embeddingValues,sigma,501,[-maxVal maxVal]);
 density(density < 10e-6) = 0;
 L = watershed(-density,8);
@@ -186,11 +188,8 @@ L = watershed(-density,8);
 % [xx,density] = findPointDensity(embeddingValues,sigma,numPoints,rangeVals);
 maxDensity = max(density(:));
 
-% densities = zeros(numPoints,numPoints,L);
-% for i=1:L
-%     [~,densities(:,:,i)] = findPointDensity(Embeddings{i},sigma,numPoints,rangeVals);
-% end
-
+%reload the tracks
+[allTracks, folder_indecies, track_indecies] = loadtracks(folders);
 
 for track_index = 1:length(allTracks);
     plot_embedding = Embeddings{track_index};

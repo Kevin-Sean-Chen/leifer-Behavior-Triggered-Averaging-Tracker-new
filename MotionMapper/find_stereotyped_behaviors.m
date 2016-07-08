@@ -55,10 +55,14 @@ function Tracks = find_stereotyped_behaviors(Tracks, L, xx)
         stereotyped_behavior_transition_ends_logical(strfind(stereotyped_behavior_transition_beginnings_logical, [true false])) = false;
         stereotyped_behavior_transition_ends_logical(strfind(stereotyped_behavior_transition_beginnings_logical, [false false])) = false;
 
-        stereotyped_behavioral_transition_annotation = stereotyped_behavior_annotation(stereotyped_behavior_transition_beginnings_logical);
-        stereotyped_behavior_transition_beginnings = stereotyped_behavior_beginnings(stereotyped_behavior_transition_beginnings_logical);
-        stereotyped_behavior_transition_ends = stereotyped_behavior_ends(stereotyped_behavior_transition_ends_logical);
-        stereotyped_behavior_transition_duration = stereotyped_behavior_transition_ends - stereotyped_behavior_transition_beginnings;
+        if length(stereotyped_behavior_transition_beginnings_logical) == length(stereotyped_behavior_annotation)
+            stereotyped_behavioral_transition_annotation = stereotyped_behavior_annotation(stereotyped_behavior_transition_beginnings_logical);
+            stereotyped_behavior_transition_beginnings = stereotyped_behavior_beginnings(stereotyped_behavior_transition_beginnings_logical);
+            stereotyped_behavior_transition_ends = stereotyped_behavior_ends(stereotyped_behavior_transition_ends_logical);
+            stereotyped_behavior_transition_duration = stereotyped_behavior_transition_ends - stereotyped_behavior_transition_beginnings;
+        else
+            a = 1;
+        end
 
         %define transitions as changes stereotyped behaviors
         Tracks(track_index).BehavioralTransition = [stereotyped_behavioral_transition_annotation', ...

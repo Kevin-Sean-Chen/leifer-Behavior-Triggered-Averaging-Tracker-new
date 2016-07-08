@@ -26,7 +26,7 @@ function Tracks = Find_Centerlines(Tracks, curDir, Prefs)
     %% Extract Centerlines and eigenworms
     parfor_progress([], length(Tracks));
     parfor track_index = 1:track_count
-    %for track_index = 1:track_count
+%     for track_index = 1:track_count
         loaded_file = load([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat']);
         worm_images = loaded_file.worm_images;
         Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), Prefs, track_index);

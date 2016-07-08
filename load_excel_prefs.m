@@ -38,6 +38,14 @@ function [ Prefs ] = load_excel_prefs()
     Prefs.MaxObjects = N(14,computer_index);
     Prefs.PlottingFrameRate = N(15,computer_index);
     Prefs.IndividualVideoPlottingFrameRate = N(16,computer_index);
+    if exist(T{18,computer_index+1}, 'file')
+       %get the power distribution
+       load(T{18,computer_index+1});
+       Prefs.power500 = power500; 
+    else
+       Prefs.power500 = 0;
+    end
+    
     
     WorkSheet = 'Analysis Prefs';
     [N, T, D] = xlsread(ExcelFileName, WorkSheet);

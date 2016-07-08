@@ -68,6 +68,9 @@ function [amp,W] = fastWavelet_morlet_convolution_parallel(x,f,omega0,dt)
         
         amp(i,:) = abs(q)*pi^-.25*exp(.25*(omega0-sqrt(omega0^2+2))^2)/sqrt(2*scales(i));
        
+% %         %MODIFIED TO EXCLUDE FUTURE INFORMATION
+%         amp(i,:) = circshift(amp(i,:), [0, round(scales(i)./dt)]);
+        
         if test2
             W(i,:) = q;
         end

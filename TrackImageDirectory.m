@@ -9,9 +9,17 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
     %% STEP 2: See if a track file exists, if it does, there are some options that use them %%
     if exist([curDir, '\tracks.mat'], 'file') == 2
         if strcmp(analysis_mode, 'continue')
-            %track already exists, skip analysis
-            success = true;
-            return
+            %track already exists, check if there are individual worm
+            %images
+            load([curDir, '\tracks.mat']);
+            if exist([curDir, '\individual_worm_imgs\worm_', num2str(length(Tracks)), '.mat'], 'file') == 2
+                %there are individual worm images
+                success = true;
+                return
+            else
+                %repeat the analysis and save individual worm images
+                analysis_mode = 'analysis';
+            end
         elseif strcmp(analysis_mode, 'analysis')
             load([curDir, '\tracks.mat'])
         end
@@ -24,6 +32,12 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
     fid = fopen([curDir, '\LEDVoltages.txt']);
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
+    
+    if length(image_files)-1 > length(LEDVoltages)
+        %there are more frames than there are stimulus
+        success = false;
+        return
+    end
     
     %% STEP 4: Get the median z projection %%
     medianProj = imread([curDir, '\', image_files(1).name]);
@@ -281,12 +295,15 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
         Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
     end
     
-%% STEP 8: Go through all the tracks and analyze them %%
+%% STEP 8: Calculate LED Power %%
+    Tracks = LEDVoltage2Power(Tracks, Prefs.power500);
+    
+%% STEP 9: Go through all the tracks and analyze them %%
     saveFileName = [curDir, '\tracks.mat'];
-    save(saveFileName, 'Tracks');
+    save(saveFileName, 'Tracks', '-v7.3');
     AutoSave(curDir, Prefs.DefaultPath);
     
-%% STEP 9: save each worms' images %%
+%% STEP 10: save each worms' images %%
     if isempty(Tracks) || ~Prefs.SaveIndividualImages
         success = true;
         return
@@ -387,7 +404,7 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
                 image_stack_index = find([current_image_stacks.TrackIndex] == track_index);
                 image_stack_indecies = [image_stack_indecies, image_stack_index];
                 worm_images = current_image_stacks(image_stack_index).Images;
-                save([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat'], 'worm_images');
+                save([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat'], 'worm_images', '-v7.3');
             end
             current_image_stacks(image_stack_indecies) = []; %clear the memory of these images
         end

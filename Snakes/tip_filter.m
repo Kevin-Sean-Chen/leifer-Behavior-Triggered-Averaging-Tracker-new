@@ -13,6 +13,13 @@ function [tip_centroids, L, BW]  = tip_filter(I, thresh)
     
     %take the largest blob
     CC = bwconncomp(BW);
+    if CC.NumObjects == 0
+        %no objects found
+        L = bwlabel(BW);
+        tip_centroids = [];
+        return
+    end
+    
     numPixels = cellfun(@numel,CC.PixelIdxList);
     [~,idx] = max(numPixels);
     BW(~CC.PixelIdxList{idx}) = 0;

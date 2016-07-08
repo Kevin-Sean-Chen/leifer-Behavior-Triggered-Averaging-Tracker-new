@@ -1,4 +1,6 @@
 %taken from returnTemplates.m
+embeddingValues = vertcat(Embeddings{:});
+
 maxVal = max(max(abs(embeddingValues)));
 maxVal = round(maxVal * 1.1);
 

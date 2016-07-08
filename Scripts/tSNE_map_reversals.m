@@ -1,4 +1,4 @@
-frames_to_trace = 14;
+frames_to_trace = 0;
 folders = getfolders();
 allTracks = loadtracks(folders);
 

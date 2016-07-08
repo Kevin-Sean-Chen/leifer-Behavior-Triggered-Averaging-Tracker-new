@@ -1,10 +1,10 @@
-function [Spectra, SpectraFrames, SpectraTracks, f] = generate_spectra(allTracks, parameters, Prefs)
+function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(allTracks, parameters, Prefs)
 %This function gets the wavelet transform given tracks
 %   Detailed explanation goes here
-    poolobj = gcp('nocreate'); 
-    if isempty(poolobj)
-        parpool(parameters.numProcessors)
-    end
+%     poolobj = gcp('nocreate'); 
+%     if isempty(poolobj)
+%         parpool(parameters.numProcessors)
+%     end
 
     Projections = {allTracks.ProjectedEigenValues};
     L = length(Projections);
@@ -53,8 +53,38 @@ function [Spectra, SpectraFrames, SpectraTracks, f] = generate_spectra(allTracks
         
     end
     
-    poolobj = gcp('nocreate'); 
-    delete(poolobj);
+%     poolobj = gcp('nocreate'); 
+%     delete(poolobj);
+    
+    %normalize
+    data = vertcat(Spectra{:});
+
+    phi_dt = data(:,end); %get phase velocity
+    % phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
+    % phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
+    phi_dt = phi_dt ./ parameters.pcaModes; % weigh the phase velocity as a PCA mode (1/5)
+
+    % normalize the phase velocity
+    data = data(:,1:end-1);
+    temp_amps = sum(data,2);
+    data(:) = bsxfun(@rdivide,data,temp_amps);
+    data = [data, phi_dt];
+
+    temp_amps = sum(data,2);
+    data(:) = bsxfun(@rdivide,data,temp_amps);
+
+    Amps = cell(1,L);
+    
+    
+    %remake Spectra
+    start_index = 1;
+    for track_index = 1:length(Spectra)
+        end_index = start_index + size(Spectra{track_index},1) - 1;
+        Spectra{track_index} = data(start_index:end_index, :);
+        Amps{track_index} = temp_amps(start_index:end_index, :);
+        start_index = end_index + 1;
+    end
+    
     f = fliplr(f);
     
     % plot_data = flipud(Spectra{2}');

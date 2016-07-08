@@ -32,7 +32,7 @@ function [start_index, end_index, min_dist_index]  = find_next_section(binary_an
         else
             end_index = 1;
         end
-        if nargin > 3
+        if nargin > 3 && ~isempty(all_center_line_tips) && end_index > 0 && start_index < size(all_center_line_tips,3)
             %find where are the two tips closest together, and thus have the most
             %likely chance of flipping
             all_tips = all_center_line_tips(:, :, end_index:start_index);
@@ -75,7 +75,7 @@ function [start_index, end_index, min_dist_index]  = find_next_section(binary_an
         else
             end_index = length(binary_annotation);
         end
-        if nargin > 3
+        if nargin > 3 && ~isempty(all_center_line_tips) && start_index > 0 && end_index < size(all_center_line_tips,3)
             %find where are the two tips closest together, and thus have the most
             %likely chance of flipping
             all_tips = all_center_line_tips(:, :, start_index:end_index);

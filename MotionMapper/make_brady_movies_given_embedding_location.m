@@ -1,3 +1,6 @@
+%This script allows the user to pick a watershed region in a t-SNE map and
+%finds when the animal stays in that region and plots their behaivor
+
 %% STEP 1: establish plotting constants 
 N_rows = 4;
 N_columns = 4;
@@ -7,7 +10,7 @@ frames_before = 1.5*fps-1;
 frames_after = 1.5*fps;
 duration = frames_before+frames_after+1;
 
-%% STEP 2: allow user to select the filename to save as
+%% STEP 2: allow user to select the folder to save as
 [filename,pathname] = uiputfile('*.mp4','Save Watershed Region As');
 if isequal(filename,0) || isequal(pathname,0)
     %cancel
@@ -86,11 +89,17 @@ for track_index = 1:length(Embeddings)
     
     current_index = current_index + length(behavioral_annotation);
 end
+
 %randomly reorder
 random_order = randperm(length(possible_frames));
 possible_frames = possible_frames(random_order);
 possible_tracks = possible_tracks(random_order);
 possible_indecies = possible_indecies(random_order);
+
+if length(possible_indecies) < N
+    error(['Cannot output video. There are only ' num2str(length(possible_indecies)) ' observed behaviors, fewer than the required ' num2str(N)])
+end
+
 
 %% STEP 5: get N points that fits the criteria
 selected_indecies = [];
