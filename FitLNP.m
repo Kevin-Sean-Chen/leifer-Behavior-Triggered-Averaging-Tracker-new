@@ -9,8 +9,8 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks)
     number_of_behaviors = size(Tracks(1).Behaviors,1);
 
     
-%     allLEDPower = [Tracks.LEDPower];
-    allLEDPower = [Tracks.LEDVoltages];
+    allLEDPower = [Tracks.LEDPower];
+%     allLEDPower = [Tracks.LEDVoltages];
     meanLEDPower = mean(allLEDPower);
     stdLEDPower = std(allLEDPower);
     [BTA, trigger_count] = BehaviorTriggeredAverage([], Tracks);

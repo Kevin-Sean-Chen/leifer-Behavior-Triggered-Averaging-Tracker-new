@@ -96,7 +96,11 @@
             boundary_points = bwtraceboundary(possible_ring_image, closest_boundary_point1, 'N');
             cum_distances = find_cumulative_distance(boundary_points);
             perimeter = cum_distances(end);
-            [~, second_branchpoint_index] = ismember(closest_boundary_point2, boundary_points, 'rows');
+            try
+                [~, second_branchpoint_index] = ismember(closest_boundary_point2, boundary_points, 'rows');
+            catch
+                a= 1
+            end
             if second_branchpoint_index == 0
                 %extreme case: no index found!
                 cw_distance = 0;

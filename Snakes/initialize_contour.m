@@ -12,6 +12,25 @@ function [center_line_interp, thin_image_returned, BW, isGoodFrame, thinning_ite
     endpoint_image = bwmorph(thin_image,'endpoint');
     [endpoints_x, endpoints_y] = ind2sub(size(endpoint_image),find(endpoint_image));
     endpoints = [endpoints_x, endpoints_y];
+    
+    %if there are no endpoints found, just branchpoints, then we fill in
+    %the thinned image and re-thin it
+    if isempty(endpoints)
+        %find branch poiunts
+        branchpoint_image = bwmorph(thin_image,'branchpoints');
+        if sum(branchpoint_image(:)) > 0
+            %there are branch points!
+            thin_image = imfill(thin_image,'holes');
+            thin_image = bwmorph(thin_image,'thin',Inf);
+            thin_image_returned = thin_image;
+            endpoint_image = bwmorph(thin_image,'endpoint');
+            [endpoints_x, endpoints_y] = ind2sub(size(endpoint_image),find(endpoint_image));
+            endpoints = [endpoints_x, endpoints_y];
+        end
+    else
+        %extreme case
+    end
+    
 
     %% STEP 3: get head and tail if possible%%%   
     potentially_certain_tips = []; 

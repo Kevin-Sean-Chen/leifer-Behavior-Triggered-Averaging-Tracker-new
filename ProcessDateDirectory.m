@@ -46,7 +46,7 @@ if tracking
         parfor_progress(Prefs.ProgressDir, round(total_image_files/50));
         for folder_index = 1:folder_count
             folder_name = folders{folder_index};
-            TrackImageDirectory(folder_name, 'continue', Prefs);
+            TrackImageDirectory(folder_name, 'analysis', Prefs);
         end
         parfor_progress(Prefs.ProgressDir, 0);
     end
@@ -110,4 +110,4 @@ if backup
 end
 
 %% STEP 9: get Spectra and behaviors
-CreateBehavioralMappingExperimentGroup(folders);
+% CreateBehavioralMappingExperimentGroup(folders);

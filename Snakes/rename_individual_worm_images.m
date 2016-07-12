@@ -19,6 +19,12 @@ function [] = rename_individual_worm_images(curDir, beginIndex, endIndex, shift)
             break;
         end
         new_file_name = [curDir, '\individual_worm_imgs\worm_', num2str(track_index+shift), '.mat'];
-        movefile(current_file_name, new_file_name, 'f');
+        try
+            movefile(current_file_name, new_file_name, 'f');
+        catch
+            %sometimes it takes a bit of time for windows to react
+            pause(5)
+            movefile(current_file_name, new_file_name, 'f');
+        end
     end
 end

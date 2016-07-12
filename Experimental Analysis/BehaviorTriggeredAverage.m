@@ -47,8 +47,8 @@ function [BTA, behaviorCounts] = BehaviorTriggeredAverage(folders, allTracks)
             triggers = find(allTracks(track_index).Behaviors(behavior_index,:));
             for trigger_index = 1:length(triggers)
                 current_trigger = triggers(trigger_index);
-%                 LEDPower = allTracks(track_index).LEDPower;
-                LEDPower = allTracks(track_index).LEDVoltages;
+                LEDPower = allTracks(track_index).LEDPower;
+%                 LEDPower = allTracks(track_index).LEDVoltages;
                 if current_trigger - (fps*seconds_before) < 1 || current_trigger + (fps*seconds_after) > length(LEDPower)
                     %pad voltages with 0s if needed, but otherwise just ignore it
                 else
