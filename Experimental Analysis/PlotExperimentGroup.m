@@ -3,7 +3,7 @@ function [] = PlotExperimentGroup (Experiments)
 %   Detailed explanation goes here
     fps = 14;
     BTA_seconds_before = 10;
-    BTA_seconds_after = 10;
+    BTA_seconds_after = 1;
     rows_per_page = 3;
     
     figure

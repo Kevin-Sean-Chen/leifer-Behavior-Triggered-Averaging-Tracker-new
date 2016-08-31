@@ -12,7 +12,7 @@ duration = frames_before+frames_after+1;
 
 %% STEP 2: allow user to select the folder to save as
 pathname = uigetdir('', 'Select Save Folder')
-if isequal(filename,0) || isequal(pathname,0)
+if isequal(pathname,0)
     %cancel
    return
 end
@@ -115,7 +115,7 @@ for watershed_region = 1:max(L(:))
     hold off
     set(gca,'position',[0 0 1 1],'units','normalized')
 
-    saveas(sample_figure,fullfile(pathname,[filename(1:end-4), '.png']),'png');
+    saveas(sample_figure,fullfile(pathname,['data_samples_', num2str(watershed_region), '.png']),'png');
     close(sample_figure)
     %% STEP 7: plot the behaviors
 
@@ -175,6 +175,6 @@ for watershed_region = 1:max(L(:))
     feature_vector_figure = figure('Position', [0, 0, 800, 800]);
     imagesc(selected_feature_vectors);
     colorbar
-    saveas(feature_vector_figure,fullfile(pathname,[filename(1:end-4), '_featurevector.png']),'png');
+    saveas(feature_vector_figure,fullfile(pathname,['featurevector_', num2str(watershed_region), '.png']),'png');
     close(feature_vector_figure)
 end

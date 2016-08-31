@@ -25,13 +25,23 @@ function [signalData,signalAmps,signalIndecies] = findTemplatesFromData(...
     selectedAmps = zeros(numPerDataSet,1);
     selectedIndecies = zeros(numPerDataSet,1);
     
-    numInGroup = round(numPerDataSet*templateLengths/sum(templateLengths));
+    numInGroup = floor(numPerDataSet*templateLengths/sum(templateLengths));
     numInGroup(numInGroup == 0) = 1;
     sumVal = sum(numInGroup);
     if sumVal < numPerDataSet
-        q = numPerDataSet - sumVal;
-        idx = randperm(N,q);
-        numInGroup(idx) = numInGroup(idx) + 1;
+        while sumVal < numPerDataSet
+            possible_idx = randi(length(numInGroup));
+            if numInGroup(possible_idx) < size(templates{possible_idx},1)
+                %accepted
+                numInGroup(possible_idx) = numInGroup(possible_idx) + 1;
+                sumVal = sumVal + 1;
+            end
+
+        end
+        
+%         q = numPerDataSet - sumVal;
+%         idx = randperm(N,q);
+%         numInGroup(idx) = numInGroup(idx) + 1;
     else
         if sumVal > numPerDataSet
             q = sumVal - numPerDataSet;

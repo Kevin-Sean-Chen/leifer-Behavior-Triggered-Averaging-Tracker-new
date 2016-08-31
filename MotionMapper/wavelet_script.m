@@ -3,11 +3,15 @@ parameters.numProcessors = 15;
 parameters.numProjections = 19;
 parameters.pcaModes = 5;
 parameters.samplingFreq = 14;
-parameters.minF = 0.5;
+parameters.minF = 0.3;
 parameters.maxF = parameters.samplingFreq ./ 2; %nyquist frequency
 parameters.trainingSetSize = 55000;
 parameters.subsamplingIterations = 1;
+parameters.minTemplateLength = 10;
 parameters = setRunParameters(parameters);
+parameters.minTemplateLength = 1;
+parameters.subsamplingIterations = 10;
+subsampling = false;
 
 %% STEP 2: get the experiment folders
 folders = getfolders();
@@ -22,7 +26,7 @@ end
 L = length(allTracks);
 
 %% STEP 4: generate spectra
-[Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(allTracks, parameters, Prefs);
+[Spectra, SpectraFrames, SpectraTracks, amps, f] = generate_spectra(allTracks, parameters, Prefs);
 
 % delete the tracks
 clear allTracks
@@ -38,7 +42,7 @@ for track_index = 1:L
     TrainingSpectra{track_index} = Spectra{track_index}(edgeEffectTime:end-edgeEffectTime,:);
     TrainingSpectraFrames{track_index} = SpectraFrames{track_index}(edgeEffectTime:end-edgeEffectTime);
     TrainingSpectraTracks{track_index} = SpectraTracks{track_index}(edgeEffectTime:end-edgeEffectTime);  
-    TrainingAmps{track_index} = Amps{track_index}(edgeEffectTime:end-edgeEffectTime); 
+    TrainingAmps{track_index} = amps{track_index}(edgeEffectTime:end-edgeEffectTime); 
 end
 %% STEP 6A: initialize training input
 training_input_data = vertcat(TrainingSpectra{:}); %these timpoints will be randomly sampled from
@@ -48,68 +52,67 @@ training_amps = vertcat(TrainingAmps{:});
 
 
 %% STEP 6B Option 1: Find training set by sampling uniformly
-skipLength = round(length(training_input_data(:,1))/parameters.trainingSetSize);
-trainingSetData = training_input_data(skipLength:skipLength:end,:);
-trainingSetAmps = training_amps(skipLength:skipLength:end);
-trainingSetFrames = training_input_frames(skipLength:skipLength:end);
-trainingSetTracks = training_input_tracks(skipLength:skipLength:end);
+if ~subsampling
+    skipLength = round(length(training_input_data(:,1))/parameters.trainingSetSize);
+    trainingSetData = training_input_data(skipLength:skipLength:end,:);
+    trainingSetAmps = training_amps(skipLength:skipLength:end);
+    trainingSetFrames = training_input_frames(skipLength:skipLength:end);
+    trainingSetTracks = training_input_tracks(skipLength:skipLength:end);
+else
+%% STEP 6B Option 2: Find training set by embedding several iterations
 
+    %save workspace
+    save('temp.mat','-regexp','^(?!(training_input_data|training_amps|training_input_frames|training_input_tracks)$).','-v7.3')
+    clearvars('-except', 'subsampling', 'training_input_data', 'training_amps', 'training_input_frames', 'training_input_tracks', 'parameters')
 
-% %% STEP 6B Option 2: Find training set by embedding several iterations
-% 
-% %save workspace
-% save('temp.mat','-regexp','^(?!(training_input_data|amps)$).','-v7.3')
-% clearvars('-except','training_input_data', 'amps', 'parameters')
-% 
-% %constants
-% N = parameters.trainingSetSize;
-% iterations = parameters.subsamplingIterations;
-% numPerDataSet = round(N/iterations);
-% 
-% if iterations*N > size(training_input_data, 1)
-%     error('too many t-SNE iterations, not enough data')
-% end
-% 
-% trainingSetData = zeros(numPerDataSet*iterations,size(training_input_data,2));
-% trainingSetAmps = zeros(numPerDataSet*iterations,1);
-% trainingSetTracks = zeros(numPerDataSet*iterations,1);
-% trainingSetFrames = zeros(numPerDataSet*iterations,1);
-% 
-% for iteration_index = 1:iterations
-%     fprintf(1,['Finding training set contributions from data set #' ...
-%     num2str(iteration_index) '\n']);
-% 
-%     currentIdx = (1:numPerDataSet) + (iteration_index-1)*numPerDataSet;
-%   
-%     %randomly sample without replacement from our data
-%     [iteration_data, sampled_indecies] = datasample(training_input_data,N,1,'replace',false);
-%     iteration_amps = amps(sampled_indecies,:);
-%     
-%     %save data
-%     save('training_input_data.mat', 'training_input_data', 'amps', '-v7.3')
-%     clear training_input_data amps
-%     
-%     %run t-SNE embedding
-%     [iterationEmbedding,~,~,~] = run_tSne(iteration_data,parameters);
-%     
-%     %re-load data
-%     if iteration_index > 1
-%         load('training_input_data.mat');
-%     end
-%     
-%     %find the templates
-%     [trainingSetData(currentIdx,:),trainingSetAmps(currentIdx),selectedIndecies] = ...
-%     findTemplatesFromData(iteration_data,iterationEmbedding,iteration_amps,...
-%                         numPerDataSet,parameters,sampled_indecies);
-%     trainingSetFrames(currentIdx) = training_input_frames(selectedIndecies);
-%     trainingSetTracks(currentIdx) = training_input_tracks(selectedIndecies);
-%     
-%     %delete the points because we are sampling without replacement
-%     training_input_data(sampled_indecies, :) = [];
-%     amps(sampled_indecies, :) = [];
-%     training_input_frames(sampled_indecies) = [];
-%     training_input_tracks(sampled_indecies) = [];
-% end
+    %constants
+    N = parameters.trainingSetSize;
+    iterations = parameters.subsamplingIterations;
+    numPerDataSet = round(N/iterations);
+
+    if iterations*N > size(training_input_data, 1)
+        error('too many t-SNE iterations, not enough data')
+    end
+
+    trainingSetData = zeros(numPerDataSet*iterations,size(training_input_data,2));
+    trainingSetAmps = zeros(numPerDataSet*iterations,1);
+    trainingSetTracks = zeros(numPerDataSet*iterations,1);
+    trainingSetFrames = zeros(numPerDataSet*iterations,1);
+
+    for iteration_index = 1:iterations
+        fprintf(1,['Finding training set contributions from data set #' ...
+        num2str(iteration_index) '\n']);
+
+        currentIdx = (1:numPerDataSet) + (iteration_index-1)*numPerDataSet;
+
+        %randomly sample without replacement from our data
+        [iteration_data, sampled_indecies] = datasample(training_input_data,N,1,'replace',false);
+        iteration_amps = training_amps(sampled_indecies,:);
+
+        %save data
+        save('training_input_data.mat', 'training_input_data', 'training_amps', '-v7.3')
+        clear training_input_data training_amps
+
+        %run t-SNE embedding
+        [iterationEmbedding,~,~,~] = run_tSne(iteration_data,parameters);
+
+        %re-load data
+        load('training_input_data.mat');
+
+        %find the templates
+        [trainingSetData(currentIdx,:),trainingSetAmps(currentIdx),selectedIndecies] = ...
+        findTemplatesFromData(iteration_data,iterationEmbedding,iteration_amps,...
+                            numPerDataSet,parameters,sampled_indecies);
+        trainingSetFrames(currentIdx) = training_input_frames(selectedIndecies);
+        trainingSetTracks(currentIdx) = training_input_tracks(selectedIndecies);
+
+        %delete the points because we are sampling without replacement
+        training_input_data(sampled_indecies, :) = [];
+        training_amps(sampled_indecies, :) = [];
+        training_input_frames(sampled_indecies) = [];
+        training_input_tracks(sampled_indecies) = [];
+    end
+end
 
 %clean memory
 delete('training_input_data.mat')
@@ -125,10 +128,11 @@ parameters.signalLabels = log10(trainingSetAmps);
 fprintf(1,'Finding t-SNE Embedding for Training Set\n');
 [trainingEmbedding,betas,P,errors] = run_tSne(trainingSetData,parameters);
 
-% %reload
-% load('temp.mat')
-% delete('temp.mat')
-
+if subsampling
+    %reload
+    load('temp.mat')
+    delete('temp.mat')
+end
 
 %% STEP 8: Find All Embeddings
 fprintf(1,'Finding t-SNE Embedding for all Data\n');

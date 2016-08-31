@@ -79,6 +79,9 @@ function [ Prefs ] = load_excel_prefs()
     Prefs.DefaultPath = T{17,computer_index+1};
     Prefs.ImageSize = [N(23,computer_index), N(23,computer_index)];   
     Prefs.MinAverageWormArea = N(24,computer_index);
+    Prefs.MinPhaseVelocity = N(25,computer_index);
+    Prefs.MaxPhaseVelocity = N(26,computer_index);
+        
     Prefs.ProgressDir = pwd;
 
 end

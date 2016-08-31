@@ -27,7 +27,12 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
     
     %% STEP 3: Load images and other properties from the directory %%
     % Get all the tif file names (probably jpgs)
-    image_files = dir([curDir, '\*.tif']); 
+    
+    image_files=dir([curDir, '\*.jpg']); %get all the jpg files (maybe named tif)
+    if isempty(image_files)
+        image_files = dir([curDir, '\*.tif']); 
+    end
+    
     % Load Voltages
     fid = fopen([curDir, '\LEDVoltages.txt']);
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header

@@ -31,6 +31,10 @@ function phi_dt = worm_phase_velocity(ProjectedEigenValues, Prefs)
 %     phi_dt = smoothts(phi_dt, 'g', Prefs.StepSize*5, Prefs.StepSize*5);
     phi_dt = smoothts(phi_dt, 'g', Prefs.StepSize, Prefs.StepSize);
     
+    %cap the phi_dt at some min and max
+    phi_dt(phi_dt < Prefs.MinPhaseVelocity) = Prefs.MinPhaseVelocity;
+    phi_dt(phi_dt > Prefs.MaxPhaseVelocity) = Prefs.MaxPhaseVelocity;
+    
 %     image_size = [70, 70];
 %     direction_vector = [[Track.Speed].*-cosd([Track.Direction]); [Track.Speed].*sind([Track.Direction])];
 %     head_vector = reshape(Track.Centerlines(1,:,:),2,[]) - (image_size(1)/2);    

@@ -1,10 +1,10 @@
 % analysis options
-tracking = 0;
+tracking = 1;
 finding_centerline = 1;
 resolving_problems = 1;
 plotting = 1;
 SaveIndividualImages = 1;
-backup = 0;
+backup = 1;
 
 
 %% STEP 1: Get folders
@@ -23,7 +23,10 @@ if tracking
     total_image_files = 0;
     for folder_index = 1:folder_count
         curDir = folders{folder_index};
-        image_files = dir([curDir, '\*.tif']);
+        image_files=dir([curDir, '\*.jpg']); %get all the jpg files (maybe named tif)
+        if isempty(image_files)
+            image_files = dir([curDir, '\*.tif']); 
+        end
         total_image_files = total_image_files + length(image_files);
     end
     
@@ -89,6 +92,16 @@ if resolving_problems
     end 
 end
 
+%% STEP 8: copy the folder to back up
+if backup
+    'Backing Up Data'
+    for folder_index = 1:folder_count
+        curDir = folders{folder_index}
+        
+        AutoSave(curDir, Prefs.DefaultPath, true)
+    end
+end
+
 %% STEP 7: Plot
 if plotting
     'Plotting...'
@@ -98,16 +111,6 @@ if plotting
     end 
 end
 
-%% STEP 8: copy the folder to back up
-if backup
-    'Backing Up Data'
-    for folder_index = 1:folder_count
-        curDir = folders{folder_index}
-        
-        AutoSave(curDir, Prefs.DefaultPath, true)
-    end
-
-end
 
 %% STEP 9: get Spectra and behaviors
-% CreateBehavioralMappingExperimentGroup(folders);
+CreateBehavioralMappingExperimentGroup(folders);

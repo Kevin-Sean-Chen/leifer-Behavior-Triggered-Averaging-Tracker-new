@@ -18,14 +18,17 @@ function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(all
         %find phase velocity and add it to the spectra
         phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, Prefs)';
 
-        %using phase velocity directly option
+%         %using phase velocity directly option
+%         %make phase velocity non-zero positive between 1 and 2
+%         phi_dt = phi_dt - Prefs.MinPhaseVelocity; 
+%         phi_dt = phi_dt ./ (Prefs.MaxPhaseVelocity - Prefs.MinPhaseVelocity);
+%         phi_dt = phi_dt + 1;
 %         Spectra{track_index} = [feature_vector, phi_dt];
 
         %binary option
         forward_vector = zeros(length(phi_dt),1);
         forward_vector(phi_dt > 0) = 1;
         forward_vector = forward_vector + 1;
-    %     forward_vector = forward_vector ./ parameters.pcaModes ./ 2; %scale it as 1 PCA mode
         Spectra{track_index} = [feature_vector, forward_vector];
 
 %         %no phase velocity option

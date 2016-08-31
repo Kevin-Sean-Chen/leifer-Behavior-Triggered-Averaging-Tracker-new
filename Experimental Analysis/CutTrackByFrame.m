@@ -41,6 +41,8 @@ function [ currentTrack ] = CutTrackByFrame(currentTrack, startFrame, endFrame)
 
             currentTrack = setfield(currentTrack,trackFieldNames{field_index},currentField);
         end
+    else
+        currentTrack = [];
     end
 
 end

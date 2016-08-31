@@ -1,8 +1,10 @@
 function [BTA, behaviorCounts] = BehaviorTriggeredAverage(folders, allTracks)
     %finds the behavior triggered average
     fps = 14;
-    seconds_before = 10;
-    seconds_after = 10;
+    BTA_seconds_before_and_after = 10;
+
+    seconds_before = BTA_seconds_before_and_after;
+    seconds_after = BTA_seconds_before_and_after;
         
     if nargin < 1 %no folders are given, ask user to select
         folders = {};

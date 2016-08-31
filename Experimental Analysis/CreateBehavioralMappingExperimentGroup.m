@@ -3,7 +3,7 @@
 function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
     %clear all;
     %set up parameters
-    recalculateSpectra = false;
+    recalculateSpectra = true;
 
     parameters.numProcessors = 15;
     parameters.numProjections = 19;
@@ -18,7 +18,7 @@ function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
     load('reference_embedding.mat')
     number_of_behaviors = max(L(:));
   
-    if nargin < 1
+    if true%nargin < 1
         [filename,pathname] = uiputfile('*.mat','Save Experiment Group As');
 
         if isequal(filename,0) || isequal(pathname,0)
@@ -82,7 +82,7 @@ function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
 
             %autosave
             save([folder_name '\tracks.mat'], 'Tracks', '-v7.3');
-            AutoSave(folder_name, Prefs.DefaultPath);
+            %AutoSave(folder_name, Prefs.DefaultPath);
         end
 
         % Get binary array of when certain behaviors start
@@ -115,6 +115,6 @@ function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
     [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks);
 
     PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
-    save(saveFileName, 'folders', 'LNPStats', 'L', 'density', 'xx');
+    save(saveFileName, 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 
   end

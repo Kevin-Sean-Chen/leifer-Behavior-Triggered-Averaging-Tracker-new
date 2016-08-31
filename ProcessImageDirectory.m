@@ -9,8 +9,8 @@ function success = ProcessImageDirectory(curDir, plotting)
     cd(curDir) %open the directory of image sequence
     %load('tracks.mat')
     %cd('F:\Data\20150226\Data20150226_164542')
-    image_files=dir('*.tif'); %get all the tif files
-    %image_files=dir('*.jpg'); %get all the jpg files
+%     image_files=dir('*.tif'); %get all the tif files
+    image_files=dir('*.jpg'); %get all the jpg files
 
     %get median z projection
     medianProj = imread(image_files(1).name);
