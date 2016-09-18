@@ -10,7 +10,8 @@ numPoints = 501;
 rangeVals = [-maxVal maxVal];
 
 [xx,density] = findPointDensity(embeddingValues,sigma,501,[-maxVal maxVal]);
-density(density < 10e-6) =5;
+maxDensity = max(density(:));
+density(density < 10e-6) = 5;
 L = watershed(-density,8);
 [ii,jj] = find(L==0);
 
@@ -21,13 +22,19 @@ watershed_centroids = regionprops(L, 'centroid');
 watershed_centroids = vertcat(watershed_centroids.Centroid);
 watershed_centroids = round(watershed_centroids);
 
+
+density(density == 5) = 0;
+%modify jet map
+my_colormap = jet;
+my_colormap(1,:) = [1 1 1];
+
 figure
 hold on
 imagesc(xx,xx,density)
 plot(xx(jj),xx(ii),'k.')
 axis equal tight off xy
 caxis([0 maxDensity * .8])
-colormap(jet)
+colormap(my_colormap)
 for region_index = 1:size(watershed_centroids,1)-1
     text(xx(watershed_centroids(region_index,1)), ...
         xx(watershed_centroids(region_index,2)), ...

@@ -1,4 +1,4 @@
-function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(allTracks, parameters, Prefs)
+function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(Projections, parameters, Prefs)
 %This function gets the wavelet transform given tracks
 %   Detailed explanation goes here
 %     poolobj = gcp('nocreate'); 
@@ -6,7 +6,6 @@ function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(all
 %         parpool(parameters.numProcessors)
 %     end
 
-    Projections = {allTracks.ProjectedEigenValues};
     L = length(Projections);
     Spectra = cell(1,L); %full wavelet transform
     SpectraFrames = cell(1,L); %keep track of each datapoint's frame indecies
@@ -16,7 +15,7 @@ function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(all
         [feature_vector,f] = findWavelets(Projections{track_index}',parameters.pcaModes,parameters);  
 
         %find phase velocity and add it to the spectra
-        phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, Prefs)';
+        phi_dt = worm_phase_velocity(Projections{track_index}, Prefs)';
 
 %         %using phase velocity directly option
 %         %make phase velocity non-zero positive between 1 and 2
@@ -53,7 +52,9 @@ function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(all
 %         plot(head_direction_dot_product/max(head_direction_dot_product))
 %         xlabel('Time (frames)')
 %         ylabel('Normalized Phase Velocity and direction vector')
-        
+        if ~mod(track_index, 100)
+            disp(['spectra generated for ' num2str(track_index) ' of ' num2str(L) ' ' num2str(track_index/L*100) ' percent']);
+        end
     end
     
 %     poolobj = gcp('nocreate'); 

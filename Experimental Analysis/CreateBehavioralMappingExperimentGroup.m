@@ -1,10 +1,12 @@
 % analyzes a group of experiments and saves the properties
 % they will be saved inside the first folder
-function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
+%function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
     %clear all;
     %set up parameters
-    recalculateSpectra = true;
-
+    recalculateSpectra = false;
+    recalculateEmbeddding = false;
+    recalculateBehavior = true;
+    
     parameters.numProcessors = 15;
     parameters.numProjections = 19;
     parameters.pcaModes = 5;
@@ -32,6 +34,7 @@ function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
               folders = previously_loaded_experiments.folders;
             else
               % File does not exist. Ask for experiment folders
+%                 folders = getfoldersGUI();
                 folders = getfolders();
             end
         end
@@ -45,29 +48,36 @@ function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
     for folder_index = 1:length(folders)
         %single experiment
         folder_name = folders{folder_index};
-        cd(folder_name) %open the directory of image sequence
-        load('tracks.mat')
-        load('LEDVoltages.txt')
+        load([folder_name '\tracks.mat'])
+        load([folder_name '\LEDVoltages.txt'])
         
         try
-            experiment_parameters = load('parameters.txt');
+            experiment_parameters = load([folder_name '\parameters.txt']);
             frames = experiment_parameters(length(experiment_parameters));
         catch
-            experiment_parameters = readtable('parameters.txt', 'Delimiter', '\t');
+            experiment_parameters = readtable([folder_name '\parameters.txt'], 'Delimiter', '\t');
             frames = experiment_parameters{1,{'FrameCount'}};
         end
         
-        if recalculateSpectra || ~isfield(Tracks, 'BehavioralTransition')
-            %get the spectra
-            [Spectra, ~, ~, ~] = generate_spectra(Tracks, parameters, Prefs);
+        if recalculateBehavior || ~isfield(Tracks, 'BehavioralTransition')
+            if recalculateEmbeddding || ~exist([folder_name '\embeddings.mat'], 'file')
+                if recalculateSpectra || ~exist([folder_name '\spectra.mat'], 'file')
+                    %get the spectra
+                    [Spectra, ~, ~, ~] = generate_spectra(Tracks, parameters, Prefs);
+                    %save spectra
+                    save([folder_name '\spectra.mat'], 'Spectra', '-v7.3');
+                else
+                    %spectra already found, load it
+                    load([folder_name '\spectra.mat']);
+                end
+                data = vertcat(Spectra{:});
+                [embeddingValues,~] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters);
+                clear data
+            else
+                %embedding already found, load it
+                load([folder_name '\embeddings.mat']);
+            end
             
-            %save spectra
-            save([folder_name '\spectra.mat'], 'Spectra', '-v7.3');
-            
-            data = vertcat(Spectra{:});
-            [embeddingValues,~] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters);
-            clear data
-
             % cut the embeddings
             Tracks(1).Embeddings = []; %preallocate memory
             start_index = 1;
@@ -76,7 +86,7 @@ function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
                 Tracks(track_index).Embeddings = embeddingValues(start_index:end_index, :);
                 start_index = end_index + 1;
             end
-
+            
             %get the stereotyped behaviors
             Tracks = find_stereotyped_behaviors(Tracks, L, xx);
 
@@ -117,4 +127,4 @@ function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
     PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
     save(saveFileName, 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 
-  end
+ % end

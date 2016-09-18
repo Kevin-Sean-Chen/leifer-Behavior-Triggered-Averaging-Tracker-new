@@ -71,7 +71,7 @@ if finding_centerline
                 Tracks = Find_Centerlines(Tracks, curDir, Prefs);
                 saveFileName = [curDir '\tracks.mat'];
                 save(saveFileName, 'Tracks', '-v7.3');
-                AutoSave(curDir, Prefs.DefaultPath);
+%                 AutoSave(curDir, Prefs.DefaultPath);
             end
         end
     end 
@@ -88,7 +88,7 @@ if resolving_problems
         Tracks = auto_resolve_problems(curDir, Prefs);
         saveFileName = [curDir '\tracks.mat'];
         save(saveFileName, 'Tracks', '-v7.3');
-        AutoSave(curDir, Prefs.DefaultPath);
+%         AutoSave(curDir, Prefs.DefaultPath);
     end 
 end
 

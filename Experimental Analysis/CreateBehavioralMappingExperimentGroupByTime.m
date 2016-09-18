@@ -20,7 +20,7 @@
     number_of_behaviors = max(L(:));
   
     max_frame_number = 30*60*parameters.samplingFreq;
-    number_of_sections = 6;
+    number_of_sections = 3;
     
     if true%nargin < 1
         [filename,pathname] = uiputfile('*.mat','Save Experiment Group As');
@@ -36,7 +36,7 @@
               folders = previously_loaded_experiments.folders;
             else
               % File does not exist. Ask for experiment folders
-                folders = getfolders();
+                folders = getfoldersGUI();
             end
         end
     else

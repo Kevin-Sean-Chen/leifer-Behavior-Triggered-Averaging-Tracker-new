@@ -26,10 +26,12 @@ end
 L = length(allTracks);
 
 %% STEP 4: generate spectra
-[Spectra, SpectraFrames, SpectraTracks, amps, f] = generate_spectra(allTracks, parameters, Prefs);
-
+Projections = {allTracks.ProjectedEigenValues};
 % delete the tracks
 clear allTracks
+
+[Spectra, SpectraFrames, SpectraTracks, amps, f] = generate_spectra(Projections, parameters, Prefs);
+save('Spectra.mat','Spectra', 'amps', '-v7.3')
 
 %% STEP 5: Get a set of "training spectra" without edge effects
 TrainingSpectra = cell(1,L);
@@ -43,13 +45,18 @@ for track_index = 1:L
     TrainingSpectraFrames{track_index} = SpectraFrames{track_index}(edgeEffectTime:end-edgeEffectTime);
     TrainingSpectraTracks{track_index} = SpectraTracks{track_index}(edgeEffectTime:end-edgeEffectTime);  
     TrainingAmps{track_index} = amps{track_index}(edgeEffectTime:end-edgeEffectTime); 
+    Spectra{track_index} = []; %optional clearing of memory
 end
+
+clear Spectra
+
 %% STEP 6A: initialize training input
 training_input_data = vertcat(TrainingSpectra{:}); %these timpoints will be randomly sampled from
 training_input_frames = [TrainingSpectraFrames{:}];
 training_input_tracks = [TrainingSpectraTracks{:}];
 training_amps = vertcat(TrainingAmps{:}); 
 
+clear TrainingSpectra TrainingSpectraFrames TrainingSpectraTracks TrainingAmps
 
 %% STEP 6B Option 1: Find training set by sampling uniformly
 if ~subsampling
@@ -58,6 +65,7 @@ if ~subsampling
     trainingSetAmps = training_amps(skipLength:skipLength:end);
     trainingSetFrames = training_input_frames(skipLength:skipLength:end);
     trainingSetTracks = training_input_tracks(skipLength:skipLength:end);
+    clear training_input_data
 else
 %% STEP 6B Option 2: Find training set by embedding several iterations
 
