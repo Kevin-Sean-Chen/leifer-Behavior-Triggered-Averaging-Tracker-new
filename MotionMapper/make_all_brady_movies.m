@@ -17,7 +17,7 @@ if isequal(pathname,0)
    return
 end
 
-for watershed_region = 1:max(L(:))
+for watershed_region = 1:max(L(:)-1)
     saveFileName = fullfile(pathname,[num2str(watershed_region), '.mp4']);
 
     %find all training points in the region
@@ -93,10 +93,10 @@ for watershed_region = 1:max(L(:))
     end
 
     selected_embedded_points = embeddingValues(selected_indecies, :);
-    if ~exist('data', 'var')
-        data = vertcat(Spectra{:});
-    end
-    selected_feature_vectors = data(selected_indecies,:);
+%     if ~exist('data', 'var')
+%         data = vertcat(Spectra{:});
+%     end
+%     selected_feature_vectors = data(selected_indecies,:);
 
     %% STEP 6: plot the training points selected
     sample_figure = figure('Position', [0, 0, size(xx,2), size(xx,2)])
@@ -171,10 +171,10 @@ for watershed_region = 1:max(L(:))
     close(outputVideo)
     close(behavior_figure)
 
-    %% STEP 8: plot feature vectors
-    feature_vector_figure = figure('Position', [0, 0, 800, 800]);
-    imagesc(selected_feature_vectors);
-    colorbar
-    saveas(feature_vector_figure,fullfile(pathname,['featurevector_', num2str(watershed_region), '.png']),'png');
-    close(feature_vector_figure)
+%     %% STEP 8: plot feature vectors
+%     feature_vector_figure = figure('Position', [0, 0, 800, 800]);
+%     imagesc(selected_feature_vectors);
+%     colorbar
+%     saveas(feature_vector_figure,fullfile(pathname,['featurevector_', num2str(watershed_region), '.png']),'png');
+%     close(feature_vector_figure)
 end

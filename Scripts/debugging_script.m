@@ -1,22 +1,71 @@
-% find min and max phi_dt for a dataset
+load('embedding_symmetrci_GWN_16_09_18.mat')
+load('mec4_noret_tracks.mat')
+noretTracks = allTracks;
+load('mec4_ret_tracks.mat')
+allTracks = [allTracks,noretTracks];
+clear noretTracks
 
-folders = getfolders();
-
-%% STEP 2: Load the analysis preferences from Excel %%
-if ~exist('Prefs', 'var')
-    Prefs = load_excel_prefs();
+Embeddings = [];
+for folder_index = 1:length(folders)
+    %single experiment
+    folder_name = folders{folder_index}
+    load([folder_name '\embeddings.mat'])
+    Embeddings = [Embeddings; embeddingValues];
 end
 
-%% STEP 3: load the tracks into memory
-[allTracks, ~, ~] = loadtracks(folders);
-L = length(allTracks);
+embeddingValues = Embeddings;
 
-all_phi_dt = [];
+Embeddings = cell(1,length(allTracks));
 
-for track_index = 1:L
-    phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, Prefs);
-    all_phi_dt = [all_phi_dt, phi_dt];
+start_index = 1;
+for track_index = 1:length(allTracks)
+    end_index = start_index + length(allTracks(track_index).Frames) - 1;
+    Embeddings{track_index} = embeddingValues(start_index:end_index, :);
+    start_index = end_index + 1;
 end
 
-min_phi_dt = min(all_phi_dt)
-max_phi_dt = max(all_phi_dt)
+folder_indecies = [];
+track_indecies = [];
+for folder_index = 1:length(folders)
+    curDir = [folders{folder_index} '\individual_worm_imgs'];
+    indiviudal_image_files=dir([curDir, '\*.mat']);
+    if isempty(indiviudal_image_files)
+        curDir
+    end
+    folder_indecies = [folder_indecies, repmat(folder_index,1,length(indiviudal_image_files))];
+    track_indecies = [track_indecies, 1:length(indiviudal_image_files)];
+end
+
+
+allTracks(1).Embeddings = []; %preallocate memory
+start_index = 1;
+for track_index = 1:length(Embeddings)
+    allTracks(track_index).Embeddings = Embeddings{track_index};
+end
+
+%get the stereotyped behaviors
+allTracks = find_stereotyped_behaviors(allTracks, L, xx);
+
+number_of_behaviors = max(L(:)-1);
+allTracks(1).Behaviors = [];
+for track_index = 1:length(allTracks)
+    triggers = false(number_of_behaviors, length(allTracks(track_index).LEDVoltages)); %a binary array of when behaviors occur
+    for behavior_index = 1:number_of_behaviors
+        transition_indecies = allTracks(track_index).BehavioralTransition(:,1) == behavior_index;
+        %transition into of
+        transition_start_frames = allTracks(track_index).BehavioralTransition(transition_indecies,2);
+        triggers(behavior_index,transition_start_frames) = true;
+%                 %transition out of
+%                 transition_end_frames = Tracks(track_index).BehavioralTransition(transition_indecies,3);
+%                 triggers(behavior_index,transition_end_frames) = true;
+    end
+    allTracks(track_index).Behaviors = triggers(:,1:length(allTracks(track_index).LEDVoltages));
+end
+
+[LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(1:end-19995));
+PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
+save('16_09_20_embedding_ret_LNPFit.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
+
+[LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(length(allTracks)-19994:end));
+PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
+save('16_09_20_embedding_noret_LNPFit.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');

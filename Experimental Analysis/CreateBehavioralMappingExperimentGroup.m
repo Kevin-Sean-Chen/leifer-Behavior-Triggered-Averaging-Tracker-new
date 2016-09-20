@@ -18,7 +18,7 @@
     parameters = setRunParameters(parameters);
     Prefs = load_excel_prefs;
     load('reference_embedding.mat')
-    number_of_behaviors = max(L(:));
+    number_of_behaviors = max(L(:)-1);
   
     if true%nargin < 1
         [filename,pathname] = uiputfile('*.mat','Save Experiment Group As');
@@ -96,11 +96,10 @@
         end
 
         disp('Calculating Behaviors');
-        parfor_progress(Prefs.ProgressDir, round(length(Tracks)/50));
         % Get binary array of when certain behaviors start
         Tracks(1).Behaviors = [];
 
-        parfor track_index = 1:length(Tracks)
+        for track_index = 1:length(Tracks)
             triggers = false(number_of_behaviors, length(Tracks(track_index).LEDVoltages)); %a binary array of when behaviors occur
             for behavior_index = 1:number_of_behaviors
                 transition_indecies = Tracks(track_index).BehavioralTransition(:,1) == behavior_index;
@@ -112,11 +111,7 @@
 %                 triggers(behavior_index,transition_end_frames) = true;
             end
             Tracks(track_index).Behaviors = triggers(:,1:length(Tracks(track_index).LEDVoltages));
-            if ~mod(track_index/50)
-                parfor_progress(Prefs.ProgressDir);
-            end
         end
-        parfor_progress(Prefs.ProgressDir, 0);
         
         
         if isempty(allTracks)
