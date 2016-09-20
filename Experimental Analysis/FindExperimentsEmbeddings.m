@@ -9,13 +9,15 @@ parameters.subsamplingIterations = 10;
 parameters = setRunParameters(parameters);
 Prefs = load_excel_prefs;
 load('reference_embedding.mat')
-
+a = 1;
 folders = getfolders();
 
 for folder_index = 1:length(folders)
     folder_name = folders{folder_index}
     if ~exist([folder_name '\embeddings.mat'], 'file')
-
+        %create a file to "take" the folder
+        save([folder_name '\embeddings.mat'], 'a', '-v7.3')
+        
         %single experiment
         folder_name = folders{folder_index};
         load([folder_name '\tracks.mat'])

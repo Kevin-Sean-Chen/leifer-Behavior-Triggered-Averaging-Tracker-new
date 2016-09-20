@@ -1,10 +1,8 @@
-folders = getfolders();
-All_Embeddings = [];
+folders = getfoldersGUI();
+Embeddings = [];
 for folder_index = 1:length(folders)
     %single experiment
-    folder_name = folders{folder_index};
+    folder_name = folders{folder_index}
     load([folder_name '\embeddings.mat'])
-    All_Embeddings = [All_Embeddings; Embeddings];
+    Embeddings = [Embeddings; embeddingValues];
 end
-Embeddings = All_Embeddings;
-clear All_Embeddings
