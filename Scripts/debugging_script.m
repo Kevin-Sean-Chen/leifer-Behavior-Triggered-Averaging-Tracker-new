@@ -39,7 +39,7 @@ end
 
 allTracks(1).Embeddings = []; %preallocate memory
 start_index = 1;
-for track_index = 1:length(Embeddings)
+for track_index = 1:length(allTracks)
     allTracks(track_index).Embeddings = Embeddings{track_index};
 end
 
@@ -62,10 +62,25 @@ for track_index = 1:length(allTracks)
     allTracks(track_index).Behaviors = triggers(:,1:length(allTracks(track_index).LEDVoltages));
 end
 
-[LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(1:end-19995));
+[LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(1:end-19995),folder_indecies(1:end-19995),folders);
 PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
-save('16_09_20_embedding_ret_LNPFit.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
+save('16_09_20_embedding_ret_LNPFit_nonlinearityfix.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 
-[LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(length(allTracks)-19994:end));
+[LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(length(allTracks)-19994:end),folder_indecies(length(allTracks)-19994:end),folders);
 PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
-save('16_09_20_embedding_noret_LNPFit.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
+save('16_09_20_embedding_noret_LNPFit_nonlinearityfix.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
+
+
+max_frame_number = 30*60*parameters.samplingFreq;
+number_of_sections = 3;
+saveFileName = '16_09_20_embedding_ret_LNPFit_NLfix_section_';
+for section_index = 1:number_of_sections
+    start_frame = (section_index-1)*max_frame_number/number_of_sections+1;
+    end_frame = section_index*max_frame_number/number_of_sections;
+
+    [section_Tracks, section_track_indecies] = FilterTracksByTime(allTracks,start_frame,end_frame);
+    [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(section_Tracks,folder_indecies(section_track_indecies),folders);
+
+    PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
+    save([saveFileName, num2str(section_index), '.mat'], 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
+end

@@ -9,7 +9,6 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
     rows_per_page = 3;
     NumTicks = 3;
 
-    
     figure
     plot_watershed = 1;
     plot_BTA = 1;
@@ -26,20 +25,22 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
     watershed_plot_number = non_linearity_plot_number+plot_watershed;
     plots_per_experiment = watershed_plot_number;
     
-    watershed_borders_binary = L==0;
-%     [ii,jj] = find(watershed_borders_binary);
-%     all_density = density(:);
-%     [white_space_ii white_space_jj] = find(density > 1);
-    density(density > 1) = 0;
-    maxDensity = max(density(:));
-    
-    watershed_centroids = regionprops(L, 'centroid');
-    watershed_centroids = vertcat(watershed_centroids.Centroid);
-    watershed_centroids = round(watershed_centroids);
+    if nargin > 4
+        watershed_borders_binary = L==0;
+    %     [ii,jj] = find(watershed_borders_binary);
+    %     all_density = density(:);
+    %     [white_space_ii white_space_jj] = find(density > 1);
+        density(density > 1) = 0;
+        maxDensity = max(density(:));
 
-    %modify jet map
-    my_colormap = jet;
-    my_colormap(1,:) = [1 1 1];
+        watershed_centroids = regionprops(L, 'centroid');
+        watershed_centroids = vertcat(watershed_centroids.Centroid);
+        watershed_centroids = round(watershed_centroids);
+        %modify jet map
+        my_colormap = jet;
+        my_colormap(1,:) = [1 1 1];
+    end
+
     
     for behavior_index = 1:length(LNPStats)
         %plot watershed

@@ -17,7 +17,7 @@
     parameters = setRunParameters(parameters);
     Prefs = load_excel_prefs;
     load('reference_embedding.mat')
-    number_of_behaviors = max(L(:));
+    number_of_behaviors = max(L(:)-1);
   
     max_frame_number = 30*60*parameters.samplingFreq;
     number_of_sections = 3;
@@ -116,8 +116,9 @@
     for section_index = 1:number_of_sections
         start_frame = (section_index-1)*max_frame_number/number_of_sections+1;
         end_frame = section_index*max_frame_number/number_of_sections;
-        section_Tracks = FilterTracksByTime(allTracks,start_frame,end_frame);
-        [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(section_Tracks);
+        
+        [section_Tracks, section_track_indecies] = FilterTracksByTime(allTracks,start_frame,end_frame);
+        [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(section_Tracks,folder_indecies(section_track_indecies),folders);
 
         PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
         save([saveFileName, num2str(section_index)], 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
