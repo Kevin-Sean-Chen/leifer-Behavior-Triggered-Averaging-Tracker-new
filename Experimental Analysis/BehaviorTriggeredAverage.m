@@ -1,56 +1,23 @@
-function [BTA, behaviorCounts] = BehaviorTriggeredAverage(folders, allTracks)
+function [BTA, behaviorCounts] = BehaviorTriggeredAverage(Behaviors, LEDPowers)
     %finds the behavior triggered average
     fps = 14;
     BTA_seconds_before_and_after = 10;
 
     seconds_before = BTA_seconds_before_and_after;
     seconds_after = BTA_seconds_before_and_after;
-        
-    if nargin < 1 %no folders are given, ask user to select
-        folders = {};
-        while true
-            folder_name = uigetdir
-            if folder_name == 0
-                break
-            else
-                folders{length(folders)+1} = folder_name;
-            end
-        end
-    end
-    
-    if nargin < 2 %if no tracks are given
-        allTracks = struct([]);
-        for folder_index = 1:length(folders)
-            folder_name = folders{folder_index};
-            cd(folder_name) %open the directory of image sequence
-            load('tracks.mat')
-            if length(allTracks) == 0
-                allTracks = Tracks;
-            else
-                allTracks = [allTracks, Tracks];
-            end  
-        end
-    end
-    
-    number_of_behaviors = size(allTracks(1).Behaviors,1);
+  
+    number_of_behaviors = size(Behaviors{1},1);
     behaviorCounts = zeros(number_of_behaviors,1);
     BTA = zeros(number_of_behaviors,(fps*seconds_before)+(fps*seconds_after)+1);
 
-    if isfield(allTracks, 'Behaviors')
-    else
-        %does not support tracks without behaviors
-        return
-    end
-
-    for behavior_index = 1:number_of_behaviors
+    parfor behavior_index = 1:number_of_behaviors
         tracksCentered = [];
-        for track_index = 1:length(allTracks)
+        for track_index = 1:length(Behaviors)
             %get a BTA for each trigger
-            triggers = find(allTracks(track_index).Behaviors(behavior_index,:));
+            triggers = find(Behaviors{track_index}(behavior_index,:));
             for trigger_index = 1:length(triggers)
                 current_trigger = triggers(trigger_index);
-                LEDPower = allTracks(track_index).LEDPower;
-%                 LEDPower = allTracks(track_index).LEDVoltages;
+                LEDPower = LEDPowers{track_index};
                 if current_trigger - (fps*seconds_before) < 1 || current_trigger + (fps*seconds_after) > length(LEDPower)
                     %pad voltages with 0s if needed, but otherwise just ignore it
                 else
@@ -62,6 +29,7 @@ function [BTA, behaviorCounts] = BehaviorTriggeredAverage(folders, allTracks)
         if ~isempty(tracksCentered)
             BTA(behavior_index,:) = mean(tracksCentered,1);
         end
+        disp(num2str(behavior_index))
     end
 
     

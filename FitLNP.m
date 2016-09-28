@@ -1,20 +1,47 @@
-function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks)
+function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,folders)
 %FitLNP takes in tracks and outputs the parameters of the LNP
 %   Detailed explanation goes here
-    fps = 14;
     numbins = 10;
+    if ~isfield(Tracks, 'Behaviors')
+        %does not support tracks without behaviors
+        return
+    end
     number_of_behaviors = size(Tracks(1).Behaviors,1);
 
+    %get all the LEDVoltages from all experiments
+    all_LEDVoltages = cell(1,length(folders));
+    for folder_index = 1:length(folders)
+        curDir = folders{folder_index};
+        % Load Voltages
+        fid = fopen([curDir, '\LEDVoltages.txt']);
+        all_LEDVoltages{folder_index} = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+        fclose(fid);
+    end
     
     allLEDPower = [Tracks.LEDPower];
 %     allLEDPower = [Tracks.LEDVoltages];
     meanLEDPower = mean(allLEDPower);
     stdLEDPower = std(allLEDPower);
-    [BTA, trigger_count] = BehaviorTriggeredAverage([], Tracks);
+
+    allLEDVoltages = [Tracks.LEDVoltages];
+    meanLEDVoltages = mean(allLEDVoltages);
+
+    
+    %calculate the BTA and linear kernel
+    Behaviors = {Tracks(:).Behaviors};
+    LEDPowers = {Tracks(:).LEDPower};
+    [BTA, trigger_count] = BehaviorTriggeredAverage(Behaviors, LEDPowers);
+    clear Behaviors LEDPowers
+
+%     %debug load BTA from previous file
+%     load('C:\Users\mochil\Dropbox\LeiferShaevitz\presentations\high res mec-4\symmetric\16_09_20_embedding_ret_LNPFit.mat')
+%     BTA = vertcat(LNPStats(:).BTA);
+%     trigger_count = vertcat(LNPStats(:).trigger_count);
+
     linear_kernel = BTA_to_kernel(BTA, trigger_count, meanLEDPower, stdLEDPower);
 
     %smooth the linear_kernel? Approximate by gaussian and exponential?
-    
+        
     LNPStats(number_of_behaviors).BTA = [];    
     LNPStats(number_of_behaviors).linear_kernel = [];
     LNPStats(number_of_behaviors).trigger_count = [];
@@ -31,6 +58,10 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks)
         LNPStats(behavior_index).linear_kernel = linear_kernel(behavior_index,:);
         LNPStats(behavior_index).trigger_count = trigger_count(behavior_index,:);
         
+%         if behavior_index == 8
+%            a =1; 
+%         end
+        
         if isempty(nonzeros(linear_kernel(behavior_index,:)))
             %special case: flat kernel
             bin_centers = 0:numbins-1;
@@ -42,12 +73,19 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks)
             LNPStats(behavior_index).non_linearity = non_linearity;
             LNPStats(behavior_index).bin_centers = bin_centers;
             LNPStats(behavior_index).errors = zeros(1,numbins);
-        else
+        else            
             all_filtered_signal = [];
-            for track_index = 1:length(Tracks)
+            
+            %calculate the filtered LEDVoltages for all experiments
+            all_filtered_LEDVoltages = cell(1,length(folders));
+            for folder_index = 1:length(folders)
                 %convolve the linear kernels with the input signal of LED voltages
-                filtered_signal = conv(Tracks(track_index).LEDPower, linear_kernel(behavior_index,:), 'same');
-                filtered_signal = filtered_signal(1:length(Tracks(track_index).LEDPower)); %cut off the tail
+                all_filtered_LEDVoltages{folder_index} = conv(all_LEDVoltages{folder_index}-meanLEDVoltages, linear_kernel(behavior_index,:), 'same');
+            end
+            
+            for track_index = 1:length(Tracks)
+                filtered_signal = all_filtered_LEDVoltages{folder_indecies(track_index)}(Tracks(track_index).Frames);
+                filtered_signal = filtered_signal .* Tracks(track_index).LEDPower ./ Tracks(track_index).LEDVoltages;
                 all_filtered_signal = [all_filtered_signal, filtered_signal];
             end
 
@@ -71,7 +109,7 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks)
             [LNPStats(behavior_index).non_linearity_fit, LNPStats(behavior_index).non_linearity, ...
                 LNPStats(behavior_index).bin_centers, LNPStats(behavior_index).errors] = ...
                 fit_nonlinearity(current_filtered_signal_given_behavior_histogram, current_filtered_signal_histogram, current_bin_edges);
-            
+            disp(num2str(behavior_index));
         end
         
 
