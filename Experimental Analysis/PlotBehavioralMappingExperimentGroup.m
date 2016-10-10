@@ -17,14 +17,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
     plot_filtered_signal_given_reversal_histogram = 0;
     plot_non_linearity = 1;
     
-    BTA_plot_number = plot_BTA;
-    linear_filter_plot_number = BTA_plot_number+plot_linear_filter;
-    filtered_signal_histogram_plot_number = linear_filter_plot_number+plot_filtered_signal_histogram;
-    filtered_signal_given_reversal_histogram_plot_number = filtered_signal_histogram_plot_number+plot_filtered_signal_given_reversal_histogram;
-    non_linearity_plot_number = filtered_signal_given_reversal_histogram_plot_number+plot_non_linearity;
-    watershed_plot_number = non_linearity_plot_number+plot_watershed;
-    plots_per_experiment = watershed_plot_number;
-    
+
     if nargin > 4
         watershed_borders_binary = L==0;
     %     [ii,jj] = find(watershed_borders_binary);
@@ -39,8 +32,18 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         %modify jet map
         my_colormap = jet;
         my_colormap(1,:) = [1 1 1];
+    else
+        plot_watershed = 0;
     end
-
+    
+    BTA_plot_number = plot_BTA;
+    linear_filter_plot_number = BTA_plot_number+plot_linear_filter;
+    filtered_signal_histogram_plot_number = linear_filter_plot_number+plot_filtered_signal_histogram;
+    filtered_signal_given_reversal_histogram_plot_number = filtered_signal_histogram_plot_number+plot_filtered_signal_given_reversal_histogram;
+    non_linearity_plot_number = filtered_signal_given_reversal_histogram_plot_number+plot_non_linearity;
+    watershed_plot_number = non_linearity_plot_number+plot_watershed;
+    plots_per_experiment = watershed_plot_number;
+    
     
     for behavior_index = 1:length(LNPStats)
         %plot watershed

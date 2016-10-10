@@ -12,7 +12,7 @@ function [non_linearity_fit, non_linearities, bin_centers, errors] = fit_nonline
         behavior_count = filtered_signal_given_behavior_histogram(bin_index);
         filtered_signal_count = filtered_signal_histogram(bin_index);
         
-        if behavior_count == 0 || filtered_signal_count == 0 
+        if behavior_count < 2 || filtered_signal_count < 2
             %there is no data in a condition, ignore the point
         else
 

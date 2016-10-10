@@ -4,6 +4,8 @@ noretTracks = allTracks;
 load('mec4_ret_tracks.mat')
 allTracks = [allTracks,noretTracks];
 clear noretTracks
+load('reference_embedding.mat')
+
 
 Embeddings = [];
 for folder_index = 1:length(folders)
@@ -46,6 +48,7 @@ end
 %get the stereotyped behaviors
 allTracks = find_stereotyped_behaviors(allTracks, L, xx);
 
+%calculate the triggers for LNP fitting
 number_of_behaviors = max(L(:)-1);
 allTracks(1).Behaviors = [];
 for track_index = 1:length(allTracks)
@@ -62,18 +65,19 @@ for track_index = 1:length(allTracks)
     allTracks(track_index).Behaviors = triggers(:,1:length(allTracks(track_index).LEDVoltages));
 end
 
-[LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(1:end-19995),folder_indecies(1:end-19995),folders);
+[LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks,folder_indecies,folders);
 PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
-save('16_09_20_embedding_ret_LNPFit_nonlinearityfix.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
+save('16_09_20_embedding_ret_LNPFit_nonlinearityfix_5_behaviors.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 
 [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(length(allTracks)-19994:end),folder_indecies(length(allTracks)-19994:end),folders);
 PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
 save('16_09_20_embedding_noret_LNPFit_nonlinearityfix.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 
 
+%% cut up tracks into 10 min sections and fit + plot LNP params
 max_frame_number = 30*60*parameters.samplingFreq;
 number_of_sections = 3;
-saveFileName = '16_09_20_embedding_ret_LNPFit_NLfix_section_';
+saveFileName = '16_09_20_embedding_ret_LNPFit_NLfix_5_behaviors_section_';
 for section_index = 1:number_of_sections
     start_frame = (section_index-1)*max_frame_number/number_of_sections+1;
     end_frame = section_index*max_frame_number/number_of_sections;
@@ -83,4 +87,40 @@ for section_index = 1:number_of_sections
 
     PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
     save([saveFileName, num2str(section_index), '.mat'], 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
+end
+
+
+%% cut up tracks into 10 min sections and plot embedding density
+max_frame_number = 30*60*parameters.samplingFreq;
+number_of_sections = 3;
+for section_index = 2:number_of_sections
+    start_frame = (section_index-1)*max_frame_number/number_of_sections+1;
+    end_frame = section_index*max_frame_number/number_of_sections;
+
+    [section_Tracks, section_track_indecies] = FilterTracksByTime(allTracks,start_frame,end_frame);
+    
+    embeddingValues = vertcat(section_Tracks.Embeddings);
+
+    [xx,density] = findPointDensity(embeddingValues,sigma,501,[-maxVal maxVal]);
+    maxDensity = max(density(:));
+    density(density < 10e-6) = 0;
+    %modify jet map
+    my_colormap = jet;
+    my_colormap(1,:) = [1 1 1];
+
+    figure
+    hold on
+    imagesc(xx,xx,density)
+    plot(xx(jj),xx(ii),'k.')
+    axis equal tight off xy
+    caxis([0 maxDensity * .8])
+    colormap(my_colormap)
+    for region_index = 1:size(watershed_centroids,1)-1
+        text(xx(watershed_centroids(region_index,1)), ...
+            xx(watershed_centroids(region_index,2)), ...
+            num2str(region_index), 'color', 'k', ...
+            'fontsize', 12, 'horizontalalignment', 'center', ...
+            'verticalalignment', 'middle');
+    end
+    hold off
 end
