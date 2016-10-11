@@ -165,6 +165,20 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             set(fig,'DefaultLineLineWidth',prev_line_width)
         end
     end
-
+    
+    if isfield(LNPStats, 'shuffle_norms')
+        figure
+        shuffle_norms = vertcat(LNPStats.shuffle_norms);
+        BTA_norms = [LNPStats.BTA_norm];
+        shuffle_mean = mean(shuffle_norms, 2)';
+        shuffle_std = 1.96 .* std(shuffle_norms,0,2)';
+        hold on
+        errorbar(1:length(LNPStats), shuffle_mean, shuffle_std, 'bo')
+        plot(1:length(LNPStats), BTA_norms, 'r*')
+        hold off
+        xlabel('Behavior Index') % x-axis label
+        ylabel('Filter Magnitude') % y-axis label
+        legend('Shuffled Magnitutde (95% confidence)', 'BTA Magnitutde')
+    end
 end
 

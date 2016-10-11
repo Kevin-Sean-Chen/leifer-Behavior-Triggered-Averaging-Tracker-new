@@ -67,7 +67,7 @@ end
 
 [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks,folder_indecies,folders);
 PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
-save('16_09_20_embedding_ret_LNPFit_nonlinearityfix_5_behaviors.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
+save('16_09_20_embedding_ret_LNPFit_nonlinearityfix_12_behaviors.mat', 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 
 [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks(length(allTracks)-19994:end),folder_indecies(length(allTracks)-19994:end),folders);
 PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
@@ -77,7 +77,7 @@ save('16_09_20_embedding_noret_LNPFit_nonlinearityfix.mat', 'folders', 'LNPStats
 %% cut up tracks into 10 min sections and fit + plot LNP params
 max_frame_number = 30*60*parameters.samplingFreq;
 number_of_sections = 3;
-saveFileName = '16_09_20_embedding_ret_LNPFit_NLfix_5_behaviors_section_';
+saveFileName = '16_09_20_embedding_ret_LNPFit_NLfix_12_behaviors_section_';
 for section_index = 1:number_of_sections
     start_frame = (section_index-1)*max_frame_number/number_of_sections+1;
     end_frame = section_index*max_frame_number/number_of_sections;
