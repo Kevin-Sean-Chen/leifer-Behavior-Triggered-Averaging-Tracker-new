@@ -1,4 +1,4 @@
-function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
+function Track = initial_sweep(image_stack, Track, parameters, plot_index)
     % given a sequence of worm images, this function finds the centerlines,
     % before smoothing
     
@@ -397,7 +397,7 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
         end
         if test_flip
             [flip_needed, flip_possible] = determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
-                    tail_direction_dot_product(subsection_start:subsection_end), Prefs);
+                    tail_direction_dot_product(subsection_start:subsection_end), parameters);
             if flip_possible
                 potential_problems(index) = 1;
             end
@@ -420,7 +420,7 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
             break
         else
             [flip_needed, flip_possible] = determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
-                    tail_direction_dot_product(subsection_start:subsection_end), Prefs);
+                    tail_direction_dot_product(subsection_start:subsection_end), parameters);
             if flip_possible
                 potential_problems(subsection_end) = 1;
             end
@@ -448,7 +448,7 @@ function Track = initial_sweep(image_stack, Track, Prefs, plot_index)
             break
         else
             [flip_needed, flip_possible] = determine_if_head_tail_flip(head_direction_dot_product(subsection_start:subsection_end), ...
-                    tail_direction_dot_product(subsection_start:subsection_end), Prefs);
+                    tail_direction_dot_product(subsection_start:subsection_end), parameters);
             if flip_possible
                 potential_problems(subsection_start) = 1;
             end

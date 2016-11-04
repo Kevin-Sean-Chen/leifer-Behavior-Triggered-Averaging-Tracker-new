@@ -17,14 +17,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
     plot_filtered_signal_given_reversal_histogram = 0;
     plot_non_linearity = 1;
     
-    BTA_plot_number = plot_BTA;
-    linear_filter_plot_number = BTA_plot_number+plot_linear_filter;
-    filtered_signal_histogram_plot_number = linear_filter_plot_number+plot_filtered_signal_histogram;
-    filtered_signal_given_reversal_histogram_plot_number = filtered_signal_histogram_plot_number+plot_filtered_signal_given_reversal_histogram;
-    non_linearity_plot_number = filtered_signal_given_reversal_histogram_plot_number+plot_non_linearity;
-    watershed_plot_number = non_linearity_plot_number+plot_watershed;
-    plots_per_experiment = watershed_plot_number;
-    
+
     if nargin > 4
         watershed_borders_binary = L==0;
     %     [ii,jj] = find(watershed_borders_binary);
@@ -39,8 +32,18 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         %modify jet map
         my_colormap = jet;
         my_colormap(1,:) = [1 1 1];
+    else
+        plot_watershed = 0;
     end
-
+    
+    BTA_plot_number = plot_BTA;
+    linear_filter_plot_number = BTA_plot_number+plot_linear_filter;
+    filtered_signal_histogram_plot_number = linear_filter_plot_number+plot_filtered_signal_histogram;
+    filtered_signal_given_reversal_histogram_plot_number = filtered_signal_histogram_plot_number+plot_filtered_signal_given_reversal_histogram;
+    non_linearity_plot_number = filtered_signal_given_reversal_histogram_plot_number+plot_non_linearity;
+    watershed_plot_number = non_linearity_plot_number+plot_watershed;
+    plots_per_experiment = watershed_plot_number;
+    
     
     for behavior_index = 1:length(LNPStats)
         %plot watershed
@@ -72,6 +75,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             hold on
             %shaded error bar represents the mean of the angular error
             shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(behavior_index).BTA, 2*stdLEDPower*sqrt(2/LNPStats(behavior_index).trigger_count)*ones(1,length(LNPStats(behavior_index).BTA)), {'-k', 'Linewidth', 3});
+%             shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(behavior_index).BTA, LNPStats(behavior_index).BTA_std ./ 10, {'-k', 'Linewidth', 3});
             meanLEDVoltageY = zeros(1,length(LNPStats(behavior_index).BTA));
             meanLEDVoltageY(:) = meanLEDPower;
             plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r', 'Linewidth', 3)
@@ -162,6 +166,20 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             set(fig,'DefaultLineLineWidth',prev_line_width)
         end
     end
-
+    
+    if isfield(LNPStats, 'shuffle_norms') && ~isempty(LNPStats(1).shuffle_norms)
+        figure
+        shuffle_norms = vertcat(LNPStats.shuffle_norms);
+        BTA_norms = [LNPStats.BTA_norm];
+        shuffle_mean = mean(shuffle_norms, 2)';
+        shuffle_std = 1.96 .* std(shuffle_norms,0,2)';
+        hold on
+        errorbar(1:length(LNPStats), shuffle_mean, shuffle_std, 'bo')
+        plot(1:length(LNPStats), BTA_norms, 'r*')
+        hold off
+        xlabel('Behavior Index') % x-axis label
+        ylabel('Filter Magnitude') % y-axis label
+        legend('Shuffled Magnitutde (95% confidence)', 'BTA Magnitutde')
+    end
 end
 

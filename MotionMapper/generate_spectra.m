@@ -1,4 +1,4 @@
-function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(Projections, parameters, Prefs)
+function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(Projections, parameters)
 %This function gets the wavelet transform given tracks
 %   Detailed explanation goes here
 %     poolobj = gcp('nocreate'); 
@@ -15,7 +15,7 @@ function [Spectra, SpectraFrames, SpectraTracks, Amps, f] = generate_spectra(Pro
         [feature_vector,f] = findWavelets(Projections{track_index}',parameters.pcaModes,parameters);  
 
         %find phase velocity and add it to the spectra
-        phi_dt = worm_phase_velocity(Projections{track_index}, Prefs)';
+        phi_dt = worm_phase_velocity(Projections{track_index}, parameters)';
 
 %         %using phase velocity directly option
 %         %make phase velocity non-zero positive between 1 and 2

@@ -70,7 +70,7 @@ else
 %                      text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, num2str(i), 'Color', 'r')
 % %                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', 'r')
 %                 else
-                    plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'Marker', 'o', 'Color', myColors(currentActiveTrack,:));
+                     plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'Marker', 'o', 'Color', myColors(currentActiveTrack,:));
                      %plot the track number and size
                      text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, num2str(i), 'Color', myColors(currentActiveTrack,:))
 %                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', myColors(currentActiveTrack,:))
@@ -93,7 +93,7 @@ else
         [frame_h, frame_w] = size(Frame);
         plot_x = ceil(frame_w - (frame_w/10));
         plot_y = ceil(frame_h/10);
-        plot(plot_x, plot_y, 'o', 'MarkerSize', 30, 'MarkerEdgeColor','none', 'MarkerFaceColor',[LEDVoltage/5 0 0])
+        plot(plot_x, plot_y, 'o', 'MarkerSize', 30, 'MarkerEdgeColor','none', 'MarkerFaceColor',[max(LEDVoltage/5,0) 0 0])
     end
     
 end

@@ -22,69 +22,9 @@ function parameters = setRunParameters(parameters)
     %whether or not to close the matlabpool after running a routine
     closeMatPool = false;
     
-    
-    
-    
-    
-%     %%%%%%%% Segmentation and Alignment Parameters %%%%%%%%
-%     
-%     %angle spacing for alignement Radon transform
-%     alignment_angle_spacing = 1;
-%     
-%     %tolerance for translational alignment
-%     pixelTol = .1;
-%     
-%     %minimum area for use in image dilation/erosion
-%     minArea = 3500;
-%     
-%     %asymmetry threshold used in eliminating rotational degeneracy (set to -1 for auto)
-%     asymThreshold = 150;
-%     
-%     %line about which directional symmetry is 
-%     %determined for eliminating rotational degeneracy
-%     symLine = 110;
-%     
-%     %initial guess for rotation angle
-%     initialPhi = 0;
-% 
-%     %initial dilation size for image segmentation
-%     dilateSize = 5;
-% 
-%     %parameter for Canny edge detection
-%     cannyParameter = .1;
-% 
-%    %threshold for image segmentation
-%     imageThreshold = 40;
-% 
-%     %largest allowed percentage reduction in area from frame to frame
-%     maxAreaDifference = .15;
-% 
-%     %toggle switch for image segmentation (alignment still performed)
-%     segmentationOff = false;
-%     
-%     %threshold for seperating body from background (set to -1 for auto)
-%     bodyThreshold = 150;
-% 
-%     %number of images to test for image size estimation
-%     areaNormalizationNumber = 100;
-%     
-%     %range extension for flipping detector
-%     rangeExtension = 20;
-%     
-%     %path to basis image
-%     basisImagePath = 'segmentation_alignment/basisImage.tiff';
-    
-    
-    
-    
+        
     
     %%%%%%%% PCA Parameters %%%%%%%% 
-    
-    %number of angles in radon transform
-    num_Radon_Thetas = 90;
-    
-    %image scaling factor
-    rescaleSize = 10/7;
     
     %batch size for running online PCA
     pca_batchSize = 20000;
@@ -93,7 +33,7 @@ function parameters = setRunParameters(parameters)
     numProjections = 100;
     
     %number of PCA modes to use in later analyses
-    pcaModes = 50;
+    pcaModes = 5;
     
     %number of images to process per file in eignemode calculations
     %a value of -1 instructs all images to be processed
@@ -109,19 +49,15 @@ function parameters = setRunParameters(parameters)
     omega0 = 5;
     
     %sampling frequency (Hz)
-    samplingFreq = 100;
+    samplingFreq = 14;
         
     %minimum frequency for wavelet transform (Hz)
-    minF = 1;
+    minF = 0.3;
     
     %maximum frequency for wavelet transform (Hz)
-    maxF = 50;
+    maxF = samplingFreq ./ 2;
     
-    
-    
-    
-    
-    
+  
     %%%%%%%% t-SNE Parameters %%%%%%%%
     
     
@@ -174,7 +110,7 @@ function parameters = setRunParameters(parameters)
     maxOptimIter = 100;
     
     %number of points in the training set
-    trainingSetSize = 35000;
+    trainingSetSize = 55000;
     
     %local neighborhood definition in training set creation
     kdNeighbors = 5;
@@ -197,22 +133,6 @@ function parameters = setRunParameters(parameters)
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
@@ -223,92 +143,6 @@ function parameters = setRunParameters(parameters)
     
     if ~isfield(parameters,'closeMatPool') || isempty(parameters.closeMatPool)
         parameters.closeMatPool = closeMatPool;
-    end
-    
-    
-    
-
-
-    
-%     if ~isfield(parameters,'alignment_angle_spacing') || isempty(parameters.alignment_angle_spacing)
-%         parameters.alignment_angle_spacing = alignment_angle_spacing;
-%     end
-%     
-%     
-%     if ~isfield(parameters,'bodyThreshold') || isempty(parameters.bodyThreshold)
-%         parameters.bodyThreshold = bodyThreshold;
-%     end
-%     
-%     
-%     if ~isfield(parameters,'pixelTol') || isempty(parameters.pixelTol)
-%         parameters.pixelTol = pixelTol;
-%     end
-%     
-%     
-%     if ~isfield(parameters,'minArea') || isempty(parameters.minArea)
-%         parameters.minArea = minArea;
-%     end
-%     
-%     
-%     if ~isfield(parameters,'asymThreshold') || isempty(parameters.asymThreshold)
-%         parameters.asymThreshold = asymThreshold;
-%     end
-%     
-%     
-%     if ~isfield(parameters,'symLine') || isempty(parameters.symLine)
-%         parameters.symLine = symLine;
-%     end
-%     
-%     
-%     if ~isfield(parameters,'basisImagePath') || isempty(parameters.basisImagePath) 
-%         parameters.basisImagePath = basisImagePath;
-%     end
-%     parameters.basisImage = imread(parameters.basisImagePath);
-%     
-% 
-%     if ~isfield(parameters,'initialPhi') || isempty(parameters.initialPhi)
-%         parameters.initialPhi = initialPhi;
-%     end
-% 
-% 
-%     if ~isfield(parameters,'dilateSize') || isempty(parameters.dilateSize)
-%         parameters.dilateSize = dilateSize;
-%     end
-%     
-% 
-%     if ~isfield(parameters,'cannyParameter') || isempty(parameters.cannyParameter)
-%         parameters.cannyParameter = cannyParameter;
-%     end
-% 
-% 
-%     if ~isfield(parameters,'imageThreshold') || isempty(parameters.imageThreshold)
-%         parameters.imageThreshold = imageThreshold;
-%     end
-% 
-%     
-%     if ~isfield(parameters,'maxAreaDifference') || isempty(parameters.maxAreaDifference)
-%         parameters.maxAreaDifference = maxAreaDifference;
-%     end
-% 
-% 
-%     if ~isfield(parameters,'segmentationOff') || isempty(parameters.segmentationOff)
-%         parameters.segmentationOff = segmentationOff;
-%     end
-% 
-% 
-% 
-%     
-% 
-%     
-%     
-
-    if ~isfield(parameters,'num_Radon_Thetas') || isempty(parameters.num_Radon_Thetas)
-        parameters.num_Radon_Thetas = num_Radon_Thetas;
-    end
-    
-    
-    if ~isfield(parameters,'rescaleSize') || isempty(parameters.rescaleSize)
-        parameters.rescaleSize = rescaleSize;
     end
 
 
@@ -325,12 +159,6 @@ function parameters = setRunParameters(parameters)
     if ~isfield(parameters,'pcaModes') || isempty(parameters.pcaModes)
         parameters.pcaModes = pcaModes;
     end
-    
-    
-    
-    
-    
-    
     
     
     

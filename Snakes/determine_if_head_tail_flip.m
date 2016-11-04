@@ -1,8 +1,8 @@
-function [flip_needed, flip_possible]  = determine_if_head_tail_flip(head_direction_dot_product, tail_direction_dot_product, Prefs)
+function [flip_needed, flip_possible]  = determine_if_head_tail_flip(head_direction_dot_product, tail_direction_dot_product, parameters)
     %determines if a head/tail flip is needed
     %global Prefs
     
-    time_threshold = Prefs.MaxBackwardsFrames; %number of frames to make a call
+    time_threshold = parameters.MaxBackwardsFrames; %number of frames to make a call
     
 %     if isfield(Prefs, 'MaxBackwardsFrames')
 %         time_threshold = Prefs.MaxBackwardsFrames;

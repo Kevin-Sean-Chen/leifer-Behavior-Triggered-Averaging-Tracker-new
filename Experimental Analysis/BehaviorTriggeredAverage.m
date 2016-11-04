@@ -1,53 +1,53 @@
-function [BTA, behaviorCounts] = BehaviorTriggeredAverage(Behaviors, LEDPowers)
-    %finds the behavior triggered average
-    fps = 14;
+function [BTA, behaviorCounts, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, bootstrap)
+    %finds the behavior triggered average, optionally determine the
+    %significance of the BTA by shuffling transitions randomly and finding
+    %the BTA
     BTA_seconds_before_and_after = 10;
-
-    seconds_before = BTA_seconds_before_and_after;
-    seconds_after = BTA_seconds_before_and_after;
-  
+    number_of_random_shuffles = 10;
     number_of_behaviors = size(Behaviors{1},1);
-    behaviorCounts = zeros(number_of_behaviors,1);
-    BTA = zeros(number_of_behaviors,(fps*seconds_before)+(fps*seconds_after)+1);
 
-    parfor behavior_index = 1:number_of_behaviors
-        tracksCentered = [];
-        for track_index = 1:length(Behaviors)
-            %get a BTA for each trigger
-            triggers = find(Behaviors{track_index}(behavior_index,:));
-            for trigger_index = 1:length(triggers)
-                current_trigger = triggers(trigger_index);
-                LEDPower = LEDPowers{track_index};
-                if current_trigger - (fps*seconds_before) < 1 || current_trigger + (fps*seconds_after) > length(LEDPower)
-                    %pad voltages with 0s if needed, but otherwise just ignore it
-                else
-                    tracksCentered = cat(1, tracksCentered, LEDPower(:, current_trigger-(fps*seconds_before):current_trigger+(fps*seconds_after)));
-                    behaviorCounts(behavior_index) = behaviorCounts(behavior_index) + 1;
-                end
-            end
-        end
-        if ~isempty(tracksCentered)
-            BTA(behavior_index,:) = mean(tracksCentered,1);
-        end
-        disp(num2str(behavior_index))
+    if nargin < 3
+        %default for bootstrap is true
+        bootstrap = true;
     end
-
+    Concatenated_LEDPowers = horzcat(LEDPowers{:});
+    mean_LEDPowers = mean(Concatenated_LEDPowers);
     
-    %BTA = [0, mean(diff(tracksCentered,1,2),1)];
-    if nargin < 1
-        %plot(-seconds_before:1/fps:seconds_after, mean(diff(tracksCentered,1)))
-        %figure
-        shadedErrorBar(-seconds_before:1/fps:seconds_after, BTA, 2/sqrt(behaviorCounts)*ones(1,length(BTA)));
-        %plot(-seconds_before:1/fps:seconds_after, mean(tracksCentered,1))
-        %legend(num2str(tracksByVoltage(voltage_index).voltage));
-        xlabel(strcat('second (', num2str(behaviorCounts), ' behaviors analyzed)')) % x-axis label
-        ylabel('voltage') % y-axis label
-        %axis([-10 2 0.64 0.84])
-    end
-    %load('LEDVoltages.txt')
+    %get triggers accounting for edges
+    no_edge_Behaviors = circshift_triggers(Behaviors,BTA_seconds_before_and_after,false);
+    Concatenated_Behaviors = horzcat(no_edge_Behaviors{:});
+    
+    [BTA, behaviorCounts, BTA_std] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after);
+    
+    if bootstrap
+        BTA_norm = sqrt(sum((BTA-mean_LEDPowers).^2, 2));
 
-    % figure
-    % plot(0:1/fps:(size(LEDVoltages,2)-1)/fps, LEDVoltages)
-    % xlabel(strcat('time (s)')) % x-axis label
-    % ylabel('voltage') % y-axis label
+        %perform bootstrapping
+        shuffle_norms = zeros(number_of_behaviors,number_of_random_shuffles);
+        for shuffle_index = 1:number_of_random_shuffles
+            %get triggers accounting for edges
+            no_edge_Behaviors = circshift_triggers(Behaviors,BTA_seconds_before_and_after,true);
+            Concatenated_Behaviors = horzcat(no_edge_Behaviors{:});
+            [shuffle_BTA, ~, ~] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after);
+
+            %get the L2 norm of the shuffled_BTAs
+            shuffle_norm = sqrt(sum((shuffle_BTA-mean_LEDPowers).^2, 2));
+            shuffle_norms(:,shuffle_index) = shuffle_norm;
+
+            disp(num2str(shuffle_index));
+        end
+
+        allnorms = [BTA_norm, shuffle_norms];
+        BTA_percentile = zeros(number_of_behaviors,1);
+        for behavior_index = 1:number_of_behaviors
+            norm_ranks = tiedrank(allnorms(behavior_index,:)) / (number_of_random_shuffles+1);
+            BTA_percentile(behavior_index) = norm_ranks(1);
+        end
+        BTA_stats.BTA_norm = BTA_norm;
+        BTA_stats.shuffle_norms = shuffle_norms;
+        BTA_stats.BTA_percentile = BTA_percentile;
+    else
+        BTA_stats = [];
+
+    end
 end

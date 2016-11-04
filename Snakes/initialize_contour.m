@@ -72,6 +72,18 @@ function [center_line_interp, thin_image_returned, BW, isGoodFrame, thinning_ite
     end
     
     %% STEP 5: put the 2 best potentially_certain_tips back 
+    if isempty(endpoints)
+        %extreme case, no endpoints found, use the diagonal and
+        %interp
+        center_line = [1, 1; size(BW,1), size(BW,2)];
+        dis=[0;cumsum(sqrt(sum((center_line(2:end,:)-center_line(1:end-1,:)).^2,2)))];
+        isGoodFrame = false;
+        % Resample to make uniform points
+        center_line_interp(:,1) = interp1(dis,center_line(:,1),linspace(0,dis(end),nPoints));
+        center_line_interp(:,2) = interp1(dis,center_line(:,2),linspace(0,dis(end),nPoints));isGoodFrame = false;
+        isGoodFrame = false;
+        return
+    end
     D = pdist2(endpoints, endpoints);
     [~, linear_index] = max(D(:));
     [tip1_index, tip2_index] = ind2sub([size(endpoints,1),size(endpoints,1)], linear_index(1));

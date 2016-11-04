@@ -1,4 +1,4 @@
-function phi_dt = worm_phase_velocity(ProjectedEigenValues, Prefs)
+function phi_dt = worm_phase_velocity(ProjectedEigenValues, parameters)
 %This function outputs the phase velocity time series given the PCA time series
     phase_determining_PCs = [2, 3]; %which PCs are the sine and cosine of worm locomotion
     phase_determining_eigen_values = ProjectedEigenValues(phase_determining_PCs, :);
@@ -8,8 +8,8 @@ function phi_dt = worm_phase_velocity(ProjectedEigenValues, Prefs)
 
     %normalize x and y to be on the same scale (this is done in the paper)
     %the RMS of x and y are both 1
-    x = x ./ Prefs.PCxScale;
-    y = y ./ Prefs.PCyScale;
+    x = x ./ parameters.PCxScale;
+    y = y ./ parameters.PCyScale;
     y(y == 0) = eps;     % Avoid division by zero in phase calculation
     
     %define phase as invtan(x/y)
@@ -29,11 +29,11 @@ function phi_dt = worm_phase_velocity(ProjectedEigenValues, Prefs)
 
     %gaussian smooth the result 
 %     phi_dt = smoothts(phi_dt, 'g', Prefs.StepSize*5, Prefs.StepSize*5);
-    phi_dt = smoothts(phi_dt, 'g', Prefs.StepSize, Prefs.StepSize);
+    phi_dt = smoothts(phi_dt, 'g', parameters.StepSize, parameters.StepSize);
     
     %cap the phi_dt at some min and max
-    phi_dt(phi_dt < Prefs.MinPhaseVelocity) = Prefs.MinPhaseVelocity;
-    phi_dt(phi_dt > Prefs.MaxPhaseVelocity) = Prefs.MaxPhaseVelocity;
+    phi_dt(phi_dt < parameters.MinPhaseVelocity) = parameters.MinPhaseVelocity;
+    phi_dt(phi_dt > parameters.MaxPhaseVelocity) = parameters.MaxPhaseVelocity;
     
 %     image_size = [70, 70];
 %     direction_vector = [[Track.Speed].*-cosd([Track.Direction]); [Track.Speed].*sind([Track.Direction])];
