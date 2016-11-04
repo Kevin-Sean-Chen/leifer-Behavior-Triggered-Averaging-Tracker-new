@@ -1,6 +1,6 @@
 function [non_linearity_fit, non_linearities, bin_centers, errors] = fit_nonlinearity(filtered_signal_given_behavior_histogram, filtered_signal_histogram, bin_edges)
-%UNTITLED3 Summary of this function goes here
-%   Detailed explanation goes here
+% This function fits the non-linearity of the LNP model weighing the points
+% by the expected counting error
     fps = 14;
     
     bin_count = length(filtered_signal_given_behavior_histogram);

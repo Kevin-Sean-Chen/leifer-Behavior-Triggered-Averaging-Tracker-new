@@ -48,7 +48,7 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
     %calculate the BTA and linear kernel
     Behaviors = {Tracks(:).Behaviors};
     LEDPowers = {Tracks(:).LEDPower};
-    [BTA, trigger_count, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, true);
+    [BTA, trigger_count, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, true);
     clear Behaviors LEDPowers
 
 %     %debug load BTA from previous file
@@ -56,11 +56,12 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
 %     BTA = vertcat(LNPStats(:).BTA);
 %     trigger_count = vertcat(LNPStats(:).trigger_count);
 
-    linear_kernel = BTA_to_kernel(BTA, trigger_count, meanLEDPower, stdLEDPower);
+    linear_kernel = BTA_to_kernel(BTA, BTA_stats, meanLEDPower);
 
     %smooth the linear_kernel? Approximate by gaussian and exponential?
-        
-    LNPStats(number_of_behaviors).BTA = [];    
+    
+    LNPStats(number_of_behaviors).BTA = [];
+    LNPStats(number_of_behaviors).BTA_std = [];
     LNPStats(number_of_behaviors).linear_kernel = [];
     LNPStats(number_of_behaviors).trigger_count = [];
     LNPStats(number_of_behaviors).BTA_norm = [];
@@ -76,12 +77,20 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
     
     for behavior_index = 1:number_of_behaviors
         LNPStats(behavior_index).BTA = BTA(behavior_index,:);    
+        LNPStats(behavior_index).BTA_std = BTA_std(behavior_index,:);    
         LNPStats(behavior_index).linear_kernel = linear_kernel(behavior_index,:);
         LNPStats(behavior_index).trigger_count = trigger_count(behavior_index,:);
-        LNPStats(behavior_index).BTA_norm = BTA_stats.BTA_norm(behavior_index);
-        LNPStats(behavior_index).shuffle_norms = BTA_stats.shuffle_norms(behavior_index,:);
-        LNPStats(behavior_index).BTA_percentile = BTA_stats.BTA_percentile(behavior_index);
+        
+        if isempty(BTA_stats)
+            LNPStats(behavior_index).BTA_norm = [];
+            LNPStats(behavior_index).shuffle_norms = [];
+            LNPStats(behavior_index).BTA_percentile = [];
 
+        else
+            LNPStats(behavior_index).BTA_norm = BTA_stats.BTA_norm(behavior_index);
+            LNPStats(behavior_index).shuffle_norms = BTA_stats.shuffle_norms(behavior_index,:);
+            LNPStats(behavior_index).BTA_percentile = BTA_stats.BTA_percentile(behavior_index);
+        end
         
         if isempty(nonzeros(linear_kernel(behavior_index,:)))
             %special case: flat kernel
@@ -95,8 +104,7 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
             LNPStats(behavior_index).bin_centers = bin_centers;
             LNPStats(behavior_index).errors = zeros(1,numbins);
         else            
-            all_filtered_signal = [];
-            
+           
             %calculate the filtered LEDVoltages for all experiments
             all_filtered_LEDVoltages = cell(1,length(folders));
             for folder_index = 1:length(folders)
@@ -104,10 +112,14 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
                 all_filtered_LEDVoltages{folder_index} = conv(all_LEDVoltages{folder_index}-meanLEDVoltages, linear_kernel(behavior_index,:), 'same');
             end
             
+            %get all the filtered signals concatenated together
+            all_filtered_signal = zeros(1, length(allLEDPower));
+            current_frame_index = 1;
             for track_index = 1:length(Tracks)
                 filtered_signal = all_filtered_LEDVoltages{folder_indecies(track_index)}(Tracks(track_index).Frames);
                 filtered_signal = filtered_signal .* Tracks(track_index).LEDPower ./ Tracks(track_index).LEDVoltages;
-                all_filtered_signal = [all_filtered_signal, filtered_signal];
+                all_filtered_signal(current_frame_index:current_frame_index+length(Tracks(track_index).Frames)-1) = filtered_signal;
+                current_frame_index = current_frame_index+length(Tracks(track_index).Frames);
             end
 
             %make histogram of filtered signal
@@ -132,9 +144,6 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
                 fit_nonlinearity(current_filtered_signal_given_behavior_histogram, current_filtered_signal_histogram, current_bin_edges);
             disp(num2str(behavior_index));
         end
-        
-
-        
     end
 end
 

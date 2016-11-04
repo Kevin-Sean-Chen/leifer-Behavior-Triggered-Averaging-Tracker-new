@@ -1,4 +1,4 @@
-function [BTA, behaviorCounts] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after)
+function [BTA, behaviorCounts, BTA_std] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after)
 %This function performs the core BTA caculation
 
     fps = 14;
@@ -9,6 +9,7 @@ function [BTA, behaviorCounts] = fastparallel_BehaviorTriggeredAverage(Concatena
     number_of_behaviors = size(Concatenated_Behaviors,1);
     
     BTA = zeros(number_of_behaviors,BTA_length);
+    BTA_std = zeros(number_of_behaviors,BTA_length);
     behaviorCounts = sum(Concatenated_Behaviors,2);
     
     for behavior_index = 1:number_of_behaviors
@@ -21,6 +22,7 @@ function [BTA, behaviorCounts] = fastparallel_BehaviorTriggeredAverage(Concatena
                 tracksCentered(time_index,:) = Concatenated_LEDPowers(timeshifted_triggers);
             end
             BTA(behavior_index,:) = mean(tracksCentered,2)';
+            BTA_std(behavior_index,:) = std(tracksCentered,0,2)';
         end
     end
 

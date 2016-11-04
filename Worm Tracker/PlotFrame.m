@@ -93,7 +93,7 @@ else
         [frame_h, frame_w] = size(Frame);
         plot_x = ceil(frame_w - (frame_w/10));
         plot_y = ceil(frame_h/10);
-        plot(plot_x, plot_y, 'o', 'MarkerSize', 30, 'MarkerEdgeColor','none', 'MarkerFaceColor',[LEDVoltage/5 0 0])
+        plot(plot_x, plot_y, 'o', 'MarkerSize', 30, 'MarkerEdgeColor','none', 'MarkerFaceColor',[max(LEDVoltage/5,0) 0 0])
     end
     
 end

@@ -1,9 +1,9 @@
-function [BTA, behaviorCounts, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, bootstrap)
+function [BTA, behaviorCounts, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, bootstrap)
     %finds the behavior triggered average, optionally determine the
     %significance of the BTA by shuffling transitions randomly and finding
     %the BTA
     BTA_seconds_before_and_after = 10;
-    number_of_random_shuffles = 1000;
+    number_of_random_shuffles = 10;
     number_of_behaviors = size(Behaviors{1},1);
 
     if nargin < 3
@@ -17,7 +17,7 @@ function [BTA, behaviorCounts, BTA_stats] = BehaviorTriggeredAverage(Behaviors, 
     no_edge_Behaviors = circshift_triggers(Behaviors,BTA_seconds_before_and_after,false);
     Concatenated_Behaviors = horzcat(no_edge_Behaviors{:});
     
-    [BTA, behaviorCounts] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after);
+    [BTA, behaviorCounts, BTA_std] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after);
     
     if bootstrap
         BTA_norm = sqrt(sum((BTA-mean_LEDPowers).^2, 2));
@@ -28,7 +28,7 @@ function [BTA, behaviorCounts, BTA_stats] = BehaviorTriggeredAverage(Behaviors, 
             %get triggers accounting for edges
             no_edge_Behaviors = circshift_triggers(Behaviors,BTA_seconds_before_and_after,true);
             Concatenated_Behaviors = horzcat(no_edge_Behaviors{:});
-            [shuffle_BTA, ~] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after);
+            [shuffle_BTA, ~, ~] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after);
 
             %get the L2 norm of the shuffled_BTAs
             shuffle_norm = sqrt(sum((shuffle_BTA-mean_LEDPowers).^2, 2));
@@ -47,8 +47,7 @@ function [BTA, behaviorCounts, BTA_stats] = BehaviorTriggeredAverage(Behaviors, 
         BTA_stats.shuffle_norms = shuffle_norms;
         BTA_stats.BTA_percentile = BTA_percentile;
     else
-        BTA_stats.BTA_norm = [];
-        BTA_stats.shuffle_norms = [];
-        BTA_stats.BTA_percentile = [];
+        BTA_stats = [];
+
     end
 end

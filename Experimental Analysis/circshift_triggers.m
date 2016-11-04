@@ -17,4 +17,3 @@ function [ Behaviors ] = circshift_triggers(Behaviors, BTA_seconds_before_and_af
         end
     end
 end
-

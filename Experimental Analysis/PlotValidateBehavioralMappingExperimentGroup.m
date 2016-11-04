@@ -1,4 +1,4 @@
-function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdLEDPower, L, density, xx)
+function [] = PlotValidateBehavioralMappingExperimentGroup (TestLNPStats, LNPStats, meanLEDPower, stdLEDPower, L, density, xx)
 %Takes in structure LNPStats and plots them depending on the settings
 %   Detailed explanation goes here
     fps = 14;
@@ -126,8 +126,10 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         end
         
         bin_centers = LNPStats(behavior_index).bin_centers;
+        test_bin_centers = TestLNPStats(behavior_index).bin_centers;
 %        non_linearity_fit = fit(bin_centers',non_linearity','exp1');   %refit of necessary
         non_linearity_fit = LNPStats(behavior_index).non_linearity_fit;
+        test_non_linearity_fit = TestLNPStats(behavior_index).non_linearity_fit;
         LNPStats(behavior_index).exp_fit_a = non_linearity_fit.a;
         LNPStats(behavior_index).exp_fit_b = non_linearity_fit.b;
         
@@ -135,14 +137,19 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         if plot_non_linearity
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(behavior_index-1) + non_linearity_plot_number);
             non_linearity = LNPStats(behavior_index).non_linearity;
+            test_nonlinearity = TestLNPStats(behavior_index).non_linearity;
             fig = gcf;
+            
             prev_line_marker_size = get(fig,'DefaultLineMarkerSize');
             prev_line_width = get(fig,'DefaultLineLineWidth');
             set(fig,'DefaultLineMarkerSize',30);
-            set(fig,'DefaultLineLineWidth',5)
+            set(fig,'DefaultLineLineWidth',2)
             hold on
-            plot(non_linearity_fit,bin_centers,non_linearity)
-            errorbar(bin_centers,non_linearity,LNPStats(behavior_index).errors, 'b.')
+            errorbar(bin_centers,non_linearity,LNPStats(behavior_index).errors, 'b.', 'MarkerSize', 30)
+            errorbar(test_bin_centers,test_nonlinearity,TestLNPStats(behavior_index).errors, 'r.', 'MarkerSize', 30)
+            
+            plot(non_linearity_fit, 'b')
+            plot(test_non_linearity_fit, 'r')
             
             %axis([-3 4 0 3])
             ax = gca;
@@ -161,25 +168,12 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             ylabel('') % y-axis label
 %             xlabel('Filtered Signal (a.u.)') % x-axis label
 %             ylabel('Behavioral Rate (Behaviors/Min)') % y-axis label
-            legend('off')
+            legend(['LNP (', num2str(LNPStats(behavior_index).trigger_count) ,' Events)'], ...
+                ['Triangle (', num2str(TestLNPStats(behavior_index).trigger_count) ,' Events)'])
             set(fig,'DefaultLineMarkerSize',prev_line_marker_size);
             set(fig,'DefaultLineLineWidth',prev_line_width)
         end
     end
     
-    if isfield(LNPStats, 'shuffle_norms') && ~isempty(LNPStats(1).shuffle_norms)
-        figure
-        shuffle_norms = vertcat(LNPStats.shuffle_norms);
-        BTA_norms = [LNPStats.BTA_norm];
-        shuffle_mean = mean(shuffle_norms, 2)';
-        shuffle_std = 1.96 .* std(shuffle_norms,0,2)';
-        hold on
-        errorbar(1:length(LNPStats), shuffle_mean, shuffle_std, 'bo')
-        plot(1:length(LNPStats), BTA_norms, 'r*')
-        hold off
-        xlabel('Behavior Index') % x-axis label
-        ylabel('Filter Magnitude') % y-axis label
-        legend('Shuffled Magnitutde (95% confidence)', 'BTA Magnitutde')
-    end
 end
 
