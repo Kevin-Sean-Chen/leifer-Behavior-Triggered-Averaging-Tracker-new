@@ -1,10 +1,19 @@
-function [newTracks] = auto_resolve_problems(curDir, Prefs)
+function success = auto_resolve_problems(folder_name)
 % automatically resolve centerline problems
 
+    parameters = load_parameters(folder_name); %load experiment parameters
     frames_around_problem_to_cut = 28;
-    min_track_length = Prefs.MinTrackLength;
-    if exist([curDir, '\tracks.mat'], 'file') == 2
-        load([curDir, '\tracks.mat'])
+    min_track_length = parameters.MinTrackLength;
+    
+    %% Load tracks
+    Tracks = load_single_folder(folder_name);
+    if isempty(Tracks)
+        success = false;
+        return
+    end
+
+    if exist([folder_name, '\tracks.mat'], 'file') == 2
+        load([folder_name, '\tracks.mat'])
     else
         return
     end
@@ -96,9 +105,9 @@ function [newTracks] = auto_resolve_problems(curDir, Prefs)
             if ismember(1, modifications_to_this_track_actions)
                 %there is a delete command, delete the track
                 if current_track_index == current_end_index
-                    delete([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index), '.mat'])
+                    delete([folder_name, '\individual_worm_imgs\worm_', num2str(current_track_index), '.mat'])
                 else
-                    rename_individual_worm_images(curDir,current_track_index+1,current_end_index,-1);
+                    rename_individual_worm_images(folder_name,current_track_index+1,current_end_index,-1);
                 end
                 current_end_index = current_end_index - 1;
             else
@@ -106,7 +115,7 @@ function [newTracks] = auto_resolve_problems(curDir, Prefs)
                 split_tracks = [];
                 split_modifications = modifications_to_this_track(modifications_to_this_track_actions == 2);
                 
-                loaded_file = load([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index), '.mat']);
+                loaded_file = load([folder_name, '\individual_worm_imgs\worm_', num2str(current_track_index), '.mat']);
                 Track.WormImages = loaded_file.worm_images;
                 
                 for split_modification_index = 1:length(split_modifications)
@@ -124,13 +133,13 @@ function [newTracks] = auto_resolve_problems(curDir, Prefs)
                 end                
                 
                 %shift up by the number of new tracks added
-                rename_individual_worm_images(curDir, current_track_index+1, current_end_index, length(split_tracks)-1);
+                rename_individual_worm_images(folder_name, current_track_index+1, current_end_index, length(split_tracks)-1);
                 current_end_index = current_end_index + length(split_tracks) - 1;
                 
                 %split the worm frames exactly as before
                 for saveindex = 1:length(split_tracks)
                     worm_images = split_tracks(saveindex).WormImages;
-                    save([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index+saveindex-1), '.mat'], 'worm_images');
+                    save([folder_name, '\individual_worm_imgs\worm_', num2str(current_track_index+saveindex-1), '.mat'], 'worm_images');
                 end
                 
                 if ~isempty(split_tracks)
@@ -145,6 +154,9 @@ function [newTracks] = auto_resolve_problems(curDir, Prefs)
             current_track_index = length(newTracks) + 1;
         end
     end
-    delete_extra_individual_worm_images(curDir, length(newTracks))
+    delete_extra_individual_worm_images(folder_name, length(newTracks))
     
+    % save the resolved tracks
+    savetracks(newTracks, folder_name, true);
+    success = true;
 end

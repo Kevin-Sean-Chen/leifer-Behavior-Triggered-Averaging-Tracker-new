@@ -14,7 +14,7 @@ PlotObjectSizeHistogram,"Plot histogram of object sizes (select 1 if yes, 0 if n
 Mask,Worm Tracker Mask Image,0,,,,,,,mask.tif
 MaxObjects,"Max number of objects the tracker should identify (If it is above this number, the tracker will raise the threshold)",800,,,,,,,80
 PlottingFrameRate,Ananlyzed Video Plotting Frame Rate (frames/s),2,,,,,,,
-IndividualVideoPlottingFrameRate,Individual Video Plot Frame Rate (frames/s),0,,,,,,,14
+IndividualVideoPlottingFrameRate,Individual Video Plot Frame Rate (frames/s),14,,,,,,,14
 power500,Stimulus Power Distribution,box1power500.mat,box1power500.mat,box2power500.mat,box1power500.mat,box2power500.mat,box1power500_blue.mat,box2power500_blue.mat,box2power500.mat
 avgPower500,Average Power in FOV at 5V (uW/mm^2),19.5815,19.5815,23.2026,19.5815,23.2026,17.5593,50.268,
 SampleRate,Sample rate (frames/s),14,,,,,,,

@@ -1,44 +1,50 @@
-function success = PlotImageDirectory(curDir, Prefs)
+function success = PlotImageDirectory(folder_name)
 % plots the individual worm videos and all the track videos
 
     %% STEP 1: initialize %%
     number_of_images_for_median_projection = 20;
-    mask = Prefs.Mask;
+    parameters = load_parameters(folder_name); %load experiment parameters
+    mask = parameters.Mask;
 
-    if exist([curDir, '\tracks.mat'], 'file') == 2
-        load([curDir, '\tracks.mat'])
-    else
+    relevant_track_fields = {'Centerlines','UncertainTips','Eccentricity',...
+        'Direction','Speed','TotalScore','Active','Path','LastCoordinates',...
+        'Frames','NumFrames','Pirouettes','Runs','Size','SmoothSpeed','AngSpeed'};
+    %% Load tracks
+    Tracks = load_single_folder(folder_name, relevant_track_fields);
+    if isempty(Tracks)
         success = false;
         return
     end
-    
+
     %% STEP 2: plot individual worms
-    if Prefs.IndividualVideoPlottingFrameRate > 0
-        individual_worm_videos(Tracks, curDir, Prefs.SampleRate, Prefs.IndividualVideoPlottingFrameRate);
+    if parameters.IndividualVideoPlottingFrameRate > 0
+        individual_figure = figure;
+        individual_worm_videos(Tracks, folder_name, parameters.SampleRate, parameters.IndividualVideoPlottingFrameRate);
+        close(individual_figure)
     end
     
     %% STEP 3: Load images and other properties from the directory %%
     % check if preferences indicate not to plot
-    if Prefs.PlottingFrameRate <= 0
+    if parameters.PlottingFrameRate <= 0
         return
     end
     
     % Get all the tif file names (probably jpgs)
-    image_files=dir([curDir, '\*.jpg']); %get all the jpg files (maybe named tif)
+    image_files=dir([folder_name, '\*.jpg']); %get all the jpg files (maybe named tif)
     if isempty(image_files)
-        image_files = dir([curDir, '\*.tif']); 
+        image_files = dir([folder_name, '\*.tif']); 
     end
     % Load Voltages
-    fid = fopen([curDir, '\LEDVoltages.txt']);
+    fid = fopen([folder_name, '\LEDVoltages.txt']);
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     
     %% STEP 4: Get the median z projection %%
-    medianProj = imread([curDir, '\', image_files(1).name]);
+    medianProj = imread([folder_name, '\', image_files(1).name]);
     medianProjCount = min(number_of_images_for_median_projection, length(image_files) - 1); 
     medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
     for frame_index = 1:medianProjCount
-        curImage = imread([curDir, '\', image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name]);
+        curImage = imread([folder_name, '\', image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name]);
         medianProj(:,:,frame_index) = curImage;
     end
     medianProj = median(medianProj, 3);
@@ -64,11 +70,11 @@ function success = PlotImageDirectory(curDir, Prefs)
         figure(WTFigH);
     end
 
-    frames_per_plot_time = round(Prefs.SampleRate/Prefs.PlottingFrameRate);
+    frames_per_plot_time = round(parameters.SampleRate/parameters.PlottingFrameRate);
     
     %save subtracted avi
-    outputVideo = VideoWriter(fullfile([curDir, '\', 'processed']),'MPEG-4');
-    outputVideo.FrameRate = Prefs.PlottingFrameRate;
+    outputVideo = VideoWriter(fullfile([folder_name, '\', 'processed']),'MPEG-4');
+    outputVideo.FrameRate = parameters.PlottingFrameRate;
     open(outputVideo)
     
 %     rawOutputVideo = VideoWriter(fullfile([curDir, '\', 'raw']),'MPEG-4');
@@ -77,18 +83,18 @@ function success = PlotImageDirectory(curDir, Prefs)
     
     for frame_index = 1:frames_per_plot_time:length(image_files) - 1
         % Get Frame
-        curImage = imread([curDir, '\', image_files(frame_index).name]);
+        curImage = imread([folder_name, '\', image_files(frame_index).name]);
         subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
-        if Prefs.AutoThreshold       % use auto thresholding
-            Level = graythresh(subtractedImage) + Prefs.CorrectFactor;
+        if parameters.AutoThreshold       % use auto thresholding
+            Level = graythresh(subtractedImage) + parameters.CorrectFactor;
             Level = max(min(Level,1) ,0);
         else
-            Level = Prefs.ManualSetLevel;
+            Level = parameters.ManualSetLevel;
         end
         % Convert frame to a binary image 
-        NUM = Prefs.MaxObjects + 1;
-        while (NUM > Prefs.MaxObjects)
-            if Prefs.DarkObjects
+        NUM = parameters.MaxObjects + 1;
+        while (NUM > parameters.MaxObjects)
+            if parameters.DarkObjects
                 BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
             else
                 BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
@@ -111,4 +117,5 @@ function success = PlotImageDirectory(curDir, Prefs)
     close(outputVideo) 
 %     close(rawOutputVideo)
     close(WTFigH)
+    success = true;
 end

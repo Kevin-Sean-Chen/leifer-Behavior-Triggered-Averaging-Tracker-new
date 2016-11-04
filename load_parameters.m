@@ -1,7 +1,19 @@
-function [ parameters ] = load_parameters(tags)
+function parameters = load_parameters(folder_name)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
     SaveIndividualImages = 1;
+    
+    if nargin < 1
+        tags = {};
+    else
+        %load the tags
+        if exist([folder_name, '\tags.txt'],'file')
+            %this is an image folder with tags
+            tags = textread([folder_name, '\tags.txt'], '%s', 'delimiter', ' ');
+        else
+            tags = {};
+        end
+    end
 
     parameters = load('EigenVectors.mat'); %load eigenvectors for eigenworms
     parameters.SaveIndividualImages = SaveIndividualImages;

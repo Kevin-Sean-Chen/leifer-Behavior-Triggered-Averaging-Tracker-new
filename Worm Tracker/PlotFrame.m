@@ -70,7 +70,7 @@ else
 %                      text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, num2str(i), 'Color', 'r')
 % %                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', 'r')
 %                 else
-                    plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'Marker', 'o', 'Color', myColors(currentActiveTrack,:));
+                     plot(Tracks(i).Path(in_track_index,1), Tracks(i).Path(in_track_index,2), 'Marker', 'o', 'Color', myColors(currentActiveTrack,:));
                      %plot the track number and size
                      text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, num2str(i), 'Color', myColors(currentActiveTrack,:))
 %                     text(Tracks(i).Path(in_track_index,1)+10, Tracks(i).Path(in_track_index,2)+10, [num2str(i), char(10), num2str(Tracks(i).Size(in_track_index)), char(10), num2str(Tracks(i).SmoothSpeed(in_track_index))], 'Color', myColors(currentActiveTrack,:))

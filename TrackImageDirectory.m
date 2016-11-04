@@ -1,18 +1,23 @@
-function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
+function success = TrackImageDirectory(folder_name, analysis_mode)
 % tracks and saves individual worms for all the images in a directory
 
     %% STEP 1: initialize %%
+    parameters = load_parameters(folder_name); %load experiment parameters
     number_of_images_for_median_projection = 20;
-    mask = Prefs.Mask;
-    image_size = Prefs.ImageSize;
-        
+    mask = parameters.Mask;
+    image_size = [parameters.ImageSize, parameters.ImageSize];
+    relevant_track_fields = {'Active','Path','LastCoordinates','Frames','Size', ...
+        'LastSize','FilledArea','Eccentricity','WormIndex','Time','NumFrames', ...
+        'SmoothX','SmoothY','Direction','Speed','SmoothSpeed','AngSpeed', ...
+        'BackwardAcc','Pirouettes','LEDVoltages','Pauses','OmegaTurns','Runs','MergedBlobIndex'};
+    
     %% STEP 2: See if a track file exists, if it does, there are some options that use them %%
-    if exist([curDir, '\tracks.mat'], 'file') == 2
+    Tracks = load_single_folder(folder_name, relevant_track_fields);
+    if ~isempty(Tracks)
         if strcmp(analysis_mode, 'continue')
             %track already exists, check if there are individual worm
             %images
-            load([curDir, '\tracks.mat']);
-            if exist([curDir, '\individual_worm_imgs\worm_', num2str(length(Tracks)), '.mat'], 'file') == 2
+            if exist([folder_name, '\individual_worm_imgs\worm_', num2str(length(Tracks)), '.mat'], 'file') == 2
                 %there are individual worm images
                 success = true;
                 return
@@ -20,21 +25,19 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
                 %repeat the analysis and save individual worm images
                 analysis_mode = 'analysis';
             end
-        elseif strcmp(analysis_mode, 'analysis')
-            load([curDir, '\tracks.mat'])
         end
     end
     
     %% STEP 3: Load images and other properties from the directory %%
     % Get all the tif file names (probably jpgs)
     
-    image_files=dir([curDir, '\*.jpg']); %get all the jpg files (maybe named tif)
+    image_files=dir([folder_name, '\*.jpg']); %get all the jpg files (maybe named tif)
     if isempty(image_files)
-        image_files = dir([curDir, '\*.tif']); 
+        image_files = dir([folder_name, '\*.tif']); 
     end
     
     % Load Voltages
-    fid = fopen([curDir, '\LEDVoltages.txt']);
+    fid = fopen([folder_name, '\LEDVoltages.txt']);
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     
@@ -45,39 +48,39 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
     end
     
     %% STEP 4: Get the median z projection %%
-    medianProj = imread([curDir, '\', image_files(1).name]);
+    medianProj = imread([folder_name, '\', image_files(1).name]);
     [x_resolution, y_resolution] = size(medianProj);
     medianProjCount = min(number_of_images_for_median_projection, length(image_files) - 1); 
     medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
     for frame_index = 1:medianProjCount
-        curImage = imread([curDir, '\', image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name]);
+        curImage = imread([folder_name, '\', image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name]);
         medianProj(:,:,frame_index) = curImage;
     end
     medianProj = median(medianProj, 3);
     medianProj = uint8(medianProj);
     
     %% STEP 5: TRACKING %%
-    if ~strcmp(analysis_mode, 'analysis')
+    if isempty(Tracks) || ~strcmp(analysis_mode, 'analysis')
         % Start Tracker
         Tracks = [];
         
         % Analyze Movie
         for frame_index = 1:length(image_files) - 1
             % Get Frame
-            curImage = imread([curDir, '\',image_files(frame_index).name]);
+            curImage = imread([folder_name, '\',image_files(frame_index).name]);
             subtractedImage = curImage - medianProj - mask;
 
             % Convert frame to a binary image 
-            if Prefs.AutoThreshold       % use auto thresholding
-                Level = graythresh(subtractedImage) + Prefs.CorrectFactor;
+            if parameters.AutoThreshold       % use auto thresholding
+                Level = graythresh(subtractedImage) + parameters.CorrectFactor;
                 Level = max(min(Level,1) ,0);
             else
-                Level = Prefs.ManualSetLevel;
+                Level = parameters.ManualSetLevel;
             end
             
-            NUM = Prefs.MaxObjects + 1;
-            while (NUM > Prefs.MaxObjects)
-                if Prefs.DarkObjects
+            NUM = parameters.MaxObjects + 1;
+            while (NUM > parameters.MaxObjects)
+                if parameters.DarkObjects
                     BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
                 else
                     BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
@@ -90,8 +93,8 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
             STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity', 'Extrema'});
 
             % Identify all worms by size
-            WormIndices = find([STATS.Area] > Prefs.MinWormArea & ...
-                [STATS.Area] < Prefs.MaxWormArea);
+            WormIndices = find([STATS.Area] > parameters.MinWormArea & ...
+                [STATS.Area] < parameters.MaxWormArea);
             
             % Find and ignore the blobs touching the edge
             all_extrema = reshape([STATS.Extrema], 8, 2, []);
@@ -134,12 +137,12 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
                 DistanceY = WormCoordinates(:,2) - Tracks(ActiveTracks(i)).LastCoordinates(2);
                 Distance = sqrt(DistanceX.^2 + DistanceY.^2);
                 [MinVal, MinIndex] = min(Distance);
-                if ~isempty(MinVal) && (MinVal <= Prefs.MaxDistance) 
-                    if WormSizes(MinIndex) - Tracks(ActiveTracks(i)).LastSize > Prefs.SizeChangeThreshold
+                if ~isempty(MinVal) && (MinVal <= parameters.MaxDistance) 
+                    if WormSizes(MinIndex) - Tracks(ActiveTracks(i)).LastSize > parameters.SizeChangeThreshold
                         % the current blob has gained too much area
                         Tracks(ActiveTracks(i)).Active = -1;
                         Tracks(ActiveTracks(i)).MergedBlobIndex = WormIndices(MinIndex);
-                    elseif Tracks(ActiveTracks(i)).LastSize - WormSizes(MinIndex) > Prefs.SizeChangeThreshold
+                    elseif Tracks(ActiveTracks(i)).LastSize - WormSizes(MinIndex) > parameters.SizeChangeThreshold
                         % the current blob has lost too much area
                         Tracks(ActiveTracks(i)).Active = -2;
                     else
@@ -179,7 +182,7 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
                 Tracks(Index).MergedBlobIndex = [];
             end
             if mod(frame_index,100) == 0
-                parfor_progress(Prefs.ProgressDir);
+                parfor_progress(parameters.ProgressDir);
             end
             %frame_index
         end
@@ -194,10 +197,10 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
         last_frames(i) = Tracks(i).Frames(end);
     end
     for i = 1:length(Tracks)
-        if length(Tracks(i).Frames) < Prefs.MinTrackLength
+        if length(Tracks(i).Frames) < parameters.MinTrackLength
             %get rid of tracks that are too short
             DeleteTracks = [DeleteTracks, i];
-        elseif mean(Tracks(i).Size) < Prefs.MinAverageWormArea
+        elseif mean(Tracks(i).Size) < parameters.MinAverageWormArea
             %get rid of worms that are too small
             DeleteTracks = [DeleteTracks, i];
         else
@@ -205,7 +208,7 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
             %correct for dirts that don't move
             position_relative_to_start = transpose(Tracks(i).Path - repmat(Tracks(i).Path(1,:),size(Tracks(i).Path,1),1));
             euclideian_distances_relative_to_start = sqrt(sum(position_relative_to_start.^2,1)); %# The two-norm of each column
-            if max(euclideian_distances_relative_to_start) < Prefs.MinDisplacement
+            if max(euclideian_distances_relative_to_start) < parameters.MinDisplacement
                 DeleteTracks = [DeleteTracks, i];
             end
         end
@@ -245,7 +248,7 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
                 closest_track_index_1 = sorted_distance_indecies(1);
                 closest_track_index_2 = sorted_distance_indecies(2);
                 averaged_centroid = (starting_positions(closest_track_index_1,:) + starting_positions(closest_track_index_2,:)) ./ 2;
-                if pdist2(ending_position, averaged_centroid) < Prefs.MaxDistance
+                if pdist2(ending_position, averaged_centroid) < parameters.MaxDistance
                     DeleteTracks = [DeleteTracks, i];
                 end
             end
@@ -257,16 +260,16 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
     
     NumTracks = length(Tracks);
     for TN = 1:NumTracks
-        Tracks(TN).Time = Tracks(TN).Frames/Prefs.SampleRate;		% Calculate time of each frame
+        Tracks(TN).Time = Tracks(TN).Frames/parameters.SampleRate;		% Calculate time of each frame
         Tracks(TN).NumFrames = length(Tracks(TN).Frames);		    % Number of frames
 
         % Smooth track data by rectangular sliding window of size WinSize;
-        Tracks(TN).SmoothX = RecSlidingWindow(Tracks(TN).Path(:,1)', Prefs.SmoothWinSize);
-        Tracks(TN).SmoothY = RecSlidingWindow(Tracks(TN).Path(:,2)', Prefs.SmoothWinSize);
+        Tracks(TN).SmoothX = RecSlidingWindow(Tracks(TN).Path(:,1)', parameters.SmoothWinSize);
+        Tracks(TN).SmoothY = RecSlidingWindow(Tracks(TN).Path(:,2)', parameters.SmoothWinSize);
 
         % Calculate Direction & Speed
-        Xdif = CalcDif(Tracks(TN).SmoothX, Prefs.StepSize) * Prefs.SampleRate;
-        Ydif = -CalcDif(Tracks(TN).SmoothY, Prefs.StepSize) * Prefs.SampleRate;    % Negative sign allows "correct" direction
+        Xdif = CalcDif(Tracks(TN).SmoothX, parameters.StepSize) * parameters.SampleRate;
+        Ydif = -CalcDif(Tracks(TN).SmoothY, parameters.StepSize) * parameters.SampleRate;    % Negative sign allows "correct" direction
                                                                                    % cacluation (i.e. 0 = Up/North)
         Ydif(Ydif == 0) = eps;     % Avoid division by zero in direction calculation
 
@@ -278,48 +281,46 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
         Tracks(TN).Direction(NegYdifIndexes(Index1)) = Tracks(TN).Direction(NegYdifIndexes(Index1)) + 180;
         Tracks(TN).Direction(NegYdifIndexes(Index2)) = Tracks(TN).Direction(NegYdifIndexes(Index2)) - 180;
 
-        Tracks(TN).Speed = sqrt(Xdif.^2 + Ydif.^2) * Prefs.PixelSize;		% In mm/sec
+        Tracks(TN).Speed = sqrt(Xdif.^2 + Ydif.^2) * parameters.PixelSize;		% In mm/sec
         
-        Tracks(TN).SmoothSpeed = smoothts(Tracks(TN).Speed, 'g', Prefs.StepSize, Prefs.StepSize);		% In mm/sec
+        Tracks(TN).SmoothSpeed = smoothts(Tracks(TN).Speed, 'g', parameters.StepSize, parameters.StepSize);		% In mm/sec
 
-        AngleChanges = CalcAngleDif(Tracks(TN).Direction, Prefs.StepSize);
+        AngleChanges = CalcAngleDif(Tracks(TN).Direction, parameters.StepSize);
         
         % Calculate angular speed
-        Tracks(TN).AngSpeed = AngleChanges * Prefs.SampleRate;		% in deg/sec
+        Tracks(TN).AngSpeed = AngleChanges * parameters.SampleRate;		% in deg/sec
 
-        Tracks(TN).BackwardAcc = CalcBackwardAcc(Tracks(TN).Speed, AngleChanges, Prefs.StepSize);		% in mm/sec^2
+        Tracks(TN).BackwardAcc = CalcBackwardAcc(Tracks(TN).Speed, AngleChanges, parameters.StepSize);		% in mm/sec^2
         %Find Pauses
-        Tracks(TN).Pauses = IdentifyPauses(Tracks(TN), Prefs);
+        Tracks(TN).Pauses = IdentifyPauses(Tracks(TN), parameters);
         % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
-        Tracks(TN).Pirouettes = IdentifyPirouettes(Tracks(TN), Prefs);
+        Tracks(TN).Pirouettes = IdentifyPirouettes(Tracks(TN), parameters);
         % Identify Omegas (Store as indices in Tracks(TN).OmegaTurns)
-        Tracks(TN).OmegaTurns = IdentifyOmegaTurns(Tracks(TN), Prefs);
+        Tracks(TN).OmegaTurns = IdentifyOmegaTurns(Tracks(TN), parameters);
         % Identify Runs (Store as indices in Tracks(TN).Runs)
-        Tracks(TN).Runs = IdentifyRuns(Tracks(TN), Prefs);
+        Tracks(TN).Runs = IdentifyRuns(Tracks(TN), parameters);
         %Save the LED Voltages for this track
         Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
     end
     
 %% STEP 8: Calculate LED Power %%
-    Tracks = LEDVoltage2Power(Tracks, Prefs.power500);
+    Tracks = LEDVoltage2Power(Tracks, parameters.power500);
     
-%% STEP 9: Go through all the tracks and analyze them %%
-    saveFileName = [curDir, '\tracks.mat'];
-    save(saveFileName, 'Tracks', '-v7.3');
-    AutoSave(curDir, Prefs.DefaultPath);
+%% STEP 9: Save the tracks %%
+    savetracks(Tracks,folder_name);
     
 %% STEP 10: save each worms' images %%
-    if isempty(Tracks) || ~Prefs.SaveIndividualImages
+    if isempty(Tracks) || ~parameters.SaveIndividualImages
         success = true;
         return
     end
 
-    savePath = [curDir, '\individual_worm_imgs\'];
+    savePath = [folder_name, '\individual_worm_imgs\'];
     if ~exist(savePath, 'dir')
         mkdir(savePath)
     end
     
-    delete_extra_individual_worm_images(curDir, 0); %delete previous .mat files
+    delete_extra_individual_worm_images(folder_name, 0); %delete previous .mat files
     
     frame_count = length(image_files)-1;
     %get where each track begins and ends in terms of frames and put them
@@ -348,18 +349,18 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
         end
 
         %%%image processing%%%
-        curImage = imread([curDir, '\' image_files(frame_index).name]);
+        curImage = imread([folder_name, '\' image_files(frame_index).name]);
         subtractedImage = curImage - medianProj - mask; %subtract median projection  - imageBackground
-        if Prefs.AutoThreshold       % use auto thresholding
-            Level = graythresh(subtractedImage) + Prefs.CorrectFactor;
+        if parameters.AutoThreshold       % use auto thresholding
+            Level = graythresh(subtractedImage) + parameters.CorrectFactor;
             Level = max(min(Level,1) ,0);
         else
-            Level = Prefs.ManualSetLevel;
+            Level = parameters.ManualSetLevel;
         end
         % Convert frame to a binary image 
-        NUM = Prefs.MaxObjects + 1;
-        while (NUM > Prefs.MaxObjects)
-            if Prefs.DarkObjects
+        NUM = parameters.MaxObjects + 1;
+        while (NUM > parameters.MaxObjects)
+            if parameters.DarkObjects
                 BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
             else
                 BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
@@ -409,12 +410,12 @@ function success = TrackImageDirectory(curDir, analysis_mode, Prefs)
                 image_stack_index = find([current_image_stacks.TrackIndex] == track_index);
                 image_stack_indecies = [image_stack_indecies, image_stack_index];
                 worm_images = current_image_stacks(image_stack_index).Images;
-                save([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat'], 'worm_images', '-v7.3');
+                save([folder_name, '\individual_worm_imgs\worm_', num2str(track_index), '.mat'], 'worm_images', '-v7.3');
             end
             current_image_stacks(image_stack_indecies) = []; %clear the memory of these images
         end
         if mod(frame_index,100) == 0
-            parfor_progress(Prefs.ProgressDir);
+            parfor_progress(parameters.ProgressDir);
         end
     end
     
