@@ -80,10 +80,6 @@
 
             %get the stereotyped behaviors
             Tracks = find_stereotyped_behaviors(Tracks, L, xx);
-
-            %autosave
-            %save([folder_name '\tracks.mat'], 'Tracks');
-            %AutoSave(folder_name, Prefs.DefaultPath);
         end
 
         % Get binary array of when certain behaviors start

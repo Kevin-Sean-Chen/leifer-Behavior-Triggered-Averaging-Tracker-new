@@ -205,8 +205,8 @@ maxDensity = max(density(:));
 
 for track_index = 1:length(allTracks);
     plot_embedding = Embeddings{track_index};
-    image_file = fullfile([folders{folder_indecies(track_index)}, '\individual_worm_imgs\worm_', num2str(track_indecies(track_index)), '.mat']);
-    save_file = fullfile([folders{folder_indecies(track_index)}, '\individual_worm_imgs\behaviormap_', num2str(track_indecies(track_index))]);
+    image_file = fullfile([folders{folder_indecies(track_index)},filesep,'individual_worm_imgs',filesep,'worm_',num2str(track_indecies(track_index)),'.mat']);
+    save_file = fullfile([folders{folder_indecies(track_index)},filesep,'individual_worm_imgs',filesep,'behaviormap_', num2str(track_indecies(track_index))]);
     load(image_file);
 
     behavior_figure = figure('Position', [500, 500, 500, 250]);

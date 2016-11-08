@@ -30,21 +30,21 @@ function success = PlotImageDirectory(folder_name)
     end
     
     % Get all the tif file names (probably jpgs)
-    image_files=dir([folder_name, '\*.jpg']); %get all the jpg files (maybe named tif)
+    image_files=dir([folder_name, filesep, '*.jpg']); %get all the jpg files (maybe named tif)
     if isempty(image_files)
-        image_files = dir([folder_name, '\*.tif']); 
+        image_files = dir([folder_name, filesep, '*.tif']); 
     end
     % Load Voltages
-    fid = fopen([folder_name, '\LEDVoltages.txt']);
+    fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     
     %% STEP 4: Get the median z projection %%
-    medianProj = imread([folder_name, '\', image_files(1).name]);
+    medianProj = imread([folder_name, filesep, image_files(1).name]);
     medianProjCount = min(number_of_images_for_median_projection, length(image_files) - 1); 
     medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
     for frame_index = 1:medianProjCount
-        curImage = imread([folder_name, '\', image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name]);
+        curImage = imread([folder_name, filesep, image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name]);
         medianProj(:,:,frame_index) = curImage;
     end
     medianProj = median(medianProj, 3);
@@ -73,17 +73,13 @@ function success = PlotImageDirectory(folder_name)
     frames_per_plot_time = round(parameters.SampleRate/parameters.PlottingFrameRate);
     
     %save subtracted avi
-    outputVideo = VideoWriter(fullfile([folder_name, '\', 'processed']),'MPEG-4');
+    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'MPEG-4');
     outputVideo.FrameRate = parameters.PlottingFrameRate;
     open(outputVideo)
     
-%     rawOutputVideo = VideoWriter(fullfile([curDir, '\', 'raw']),'MPEG-4');
-%     rawOutputVideo.FrameRate = Prefs.PlottingFrameRate;
-%     open(rawOutputVideo)
-    
     for frame_index = 1:frames_per_plot_time:length(image_files) - 1
         % Get Frame
-        curImage = imread([folder_name, '\', image_files(frame_index).name]);
+        curImage = imread([folder_name, filesep, image_files(frame_index).name]);
         subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
         if parameters.AutoThreshold       % use auto thresholding
             Level = graythresh(subtractedImage) + parameters.CorrectFactor;

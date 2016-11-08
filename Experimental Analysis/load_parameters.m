@@ -7,9 +7,9 @@ function parameters = load_parameters(folder_name)
         tags = {};
     else
         %load the tags
-        if exist([folder_name, '\tags.txt'],'file')
+        if exist([folder_name, filesep, 'tags.txt'],'file')
             %this is an image folder with tags
-            tags = textread([folder_name, '\tags.txt'], '%s', 'delimiter', ' ');
+            tags = textread([folder_name, filesep, 'tags.txt'], '%s', 'delimiter', ' ');
         else
             tags = {};
         end

@@ -41,7 +41,7 @@ end
 if isempty(dir);
     text_file_location = 'parfor_progress.txt';
 else
-    text_file_location = [dir, '\', 'parfor_progress.txt'];
+    text_file_location = [dir, folder_name, 'parfor_progress.txt'];
 end
 percent = 0;
 w = 50; % Width of progress bar

@@ -32,13 +32,13 @@ MaxSpeedBin,Max speed bin for speed histogram plots (mm/s),0.5,,,,,,,
 P_MaxSpeed,Speed threshold for identifying paralyzed worms (mm/s),0.015,,,,,,,
 P_TrackFraction,Min fraction of track below speed threshold required for paralysis ID,0.8,,,,,,,
 P_WriteExcel,"Write paralysis analysis results to excel file (select 1 if yes, 0 if no)",1,,,,,,,
-MinDisplacement,Default Matlab directory for movie location,\\leiferdata.princeton.edu\data\Mochi\Data\,,,,,,,
-PirSpeedThresh,Min displacement over the course of a track (pixels),20,,,,,,,25
-EccentricityThresh,Speed threshold for identifying pirouette (mm/s),0.01,,,,,,,
-PauseSpeedThresh,Eccentricity threshold for identifying omega turns,0.7,,,,,,,
-MinPauseDuration,Smooth speed threshold for identifying pauses (mm/s),0.01,,,,,,,
-MaxBackwardsFrames,Min pause duration (s),0.5,,,,,,,
-DefaultPath,"Max time a worm can go ""backwards"" (s) for correcting head/tail assignment",10,,,,,,,
+DefaultPath,Default Matlab directory for movie location,\\leiferdata.princeton.edu\data\Mochi\Data\,,,,,,,
+MinDisplacement,Min displacement over the course of a track (pixels),20,,,,,,,25
+PirSpeedThresh,Speed threshold for identifying pirouette (mm/s),0.01,,,,,,,
+EccentricityThresh,Eccentricity threshold for identifying omega turns,0.7,,,,,,,
+PauseSpeedThresh,Smooth speed threshold for identifying pauses (mm/s),0.01,,,,,,,
+MinPauseDuration,Min pause duration (s),0.5,,,,,,,
+MaxBackwardsFrames,"Max time a worm can go ""backwards"" (s) for correcting head/tail assignment",10,,,,,,,
 ImageSize,Individual Image Size (height and width in pixels),70,,,,,,,500
 MinAverageWormArea,Min Average Worm Size (pixels),175,,,,,,,1500
 MinPhaseVelocity,Min Phase Velocity (rad/s),-1.8283,,,,,,,

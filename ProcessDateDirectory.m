@@ -18,9 +18,9 @@ if tracking
     total_image_files = 0;
     for folder_index = 1:folder_count
         folder_name = folders{folder_index};
-        image_files=dir([folder_name, '\*.jpg']); %get all the jpg files (maybe named tif)
+        image_files=dir([folder_name, filesep, '*.jpg']); %get all the jpg files (maybe named tif)
         if isempty(image_files)
-            image_files = dir([folder_name, '\*.tif']); 
+            image_files = dir([folder_name, filesep, '*.tif']); 
         end
         total_image_files = total_image_files + length(image_files);
     end

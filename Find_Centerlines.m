@@ -30,10 +30,9 @@ function success = Find_Centerlines(folder_name)
     Tracks(track_count).ProjectedEigenValues = [];
     
     %% Extract Centerlines and eigenworms
-    parfor_progress([], length(Tracks));
     parfor track_index = 1:track_count
     %for track_index = 1:track_count
-        loaded_file = load([folder_name, '\individual_worm_imgs\worm_', num2str(track_index), '.mat']);
+        loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index), '.mat']);
         worm_images = loaded_file.worm_images;
         Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), parameters, track_index);
         
@@ -42,9 +41,7 @@ function success = Find_Centerlines(folder_name)
         [angles, Tracks(track_index).MeanAngle] = centerlines_to_angles(Tracks(track_index).Centerlines); %get the angles
         Tracks(track_index).Angles = angles - (diag(parameters.MeanAngles)*ones(size(angles))); %mean center
         Tracks(track_index).ProjectedEigenValues = parameters.EigenVectors\Tracks(track_index).Angles; %project into PCA space
-        parfor_progress([]);
     end
-    parfor_progress([], 0);
     
     %% save the results
     savetracks(Tracks, folder_name);

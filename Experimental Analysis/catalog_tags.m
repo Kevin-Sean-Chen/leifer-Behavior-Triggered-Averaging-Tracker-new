@@ -12,13 +12,13 @@ function [folders, folder_tags, folder_count] = catalog_tags(folder_name)
         %there is a folder_name input
     end
 
-    if exist([folder_name, '\parameters.txt'],'file')
+    if exist([folder_name, filesep, 'parameters.txt'],'file')
         %this is an image folder
-        if exist([folder_name, '\tags.txt'],'file')
+        if exist([folder_name, filesep, 'tags.txt'],'file')
             %this is an image folder with tags
             folder_count = folder_count + 1;
             folders{folder_count} = folder_name;
-            folder_tags(1,1) = {textread([folder_name, '\tags.txt'], '%s', 'delimiter', ' ')};
+            folder_tags(1,1) = {textread([folder_name, filesep, 'tags.txt'], '%s', 'delimiter', ' ')};
         end
     else
         allFiles = dir(folder_name); %get all the subfolders

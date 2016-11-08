@@ -6,7 +6,7 @@ fps = 14;
 
 for file_index = 1: length(allFiles)
     if allFiles(file_index).isdir && ~strcmp(allFiles(file_index).name, '.') && ~strcmp(allFiles(file_index).name, '..')
-        cd(strcat(folder_name, '\', allFiles(file_index).name))
+        cd(strcat(folder_name, filesep, allFiles(file_index).name))
         load('tracks.mat')
         if length(allTracks) == 0
             allTracks = Tracks;

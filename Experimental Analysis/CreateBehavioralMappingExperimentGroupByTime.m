@@ -66,7 +66,7 @@
             [Spectra, ~, ~, ~] = generate_spectra(Tracks, parameters, Prefs);
             
             %save spectra
-            save([folder_name '\spectra.mat'], 'Spectra', '-v7.3');
+            save([folder_name, filesep, 'spectra.mat'], 'Spectra', '-v7.3');
             
             data = vertcat(Spectra{:});
             [embeddingValues,~] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters);
@@ -85,8 +85,7 @@
             Tracks = find_stereotyped_behaviors(Tracks, L, xx);
 
             %autosave
-            save([folder_name '\tracks.mat'], 'Tracks', '-v7.3');
-            AutoSave(folder_name, Prefs.DefaultPath);
+            savetracks(Tracks, folder_name);
         end
 
         % Get binary array of when certain behaviors start

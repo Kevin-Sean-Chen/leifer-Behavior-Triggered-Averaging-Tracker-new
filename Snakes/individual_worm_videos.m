@@ -1,11 +1,11 @@
-function [] = individual_worm_videos(Tracks, curDir, fps, plotting_fps)
+function [] = individual_worm_videos(Tracks, folder_name, fps, plotting_fps)
 % Plots a single worm over time along with its centerline
     frames_per_plot_time = round(fps/plotting_fps);
     for track_index = 1:length(Tracks)
         plotting_index = 1;
-        loaded_file = load([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat']);
+        loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index), '.mat']);
         worm_images = loaded_file.worm_images;
-        outputVideo = VideoWriter(fullfile([curDir, '\individual_worm_imgs\worm_', num2str(track_index)]),'MPEG-4');
+        outputVideo = VideoWriter(fullfile([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index)]),'MPEG-4');
         outputVideo.FrameRate = plotting_fps;
         open(outputVideo)
 

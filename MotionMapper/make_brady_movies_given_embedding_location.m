@@ -167,7 +167,7 @@ saveas(sample_figure,fullfile(pathname,[filename(1:end-4), '.png']),'png');
 required_worm_images(N).worm_images = [];
 for worm_images_index = 1:N
     track_index = selected_tracks(worm_images_index);
-    image_file = fullfile([folders{folder_indecies(track_index)}, '\individual_worm_imgs\worm_', num2str(track_indecies(track_index)), '.mat']);
+    image_file = fullfile([folders{folder_indecies(track_index)},filesep,'individual_worm_imgs',filesep,'worm_',num2str(track_indecies(track_index)),'.mat']);
     required_worm_images(worm_images_index) = load(image_file);
 end
 

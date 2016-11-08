@@ -1,4 +1,4 @@
-function [] = rename_individual_worm_images(curDir, beginIndex, endIndex, shift)
+function [] = rename_individual_worm_images(folder_name, beginIndex, endIndex, shift)
 % renames the individually saved matrices by shift
     if beginIndex > endIndex
         return
@@ -14,11 +14,11 @@ function [] = rename_individual_worm_images(curDir, beginIndex, endIndex, shift)
     end
 
     for track_index = shift_indecies
-        current_file_name = [curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat'];
+        current_file_name = [folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index), '.mat'];
         if ~exist(current_file_name, 'file')
             break;
         end
-        new_file_name = [curDir, '\individual_worm_imgs\worm_', num2str(track_index+shift), '.mat'];
+        new_file_name = [folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index+shift), '.mat'];
         try
             movefile(current_file_name, new_file_name, 'f');
         catch

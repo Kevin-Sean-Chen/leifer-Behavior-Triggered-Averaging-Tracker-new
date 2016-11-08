@@ -5,9 +5,9 @@ function [TestLNPStats] = ValidateLNP(Tracks, folder_indecies, folders, LNPStats
 
     all_LEDVoltages = cell(1,length(folders));
     for folder_index = 1:length(folders)
-        curDir = folders{folder_index};
+        folder_name = folders{folder_index};
         % Load Voltages
-        fid = fopen([curDir, '\LEDVoltages.txt']);
+        fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
         all_LEDVoltages{folder_index} = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
     end

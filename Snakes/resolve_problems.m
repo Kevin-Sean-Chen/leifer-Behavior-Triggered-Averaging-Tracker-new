@@ -1,10 +1,10 @@
-function [newTracks] = resolve_problems(curDir, Prefs)
+function [newTracks] = resolve_problems(folder_name, parameters)
 % displays a GUI to help user decide how to resolve centerline problems
-    min_track_length = Prefs.MinTrackLength;
+    min_track_length = parameters.MinTrackLength;
 %     plotting_index = 1;
-    if exist([curDir, '\tracks.mat'], 'file') == 2
-        load([curDir, '\tracks.mat'])
-    else
+    
+    Tracks = load_single_folder(folder_name);
+    if isempty(Tracks)
         return
     end
     modifications_index = 1;
@@ -13,7 +13,7 @@ function [newTracks] = resolve_problems(curDir, Prefs)
         Track = Tracks(track_index);
         potential_problems = Track.PotentialProblems;
         if sum(potential_problems) > 0
-            loaded_file = load([curDir, '\individual_worm_imgs\worm_', num2str(track_index), '.mat']);
+            loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index), '.mat']);
             worm_images = loaded_file.worm_images;
 
             frames_to_show = conv(single(potential_problems), ones(1, 28), 'same'); %show for 2 sec around the problem
@@ -82,9 +82,9 @@ function [newTracks] = resolve_problems(curDir, Prefs)
             if ismember(1, modifications_to_this_track_actions)
                 %there is a delete command, delete the track
                 if current_track_index == current_end_index
-                    delete([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index), '.mat'])
+                    delete([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(current_track_index), '.mat'])
                 else
-                    rename_individual_worm_images(curDir,current_track_index+1,current_end_index,-1);
+                    rename_individual_worm_images(folder_name,current_track_index+1,current_end_index,-1);
                 end
                 current_end_index = current_end_index - 1;
             else
@@ -92,7 +92,7 @@ function [newTracks] = resolve_problems(curDir, Prefs)
                 split_tracks = [];
                 split_modifications = modifications_to_this_track(modifications_to_this_track_actions == 2);
                 
-                loaded_file = load([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index), '.mat']);
+                loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(current_track_index), '.mat']);
                 Track.WormImages = loaded_file.worm_images;
                 
                 for split_modification_index = 1:length(split_modifications)
@@ -110,13 +110,13 @@ function [newTracks] = resolve_problems(curDir, Prefs)
                 end                
                 
                 %shift up by the number of new tracks added
-                rename_individual_worm_images(curDir, current_track_index+1, current_end_index, length(split_tracks)-1);
+                rename_individual_worm_images(folder_name, current_track_index+1, current_end_index, length(split_tracks)-1);
                 current_end_index = current_end_index + length(split_tracks) - 1;
                 
                 %split the worm frames exactly as before
                 for saveindex = 1:length(split_tracks)
                     worm_images = split_tracks(saveindex).WormImages;
-                    save([curDir, '\individual_worm_imgs\worm_', num2str(current_track_index+saveindex-1), '.mat'], 'worm_images');
+                    save([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(current_track_index+saveindex-1), '.mat'], 'worm_images');
                 end
                 
                 split_tracks = rmfield(split_tracks, 'WormImages');
@@ -130,6 +130,6 @@ function [newTracks] = resolve_problems(curDir, Prefs)
             current_track_index = length(newTracks) + 1;
         end
     end
-    delete_extra_individual_worm_images(curDir, length(newTracks))
+    delete_extra_individual_worm_images(folder_name, length(newTracks))
     
 end

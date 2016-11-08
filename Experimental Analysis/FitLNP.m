@@ -29,9 +29,9 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
     %get all the LEDVoltages from all experiments
     all_LEDVoltages = cell(1,length(folders));
     for folder_index = 1:length(folders)
-        curDir = folders{folder_index};
+        folder_name = folders{folder_index};
         % Load Voltages
-        fid = fopen([curDir, '\LEDVoltages.txt']);
+        fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
         all_LEDVoltages{folder_index} = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
     end
@@ -50,11 +50,6 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
     LEDPowers = {Tracks(:).LEDPower};
     [BTA, trigger_count, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, true);
     clear Behaviors LEDPowers
-
-%     %debug load BTA from previous file
-%     load('C:\Users\mochil\Dropbox\LeiferShaevitz\presentations\high res mec-4\symmetric\16_09_20_embedding_ret_LNPFit.mat')
-%     BTA = vertcat(LNPStats(:).BTA);
-%     trigger_count = vertcat(LNPStats(:).trigger_count);
 
     linear_kernel = BTA_to_kernel(BTA, BTA_stats, meanLEDPower);
 
