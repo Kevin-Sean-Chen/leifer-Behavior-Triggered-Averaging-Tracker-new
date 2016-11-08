@@ -3,10 +3,16 @@
 %function LNPStats = CreateBehavioralMappingExperimentGroup(folders)
     %clear all;
     %set up parameters
+    recalculateSpectra = false;
+    recalculateEmbeddding = false;
+    recalculateBehavior = false;
+    
+    parameters = setRunParameters();
+    Prefs = load_excel_prefs;
     load('reference_embedding.mat')
-    relevant_track_fields = {'Behaviors','Frames','LEDPower','LEDVoltages'};
-
-    if true %nargin < 1
+    number_of_behaviors = max(L(:)-1);
+  
+    if nargin < 1
         [filename,pathname] = uiputfile('*.mat','Save Experiment Group As');
 
         if isequal(filename,0) || isequal(pathname,0)
@@ -30,7 +36,8 @@
         saveFileName = fullfile(pathname,filename);
     end
     
-    [allTracks, folder_indecies, ~] = loadtracks(folders,relevant_track_fields);
+    [allTracks, folder_indecies, track_indecies] = loadtracks(folders);
+    
     
     disp('Fitting LNP');
     %the very last entry in Experiments is the average of all experiments
@@ -40,4 +47,4 @@
     PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
     save(saveFileName, 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 
-% end
+ %end
