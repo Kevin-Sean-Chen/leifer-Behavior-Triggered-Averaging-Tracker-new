@@ -1,5 +1,7 @@
 function success = PlotImageDirectory(folder_name)
 % plots the individual worm videos and all the track videos
+    folder_name
+    addpath(genpath(pwd))
 
     %% STEP 1: initialize %%
     number_of_images_for_median_projection = 20;
