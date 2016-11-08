@@ -12,11 +12,6 @@ function success = auto_resolve_problems(folder_name)
         return
     end
 
-    if exist([folder_name, '\tracks.mat'], 'file') == 2
-        load([folder_name, '\tracks.mat'])
-    else
-        return
-    end
     modifications_index = 1;
     Modifications = [];
     for track_index = 1:length(Tracks)
