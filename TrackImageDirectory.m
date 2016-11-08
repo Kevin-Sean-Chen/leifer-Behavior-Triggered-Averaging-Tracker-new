@@ -2,6 +2,11 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
 % tracks and saves individual worms for all the images in a directory
 
     %% STEP 1: initialize %%
+    if nargin < 2
+        analysis_mode = 'all';
+    end
+    addpath(genpath(pwd))
+    
     parameters = load_parameters(folder_name); %load experiment parameters
     number_of_images_for_median_projection = 20;
     mask = parameters.Mask;
