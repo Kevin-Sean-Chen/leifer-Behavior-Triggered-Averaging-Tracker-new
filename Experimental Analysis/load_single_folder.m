@@ -5,12 +5,12 @@ function [ Tracks ] = load_single_folder(folder_name, field_names)
         field_names = {};
     end
     Tracks = [];
-    analysis_folder_name = [folder_name, '\analysis'];
+    analysis_folder_name = [folder_name, filesep, 'analysis'];
     if exist(analysis_folder_name, 'dir')
         %use new data structure system if available
         if isempty(field_names)
             %load everything
-            matlab_files = dir([analysis_folder_name, '\*.mat']); %get all the jpg files (maybe named tif)
+            matlab_files = dir([analysis_folder_name, filesep, '*.mat']); %get all the jpg files (maybe named tif)
             file_names = {matlab_files.name};
             for file_index = 1:length(file_names)
                 field_names{file_index} = file_names{file_index}(1:end-4);
@@ -19,7 +19,7 @@ function [ Tracks ] = load_single_folder(folder_name, field_names)
         %load the fields individually and put them in cells
         cell_tracks = [];
         for field_index = 1:length(field_names)
-            file_name = [analysis_folder_name,'\',field_names{field_index},'.mat'];
+            file_name = [analysis_folder_name,filesep,field_names{field_index},'.mat'];
             if exist(file_name, 'file') == 2
                 values = load(file_name);
                 cell_tracks = [cell_tracks; values.values];
@@ -31,8 +31,8 @@ function [ Tracks ] = load_single_folder(folder_name, field_names)
         end
         %convert into struct
         Tracks = cell2struct(cell_tracks,field_names,1)';
-    elseif exist([folder_name, '\tracks.mat'], 'file') == 2
-        load([folder_name, '\tracks.mat'])
+    elseif exist([folder_name, filesep, 'tracks.mat'], 'file') == 2
+        load([folder_name, filesep, 'tracks.mat'])
         if ~isempty(field_names)
             track_fields = fieldnames(Tracks);
             if ~all(ismember(field_names, track_fields))

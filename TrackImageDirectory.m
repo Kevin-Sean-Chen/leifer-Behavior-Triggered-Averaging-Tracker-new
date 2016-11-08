@@ -7,6 +7,8 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
     end
     addpath(genpath(pwd))
     
+    folder_name
+
     parameters = load_parameters(folder_name); %load experiment parameters
     number_of_images_for_median_projection = 20;
     mask = parameters.Mask;
@@ -22,7 +24,7 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
         if strcmp(analysis_mode, 'continue')
             %track already exists, check if there are individual worm
             %images
-            if exist([folder_name, '\individual_worm_imgs\worm_', num2str(length(Tracks)), '.mat'], 'file') == 2
+            if exist([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(length(Tracks)), '.mat'], 'file') == 2
                 %there are individual worm images
                 success = true;
                 return
@@ -36,13 +38,14 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
     %% STEP 3: Load images and other properties from the directory %%
     % Get all the tif file names (probably jpgs)
     
-    image_files=dir([folder_name, '\*.jpg']); %get all the jpg files (maybe named tif)
+    image_files=dir([folder_name, filesep, '*.jpg']); %get all the jpg files (maybe named tif)
     if isempty(image_files)
-        image_files = dir([folder_name, '\*.tif']); 
+        image_files = dir([folder_name, filesep, '*.tif']); 
     end
     
     % Load Voltages
-    fid = fopen([folder_name, '\LEDVoltages.txt']);
+    fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
+    fid
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     
@@ -53,12 +56,12 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
     end
     
     %% STEP 4: Get the median z projection %%
-    medianProj = imread([folder_name, '\', image_files(1).name]);
+    medianProj = imread([folder_name, filesep, image_files(1).name]);
     [x_resolution, y_resolution] = size(medianProj);
     medianProjCount = min(number_of_images_for_median_projection, length(image_files) - 1); 
     medianProj = zeros(size(medianProj,1), size(medianProj,2), medianProjCount);
     for frame_index = 1:medianProjCount
-        curImage = imread([folder_name, '\', image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name]);
+        curImage = imread([folder_name, filesep, image_files(floor((length(image_files)-1)*frame_index/medianProjCount)).name]);
         medianProj(:,:,frame_index) = curImage;
     end
     medianProj = median(medianProj, 3);
@@ -72,7 +75,7 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
         % Analyze Movie
         for frame_index = 1:length(image_files) - 1
             % Get Frame
-            curImage = imread([folder_name, '\',image_files(frame_index).name]);
+            curImage = imread([folder_name, filesep, image_files(frame_index).name]);
             subtractedImage = curImage - medianProj - mask;
 
             % Convert frame to a binary image 
@@ -185,9 +188,6 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
                 Tracks(Index).Eccentricity = WormEccentricities(i);
                 Tracks(Index).WormIndex = WormIndices(i);
                 Tracks(Index).MergedBlobIndex = [];
-            end
-            if mod(frame_index,100) == 0
-                parfor_progress(parameters.ProgressDir);
             end
             %frame_index
         end
@@ -314,13 +314,13 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
 %% STEP 9: Save the tracks %%
     savetracks(Tracks,folder_name);
     
-%% STEP 10: save each worms' images %%
+%% STEP 10: save each worms images %%
     if isempty(Tracks) || ~parameters.SaveIndividualImages
         success = true;
         return
     end
 
-    savePath = [folder_name, '\individual_worm_imgs\'];
+    savePath = [folder_name, filesep, 'individual_worm_imgs', filesep];
     if ~exist(savePath, 'dir')
         mkdir(savePath)
     end
@@ -354,7 +354,7 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
         end
 
         %%%image processing%%%
-        curImage = imread([folder_name, '\' image_files(frame_index).name]);
+        curImage = imread([folder_name, filesep, image_files(frame_index).name]);
         subtractedImage = curImage - medianProj - mask; %subtract median projection  - imageBackground
         if parameters.AutoThreshold       % use auto thresholding
             Level = graythresh(subtractedImage) + parameters.CorrectFactor;
@@ -415,12 +415,9 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
                 image_stack_index = find([current_image_stacks.TrackIndex] == track_index);
                 image_stack_indecies = [image_stack_indecies, image_stack_index];
                 worm_images = current_image_stacks(image_stack_index).Images;
-                save([folder_name, '\individual_worm_imgs\worm_', num2str(track_index), '.mat'], 'worm_images', '-v7.3');
+                save([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index), '.mat'], 'worm_images', '-v7.3');
             end
             current_image_stacks(image_stack_indecies) = []; %clear the memory of these images
-        end
-        if mod(frame_index,100) == 0
-            parfor_progress(parameters.ProgressDir);
         end
     end
     

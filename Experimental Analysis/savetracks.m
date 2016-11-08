@@ -1,6 +1,6 @@
 function [] = savetracks(Tracks, folder_name, overwrite, fields_to_save)
 %save the tracks given folders as individual variables
-    savePath = [folder_name, '\analysis'];
+    savePath = [folder_name, filesep, 'analysis'];
     
     if nargin < 3
         %default is to not overwrite values already calculated that are not in the track
@@ -16,7 +16,7 @@ function [] = savetracks(Tracks, folder_name, overwrite, fields_to_save)
     elseif overwrite
         %overwrite the previous track variables by deleting the analysis
         %folder
-        delete([savePath '\*.*']);
+        delete([savePath, filesep, '*.*']);
     end
     
     field_names = fieldnames(Tracks);
@@ -25,7 +25,7 @@ function [] = savetracks(Tracks, folder_name, overwrite, fields_to_save)
         field_name = field_names{field_index};
         if isempty(fields_to_save) || ismember(field_name,fields_to_save)
             values = {Tracks.(field_name)}; %turn the data into cell format and save it
-            saveFileName = [savePath, '\', field_name, '.mat'];
+            saveFileName = [savePath, filesep, field_name, '.mat'];
             save(saveFileName, 'values', '-v7.3');
         end
     end
