@@ -1,6 +1,8 @@
 function success = calculate_behaviors(folder_name)
     % use behavioral mapping to analyze a group of experiments
-    
+    folder_name
+    addpath(genpath(pwd))
+
     %set up parameters
     parameters = load_parameters(folder_name);
     load('reference_embedding.mat')

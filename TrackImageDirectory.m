@@ -1,13 +1,13 @@
 function success = TrackImageDirectory(folder_name, analysis_mode)
 % tracks and saves individual worms for all the images in a directory
+    folder_name
 
     %% STEP 1: initialize %%
     if nargin < 2
         analysis_mode = 'all';
     end
     addpath(genpath(pwd))
-    
-    folder_name
+
 
     parameters = load_parameters(folder_name); %load experiment parameters
     number_of_images_for_median_projection = 20;
@@ -45,7 +45,6 @@ function success = TrackImageDirectory(folder_name, analysis_mode)
     
     % Load Voltages
     fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
-    fid
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
     fclose(fid);
     

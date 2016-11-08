@@ -1,7 +1,10 @@
 function success = Find_Centerlines(folder_name)
+    folder_name
+    addpath(genpath(pwd))
+    
     parameters = load_parameters(folder_name); %load experiment parameters
     relevant_track_fields = {'Eccentricity','Direction'};
-    
+
     %% Load tracks
     Tracks = load_single_folder(folder_name, relevant_track_fields);
     if isempty(Tracks)
