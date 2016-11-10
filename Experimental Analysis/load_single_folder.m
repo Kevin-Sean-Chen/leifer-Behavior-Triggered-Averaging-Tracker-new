@@ -31,8 +31,8 @@ function [ Tracks ] = load_single_folder(folder_name, field_names)
         end
         %convert into struct
         Tracks = cell2struct(cell_tracks,field_names,1)';
-    elseif exist([folder_name, filesep, 'tracks.mat'], 'file') == 2
-        load([folder_name, filesep, 'tracks.mat'])
+    elseif exist([folder_name, filesep, 'Tracks.mat'], 'file') == 2
+        load([folder_name, filesep, 'Tracks.mat'])
         if ~isempty(field_names)
             track_fields = fieldnames(Tracks);
             if ~all(ismember(field_names, track_fields))

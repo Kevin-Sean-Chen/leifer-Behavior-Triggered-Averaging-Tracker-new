@@ -5,7 +5,7 @@ function [] = individual_worm_videos(Tracks, folder_name, fps, plotting_fps)
         plotting_index = 1;
         loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index), '.mat']);
         worm_images = loaded_file.worm_images;
-        outputVideo = VideoWriter(fullfile([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index)]),'MPEG-4');
+        outputVideo = VideoWriter(fullfile([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index)]),'Motion JPEG AVI');
         outputVideo.FrameRate = plotting_fps;
         open(outputVideo)
 

@@ -14,6 +14,7 @@ function success = PlotImageDirectory(folder_name)
     %% Load tracks
     Tracks = load_single_folder(folder_name, relevant_track_fields);
     if isempty(Tracks)
+        'empty tracks'
         success = false;
         return
     end
@@ -75,7 +76,7 @@ function success = PlotImageDirectory(folder_name)
     frames_per_plot_time = round(parameters.SampleRate/parameters.PlottingFrameRate);
     
     %save subtracted avi
-    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'MPEG-4');
+    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'Motion JPEG AVI');
     outputVideo.FrameRate = parameters.PlottingFrameRate;
     open(outputVideo)
     
