@@ -1,5 +1,6 @@
 folders = getfoldersGUI();
-[allTracks, folder_indecies, track_indecies ] = loadtracks(folders);
+[allTracks, folder_indecies, track_indecies ] = loadtracks(folders,{'BehavioralTransition',...
+    'Path','Frames','LEDPower','LEDVoltages','Behaviors','Embeddings'});
 
 %calculate the triggers for LNP fitting
 number_of_behaviors = max(L(:)-1);
@@ -36,3 +37,63 @@ for section_index = 1:number_of_sections
 
     PlotValidateBehavioralMappingExperimentGroup(TestLNPStats, LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
 end
+
+%% cut up tracks into uptick frames and downtick frames
+%get what the triangle wave looks like
+LEDVoltages = load([folders{1}, filesep, 'LEDVoltages.txt']);
+second_deriv = [0, diff(diff(LEDVoltages)), 0];
+uptick_starts = [1, find(second_deriv > 0.01)];
+uptick_ends = [find(second_deriv < -0.01), length(LEDVoltages)];
+all_uptick_tracks = [];
+all_uptick_track_indecies = [];
+for section_index = 1:length(uptick_starts)
+    start_frame = uptick_starts(section_index)+1;
+    end_frame = uptick_ends(section_index);
+
+    [temp_tracks, temp_track_indecies] = FilterTracksByTime(newallTracks,start_frame,end_frame);
+    all_uptick_tracks = [all_uptick_tracks, temp_tracks];
+    all_uptick_track_indecies = [all_uptick_track_indecies, temp_track_indecies];
+end
+
+downtick_starts = find(second_deriv < -0.01);
+downtick_ends = [find(second_deriv > 0.01), length(LEDVoltages)];
+all_downtick_tracks = [];
+all_downtick_track_indecies = [];
+for section_index = 1:length(uptick_starts)
+    start_frame = downtick_starts(section_index)+1;
+    end_frame = downtick_ends(section_index);
+
+    [temp_tracks, temp_track_indecies] = FilterTracksByTime(newallTracks,start_frame,end_frame);
+    all_downtick_tracks = [all_downtick_tracks, temp_tracks];
+    all_downtick_track_indecies = [all_downtick_track_indecies, temp_track_indecies];
+end
+
+uptick_behaviors = [all_uptick_tracks.Behaviors];
+downtick_behaviors = [all_downtick_tracks.Behaviors];
+
+uptick_behavioral_counts = sum(uptick_behaviors,2);
+downtick_behavioral_counts = sum(downtick_behaviors,2);
+
+uptick_behavioral_std = sqrt(uptick_behavioral_counts) ./ size(uptick_behaviors,2)*14*60;
+downtick_behavioral_std = sqrt(downtick_behavioral_counts) ./ size(downtick_behaviors,2)*14*60;
+
+uptick_behavioral_rates = uptick_behavioral_counts ./ size(uptick_behaviors,2)*14*60;
+downtick_behavioral_rates = downtick_behavioral_counts ./ size(downtick_behaviors,2)*14*60;
+
+
+figure
+hold on
+errorbar(uptick_behavioral_rates, uptick_behavioral_std, 'r*')
+errorbar(downtick_behavioral_rates, downtick_behavioral_std, 'bo')
+hold off 
+xlabel('Behavioral Region');
+ylabel('Transition Rate (Behavior/Min)');
+legend({'Increasing','Decreasing'});
+%% plot the LEDPower
+fps = 14;
+parameters = load_parameters();
+LEDPower = LEDVoltages .* parameters.avgPower500 ./ 5;
+plot(1/fps:1/fps:length(LEDVoltages)/fps, LEDPower)
+xlabel('Time (s)')
+ylabel('Power (uW/mm^2)')
+%% plot embedding densities

@@ -4,7 +4,8 @@
     %clear all;
     %set up parameters
     load('reference_embedding.mat')
-    relevant_track_fields = {'Behaviors','Frames','LEDPower','LEDVoltages'};
+    relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings'};
+%     relevant_track_fields = {'Behaviors','Frames','LEDPower','LEDVoltages'};
 
     if true %nargin < 1
         [filename,pathname] = uiputfile('*.mat','Save Experiment Group As');
@@ -35,7 +36,7 @@
     disp('Fitting LNP');
     %the very last entry in Experiments is the average of all experiments
     %fit the LNP
-    [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks,folder_indecies,folders);
+    [LNPStats, meanLEDPower, stdLEDPower] = directional_FitLNP(allTracks,folder_indecies,folders);
 
     PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
     save(saveFileName, 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');

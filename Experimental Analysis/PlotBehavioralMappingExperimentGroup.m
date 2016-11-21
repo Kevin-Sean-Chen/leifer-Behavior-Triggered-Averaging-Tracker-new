@@ -172,7 +172,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         shuffle_norms = vertcat(LNPStats.shuffle_norms);
         BTA_norms = [LNPStats.BTA_norm];
         shuffle_mean = mean(shuffle_norms, 2)';
-        shuffle_std = 1.96 .* std(shuffle_norms,0,2)';
+        shuffle_std = 2.6 .* std(shuffle_norms,0,2)';
         hold on
         errorbar(1:length(LNPStats), shuffle_mean, shuffle_std, 'bo')
         plot(1:length(LNPStats), BTA_norms, 'r*')

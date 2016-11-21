@@ -4,10 +4,10 @@ function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats, meanLEDPower)
 %   regions
 
     linear_kernel = zeros(size(BTA));
-    percentile_threshold = 95;
+    percentile_threshold = 0.99;
     
     for behavior_index = 1:size(BTA,1)
-        if ~isfield(BTA_stats, 'BTA_percentile') && BTA_stats(behavior_index).BTA_percentile < percentile_threshold
+        if isfield(BTA_stats, 'BTA_percentile') && BTA_stats.BTA_percentile(behavior_index) < percentile_threshold
             %BTA not above percentile level, flat kernel
             flat_kernel = false;
         else
