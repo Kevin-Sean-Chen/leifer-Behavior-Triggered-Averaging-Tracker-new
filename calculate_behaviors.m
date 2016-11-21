@@ -16,6 +16,8 @@ function success = calculate_behaviors(folder_name)
         return
     end
 
+    parpool(feature('numcores'))
+
     %% get the spectra
     [Spectra, ~, ~, ~] = generate_spectra({Tracks.ProjectedEigenValues}, parameters);
 

@@ -1,5 +1,6 @@
 function success = Find_Centerlines(folder_name)
     folder_name
+
     addpath(genpath(pwd))
     
     parameters = load_parameters(folder_name); %load experiment parameters
@@ -32,6 +33,8 @@ function success = Find_Centerlines(folder_name)
     Tracks(track_count).Angles = [];
     Tracks(track_count).ProjectedEigenValues = [];
     
+    parpool(feature('numcores'))
+
     %% Extract Centerlines and eigenworms
     parfor track_index = 1:track_count
     %for track_index = 1:track_count
