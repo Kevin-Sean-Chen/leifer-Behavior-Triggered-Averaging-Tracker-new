@@ -33,8 +33,15 @@ function success = Find_Centerlines(folder_name)
     Tracks(track_count).Angles = [];
     Tracks(track_count).ProjectedEigenValues = [];
     
-    parpool(feature('numcores'))
-
+    try
+        parpool(feature('numcores'))
+    catch
+        %sometimes matlab attempts to write to the same temp file. wait and
+        %restart
+        pause(20);
+        parpool(feature('numcores'))
+    end
+    
     %% Extract Centerlines and eigenworms
     parfor track_index = 1:track_count
     %for track_index = 1:track_count

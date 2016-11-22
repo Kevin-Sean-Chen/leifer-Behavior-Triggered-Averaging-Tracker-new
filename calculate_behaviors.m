@@ -16,7 +16,14 @@ function success = calculate_behaviors(folder_name)
         return
     end
 
-    parpool(feature('numcores'))
+    try
+        parpool(feature('numcores'))
+    catch
+        %sometimes matlab attempts to write to the same temp file. wait and
+        %restart
+        pause(20);
+        parpool(feature('numcores'))
+    end
 
     %% get the spectra
     [Spectra, ~, ~, ~] = generate_spectra({Tracks.ProjectedEigenValues}, parameters);
