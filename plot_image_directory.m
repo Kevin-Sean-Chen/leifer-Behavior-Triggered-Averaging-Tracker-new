@@ -1,6 +1,5 @@
-function success = PlotImageDirectory(folder_name)
+function success = plot_image_directory(folder_name)
 % plots the individual worm videos and all the track videos
-    folder_name
     addpath(genpath(pwd))
 
     %% STEP 1: initialize %%
@@ -14,9 +13,7 @@ function success = PlotImageDirectory(folder_name)
     %% Load tracks
     Tracks = load_single_folder(folder_name, relevant_track_fields);
     if isempty(Tracks)
-        'empty tracks'
-        success = false;
-        return
+        error('Empty Tracks');
     end
 
     %% STEP 2: plot individual worms
@@ -29,6 +26,7 @@ function success = PlotImageDirectory(folder_name)
     %% STEP 3: Load images and other properties from the directory %%
     % check if preferences indicate not to plot
     if parameters.PlottingFrameRate <= 0
+        success = true;
         return
     end
     

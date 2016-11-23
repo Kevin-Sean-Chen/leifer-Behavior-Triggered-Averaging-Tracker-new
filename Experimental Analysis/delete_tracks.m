@@ -1,6 +1,6 @@
-function [] = deletetracks(folder_name)
+function success = delete_tracks(folder_name)
 %delete the tracks given folders
-    folder_name
+    disp(folder_name)
 
     deletePath = [folder_name, filesep, 'analysis'];
     if exist(deletePath, 'dir')
@@ -8,5 +8,6 @@ function [] = deletetracks(folder_name)
         %folder
         delete([deletePath, filesep, '*.*']);
     end
+    success = true;
 end
 

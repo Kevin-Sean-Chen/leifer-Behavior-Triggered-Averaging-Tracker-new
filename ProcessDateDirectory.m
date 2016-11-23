@@ -31,12 +31,12 @@ if tracking
         parfor folder_index = 1:folder_count
 %         for folder_index = 1:folder_count
             folder_name = folders{folder_index};
-            TrackImageDirectory(folder_name, 'continue');
+            track_image_directory(folder_name, 'continue');
         end
     else
         for folder_index = 1:folder_count
             folder_name = folders{folder_index};
-            TrackImageDirectory(folder_name, 'analysis');
+            track_image_directory(folder_name, 'analysis');
         end
     end
     parfor_progress(parameters.ProgressDir, 0);
@@ -47,7 +47,7 @@ if finding_centerline
     'Getting Centerlines...'
     for folder_index = 1:folder_count
         folder_name = folders{folder_index}
-        Find_Centerlines(folder_name);
+        find_centerlines(folder_name);
     end 
 end
 
@@ -75,7 +75,7 @@ if plotting
     'Plotting...'
     for folder_index = 1:folder_count
         folder_name = folders{folder_index}
-        PlotImageDirectory(folder_name);
+        plot_image_directory(folder_name);
     end 
 end
 

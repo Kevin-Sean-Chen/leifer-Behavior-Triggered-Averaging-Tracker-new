@@ -28,7 +28,7 @@ function success = AutoSave(folder_name, copydata)
                 if savepath_filenum == curdir_filenum
                     %there are the same number of files, update tracks.mat
                     %and individual videos
-                    copyfile([folder_name, '\', 'Tracks.mat'],savePath)
+                    copyfile([folder_name, '\', 'tracks.mat'],savePath)
                     copyfile([folder_name, '\individual_worm_imgs'],[savePath, '\individual_worm_imgs'])
                     copyfile([folder_name, '\analysis'],[savePath, '\analysis'])
                 else
@@ -43,8 +43,8 @@ function success = AutoSave(folder_name, copydata)
             end
             copyfile([folder_name, '\', 'Parameters.txt'],savePath)
             copyfile([folder_name, '\', 'LEDVoltages.txt'],savePath)    
-            if exist([folder_name, '\', 'Tracks.txt'], 'file')
-                copyfile([folder_name, '\', 'Tracks.mat'],savePath)
+            if exist([folder_name, '\', 'tracks.txt'], 'file')
+                copyfile([folder_name, '\', 'tracks.mat'],savePath)
             end            
             if exist([folder_name, '\', 'tags.txt'], 'file')
                 copyfile([folder_name, '\', 'tags.txt'],savePath)

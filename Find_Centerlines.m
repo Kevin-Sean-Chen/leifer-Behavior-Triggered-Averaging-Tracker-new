@@ -1,6 +1,4 @@
-function success = Find_Centerlines(folder_name)
-    folder_name
-
+function success = find_centerlines(folder_name)
     addpath(genpath(pwd))
     
     parameters = load_parameters(folder_name); %load experiment parameters

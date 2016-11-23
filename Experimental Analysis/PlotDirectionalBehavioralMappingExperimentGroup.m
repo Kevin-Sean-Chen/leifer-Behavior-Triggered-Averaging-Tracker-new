@@ -19,8 +19,7 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
     
 
     if nargin > 4
-        watershed_borders_binary = L==0;
-    %     [ii,jj] = find(watershed_borders_binary);
+        [ii,jj] = find(L==0);
     %     all_density = density(:);
     %     [white_space_ii white_space_jj] = find(density > 1);
         density(density > 1) = 0;
@@ -29,6 +28,8 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
         watershed_centroids = regionprops(L, 'centroid');
         watershed_centroids = vertcat(watershed_centroids.Centroid);
         watershed_centroids = round(watershed_centroids);
+        watershed_centroids = watershed_centroids(1:12,:);
+        
         %modify jet map
         my_colormap = jet;
         my_colormap(1,:) = [1 1 1];
@@ -54,6 +55,7 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
             adj_matrix = zeros(number_of_behaviors);
             adj_matrix(edges(1),edges(2)) = edges(3);
             transition_graph = digraph(adj_matrix);
+            LWidths = 10*transition_graph.Edges.Weight/max(transition_graph.Edges.Weight);
             
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(behavior_index-1) + watershed_plot_number);
             hold on

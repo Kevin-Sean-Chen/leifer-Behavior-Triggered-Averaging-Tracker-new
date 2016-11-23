@@ -1,19 +1,16 @@
 function success = calculate_behaviors(folder_name)
-    % use behavioral mapping to analyze a group of experiments
-    folder_name
+% use behavioral mapping to analyze a group of experiments
     addpath(genpath(pwd))
-
     %set up parameters
     parameters = load_parameters(folder_name);
     load('reference_embedding.mat')
     number_of_behaviors = max(L(:)-1);
     relevant_track_fields = {'ProjectedEigenValues','Frames'};
-    
+
     %% Load tracks
     Tracks = load_single_folder(folder_name, relevant_track_fields);
     if isempty(Tracks)
-        success = false;
-        return
+        error('Empty Tracks');
     end
 
     try
@@ -45,7 +42,6 @@ function success = calculate_behaviors(folder_name)
 
     %get the stereotyped behaviors
     Tracks = find_stereotyped_behaviors(Tracks, L, xx);
-    
 
     % Get binary array of when certain behaviors start
     Tracks(1).Behaviors = [];
@@ -66,5 +62,5 @@ function success = calculate_behaviors(folder_name)
 
     %save
     savetracks(Tracks, folder_name);
-    success = true;
+    success = true;    
  end
