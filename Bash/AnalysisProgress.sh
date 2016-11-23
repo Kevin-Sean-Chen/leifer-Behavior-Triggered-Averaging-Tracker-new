@@ -19,7 +19,6 @@ tac $log_name | while read line; do
 
 	if [ "$status" == "COMPLETE" ]; then
 		potential_last_step_completed=$(ScriptToOrdering.sh $script_name)
-		echo $script_name
 		if [ "$potential_last_step_completed" -gt "-1" ]; then
 			# the last thing completed by MATLAB
 			echo $potential_last_step_completed

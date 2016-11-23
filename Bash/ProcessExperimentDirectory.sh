@@ -24,17 +24,17 @@ step_to_start=$(($step_completed<$analysis_starting_point?$step_completed:$analy
 
 # Update the log to indicate which step the analysis will start on
 next_step=$(($step_to_start + 1))
-echo $next_step
+# echo $next_step
 UpdateLog.sh $folder_name ProcessExperimentDirectory HEAD_NODE START 'Starting_On:'$(OrderingToScript.sh $next_step)
 
 # Delete the previous analysis files
 script_name=delete_tracks
 script_order=$(ScriptToOrdering.sh $script_name)
 if [ "$step_to_start" -lt "$script_order" ]; then
-	echo deleting
+	# echo deleting
 	delete_tracks.sh $folder_name 
 fi
-echo $script_name' finished in '$folder_name
+#echo $script_name' finished in '$folder_name
 
 # Track the experiment
 script_name=track_image_directory
@@ -47,11 +47,11 @@ if [ "$step_to_start" -lt "$script_order" ]; then
 	#check if the operation completed succesfully
 	exit_command=$(CompletionCheck.sh $folder_name $script_name ${PROCESS_ID##* }) 
 	if [ "$exit_command" == "EXIT" ]; then
-		echo $script_name' failed, exiting'
+		echo $script_name' failed, exiting in '$folder_name
 		exit
 	fi
 fi
-echo $script_name' finished in '$folder_name
+#echo $script_name' finished in '$folder_name
 
 
 # Find the centerlines
@@ -65,11 +65,11 @@ if [ "$step_to_start" -lt "$script_order" ]; then
 	#check if the operation completed succesfully
 	exit_command=$(CompletionCheck.sh $folder_name $script_name ${PROCESS_ID##* }) 
 	if [ "$exit_command" == "EXIT" ]; then
-		echo $script_name' failed, exiting'
+		echo $script_name' failed, exiting in '$folder_name
 		exit
 	fi
 fi
-echo $script_name' finished in '$folder_name
+#echo $script_name' finished in '$folder_name
 
 
 # Auto resolve problems
@@ -83,11 +83,11 @@ if [ "$step_to_start" -lt "$script_order" ]; then
 	#check if the operation completed succesfully
 	exit_command=$(CompletionCheck.sh $folder_name $script_name ${PROCESS_ID##* }) 
 	if [ "$exit_command" == "EXIT" ]; then
-		echo $script_name' failed, exiting'
+		echo $script_name' failed, exiting in '$folder_name
 		exit
 	fi
 fi
-echo $script_name' finished in '$folder_name
+#echo $script_name' finished in '$folder_name
 
 
 # Calculate Behaviors
@@ -101,11 +101,11 @@ if [ "$step_to_start" -lt "$script_order" ]; then
 	#check if the operation completed succesfully
 	exit_command=$(CompletionCheck.sh $folder_name $script_name ${PROCESS_ID##* }) 
 	if [ "$exit_command" == "EXIT" ]; then
-		echo $script_name' failed, exiting'
+		echo $script_name' failed, exiting in '$folder_name
 		exit
 	fi
 fi
-echo $script_name' finished in '$folder_name
+#echo $script_name' finished in '$folder_name
 
 
 # Plot the experiment
@@ -119,11 +119,11 @@ if [ "$step_to_start" -lt "$script_order" ]; then
 	#check if the operation completed succesfully
 	exit_command=$(CompletionCheck.sh $folder_name $script_name ${PROCESS_ID##* }) 
 	if [ "$exit_command" == "EXIT" ]; then
-		echo $script_name' failed, exiting'
+		echo $script_name' failed, exiting in '$folder_name
 		exit
 	fi
 fi
-echo $script_name' finished in '$folder_name
+#echo $script_name' finished in '$folder_name
 
 
 # # Convert to analysis folders

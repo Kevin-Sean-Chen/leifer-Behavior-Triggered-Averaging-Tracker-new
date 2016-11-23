@@ -1,13 +1,12 @@
 #!/bin/bash
 
 date_folder=$1
-
-cd /home/mochil/outputs/
+start_point=$2
 
 # loop through all the directories in a date folder
-for f in $date_folder*; do
-    if [ -d ${f} ]; then
-        echo $f
-        #ProcessExperimentDirectory.sh $f &
+for folder_name in $date_folder*; do
+    if [ -d ${folder_name} ]; then
+        # echo $folder_name
+        ProcessExperimentDirectory.sh $folder_name $start_point &
     fi
 done
