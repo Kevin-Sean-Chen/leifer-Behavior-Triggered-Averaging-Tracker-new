@@ -18,6 +18,6 @@ function success = call_function(input_string)
     catch ME
         success = false;
         %update the logs after completing
-        update_logs(folder_name,script_name,'ERROR',ME.message);
+        update_logs(folder_name,script_name,'ERROR',regexprep(ME.message,'\r\n|\n|\r',' '));
     end
 end
