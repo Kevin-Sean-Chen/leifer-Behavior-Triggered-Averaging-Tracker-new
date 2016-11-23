@@ -5,7 +5,7 @@ function log_entry = update_logs(folder_name, script_name, status, comment)
         error_log_name = '/tigress/LEIFER/Mochi/logs/errorlog.csv';
         log_name = [folder_name,filesep,'status.csv'];
 
-        current_time = datestr(datetime('now'),'yyyy-MM-dd_HH:mm:ss');
+        current_time = datestr(datetime('now'),'yyyy-mm-dd_HH:MM:ss');
         [~,hostname] = system('hostname');
         hostname = hostname(1:end-1);
 
