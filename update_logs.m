@@ -1,4 +1,4 @@
-function log_entry = update_logs(folder_name, script_name, status, comment)
+function log_entry = update_logs(folder_name, script_name, status, job_ID, comment)
 % update the logs on cluster
     try
         master_log_name = '/tigress/LEIFER/Mochi/logs/masterlog.csv';
@@ -10,7 +10,7 @@ function log_entry = update_logs(folder_name, script_name, status, comment)
         hostname = hostname(1:end-1);
 
         log_entry = [script_name,',',status,',',current_time,',',folder_name,',',...
-            'MATLAB',',',hostname,',',comment];
+            job_ID,',',hostname,',',comment];
         write_log(log_name, log_entry);   
 
         if ~ispc
