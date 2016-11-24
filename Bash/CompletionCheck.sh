@@ -14,10 +14,10 @@ status=${ADDR[1]}
 
 if [ "$script_name" == "$last_script_name" ] && [ "$status" == "COMPLETE" ]; then
 	# the last operation finished successfully
-	UpdateLog.sh $folder_name CompletionCheck $job_ID VALIDATE Last_Operation_Finished
+	UpdateLog.sh $folder_name CompletionCheck $job_ID VALIDATE $script_name'_Finished'
 	echo CONITNUE
 else
 	# the last operation was interrupted, log the exit
-	UpdateLog.sh $folder_name CompletionCheck $job_ID EXIT Last_Operation_Interrupted
+	UpdateLog.sh $folder_name CompletionCheck $job_ID EXIT $script_name'_Interrupted'
 	echo EXIT
 fi

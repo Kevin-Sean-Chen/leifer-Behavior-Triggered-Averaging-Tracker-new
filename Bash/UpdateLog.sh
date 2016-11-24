@@ -23,7 +23,7 @@ log_entry=$script_name,$status,$current_time,$folder_name,$job_ID,$(hostname),$c
 echo $log_entry>>$log_name
 echo $log_entry>>$master_log_name
 
-if [ "$status" == "ERROR" ]; then
+if [ "$status" == "ERROR" ] || [ "$status" == "EXIT" ] ; then
 	# append to the error log
 	echo $log_entry>>$error_log_name
 fi

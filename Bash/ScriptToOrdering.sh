@@ -26,7 +26,9 @@ case "$script_name" in
 	plot_image_directory)
         echo 5
         ;;
-
+    max)
+        echo 5
+        ;;
     *)
         echo -1
         ;;

@@ -9,7 +9,7 @@ function success = call_function(input_string)
         disp(folder_name);
         disp(job_ID);
         %update the logs before starting
-        update_logs(folder_name,script_name,'START',job_ID,'Within_MATLAB');
+        update_logs(folder_name,script_name,'RUNNING',job_ID,'Within_MATLAB');
         
         function_handle = str2func(script_name);
         %run the function
