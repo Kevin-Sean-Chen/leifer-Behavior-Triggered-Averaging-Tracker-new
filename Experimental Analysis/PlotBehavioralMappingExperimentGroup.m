@@ -179,7 +179,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         hold off
         xlabel('Behavior Index') % x-axis label
         ylabel('Filter Magnitude') % y-axis label
-        legend('Shuffled Magnitutde (95% confidence)', 'BTA Magnitutde')
+        legend('Shuffled Magnitutde (99% confidence)', 'BTA Magnitutde')
     end
 end
 

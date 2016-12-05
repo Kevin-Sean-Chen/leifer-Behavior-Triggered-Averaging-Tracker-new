@@ -1,4 +1,4 @@
-function [transition_graph,into_normalized_adj_matrix] = BehavioralTransitionGraph(Tracks, number_of_behaviors, plotting)
+function [transition_graph,normalized_adj_matrix] = BehavioralTransitionGraph(Tracks, number_of_behaviors, plotting)
     % Generates a normalized adjacency matrix from tracks
 % Tracks = load_single_folder('F:\Mochi\Data\20161028\Data20161028_130913', {'BehavioralTransition'});
     if nargin < 2
@@ -7,7 +7,7 @@ function [transition_graph,into_normalized_adj_matrix] = BehavioralTransitionGra
     if nargin < 3
         plotting = false;
     end
-    ratio_included = 0.8;
+    ratio_included = 0.5;
 
     %construct the adjacency matrix
     adj_matrix = zeros(number_of_behaviors);
@@ -26,17 +26,36 @@ function [transition_graph,into_normalized_adj_matrix] = BehavioralTransitionGra
     end
 
     %% find the normalized adjacency matrix and turn it into a graph
-    into_normalized_adj_matrix = adj_matrix ./ repmat(sum(adj_matrix,1),number_of_behaviors,1);
+    
+    %normalize by the total number of events going into a behavior
+    normalized_adj_matrix = adj_matrix ./ repmat(sum(adj_matrix,1),number_of_behaviors,1);
     for behavior_index = 1:number_of_behaviors
         %go through each into behavior and remove insignificant ones
-        behaviors_going_into = into_normalized_adj_matrix(:,behavior_index);
+        behaviors_going_into = normalized_adj_matrix(:,behavior_index);
         behaviors_going_into_sorted = sort(behaviors_going_into, 'descend');
         behaviors_going_into_cumsum = cumsum(behaviors_going_into_sorted);
         cut_off_ratio = behaviors_going_into_sorted(find(behaviors_going_into_cumsum>ratio_included,1,'first'));
+        if isempty(cut_off_ratio)
+            %all the behaviors are included
+            cut_off_ratio = 0;
+        end
         behaviors_going_into(behaviors_going_into<cut_off_ratio) = 0;
-        into_normalized_adj_matrix(:,behavior_index) = behaviors_going_into;
+        normalized_adj_matrix(:,behavior_index) = behaviors_going_into;
     end
-    transition_graph = digraph(into_normalized_adj_matrix);
+
+%     %normalize by all transitions
+%     normalized_adj_matrix = adj_matrix ./ sum(adj_matrix(:));
+%     behaviors_sorted = sort(normalized_adj_matrix(:), 'descend');
+%     behaviors_sorted_cumsum = cumsum(behaviors_sorted);
+%     cut_off_ratio = behaviors_sorted(find(behaviors_sorted_cumsum>ratio_included,1,'first'));
+%     if isempty(cut_off_ratio)
+%         %all the behaviors are included
+%         cut_off_ratio = 0;
+%     end    
+%     normalized_adj_matrix(normalized_adj_matrix<cut_off_ratio) = 0;
+
+    %%
+    transition_graph = digraph(normalized_adj_matrix);
 
     %% plot the density diagram
     if plotting

@@ -50,7 +50,7 @@ for section_index = 1:length(uptick_starts)
     start_frame = uptick_starts(section_index)+1;
     end_frame = uptick_ends(section_index);
 
-    [temp_tracks, temp_track_indecies] = FilterTracksByTime(newallTracks,start_frame,end_frame);
+    [temp_tracks, temp_track_indecies] = FilterTracksByTime(allTracks,start_frame,end_frame);
     all_uptick_tracks = [all_uptick_tracks, temp_tracks];
     all_uptick_track_indecies = [all_uptick_track_indecies, temp_track_indecies];
 end
@@ -63,7 +63,7 @@ for section_index = 1:length(uptick_starts)
     start_frame = downtick_starts(section_index)+1;
     end_frame = downtick_ends(section_index);
 
-    [temp_tracks, temp_track_indecies] = FilterTracksByTime(newallTracks,start_frame,end_frame);
+    [temp_tracks, temp_track_indecies] = FilterTracksByTime(allTracks,start_frame,end_frame);
     all_downtick_tracks = [all_downtick_tracks, temp_tracks];
     all_downtick_track_indecies = [all_downtick_track_indecies, temp_track_indecies];
 end
@@ -97,3 +97,9 @@ plot(1/fps:1/fps:length(LEDVoltages)/fps, LEDPower)
 xlabel('Time (s)')
 ylabel('Power (uW/mm^2)')
 %% plot embedding densities
+PlotWatershed(vertcat(all_uptick_tracks(:).Embeddings));
+figure
+PlotWatershed(vertcat(all_downtick_tracks(:).Embeddings));
+
+figure
+PlotWatershedDifference(vertcat(all_uptick_tracks(:).Embeddings),vertcat(all_downtick_tracks(:).Embeddings));

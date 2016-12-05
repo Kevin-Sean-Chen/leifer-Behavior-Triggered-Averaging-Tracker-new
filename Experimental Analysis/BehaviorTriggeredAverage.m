@@ -3,7 +3,7 @@ function [BTA, behaviorCounts, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Be
     %significance of the BTA by shuffling transitions randomly and finding
     %the BTA
     BTA_seconds_before_and_after = 10;
-    number_of_random_shuffles = 10;
+    number_of_random_shuffles = 100;
     number_of_behaviors = size(Behaviors{1},1);
 
     if nargin < 3

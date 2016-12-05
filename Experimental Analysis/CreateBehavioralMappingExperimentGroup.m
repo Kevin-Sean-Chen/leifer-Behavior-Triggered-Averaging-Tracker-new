@@ -38,6 +38,15 @@
     %fit the LNP
     [LNPStats, meanLEDPower, stdLEDPower] = directional_FitLNP(allTracks,folder_indecies,folders);
 
+    %sort it by the To node
+    LNPStats(1).FromNode = [];
+    LNPStats(2).ToNode = [];
+    for transition_index = 1:length(LNPStats)
+        LNPStats(transition_index).FromNode = LNPStats(transition_index).Edges(1);
+        LNPStats(transition_index).ToNode = LNPStats(transition_index).Edges(2);
+    end
+    LNPStats = nestedSortStruct(LNPStats,{'ToNode','FromNode'});
+    
     PlotDirectionalBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
     save(saveFileName, 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 

@@ -283,7 +283,7 @@ function success = track_image_directory(folder_name, analysis_mode)
         Tracks(TN).Direction(NegYdifIndexes(Index1)) = Tracks(TN).Direction(NegYdifIndexes(Index1)) + 180;
         Tracks(TN).Direction(NegYdifIndexes(Index2)) = Tracks(TN).Direction(NegYdifIndexes(Index2)) - 180;
 
-        Tracks(TN).Speed = sqrt(Xdif.^2 + Ydif.^2) * parameters.PixelSize;		% In mm/sec
+        Tracks(TN).Speed = sqrt(Xdif.^2 + Ydif.^2) / parameters.PixelSize;		% In mm/sec
         
         Tracks(TN).SmoothSpeed = smoothts(Tracks(TN).Speed, 'g', parameters.StepSize, parameters.StepSize);		% In mm/sec
 

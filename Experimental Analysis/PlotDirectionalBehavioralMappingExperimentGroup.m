@@ -1,11 +1,10 @@
 function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdLEDPower, L, density, xx)
 %Takes in structure LNPStats and plots them depending on the settings
-%   Detailed explanation goes here
     fps = 14;
     BTA_seconds_before_and_after = 10;
     BTA_seconds_before = BTA_seconds_before_and_after;
     BTA_seconds_after = BTA_seconds_before_and_after;
-%     kernel_seconds_before = BTA_seconds_before;
+    kernel_seconds_before = BTA_seconds_before;
     rows_per_page = 3;
     NumTicks = 3;
 
@@ -55,7 +54,7 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
             adj_matrix = zeros(number_of_behaviors);
             adj_matrix(edges(1),edges(2)) = edges(3);
             transition_graph = digraph(adj_matrix);
-            LWidths = 10*transition_graph.Edges.Weight/max(transition_graph.Edges.Weight);
+            LWidths = 2*transition_graph.Edges.Weight/max(transition_graph.Edges.Weight);
             
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(behavior_index-1) + watershed_plot_number);
             hold on
@@ -65,7 +64,7 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
             caxis([0 maxDensity * .8])
             colormap(my_colormap)
 
-            plot(transition_graph,'EdgeLabel',transition_graph.Edges.Weight,'LineWidth',LWidths, ...
+            plot(transition_graph,'EdgeLabel',transition_graph.Edges.Weight,'LineWidth',5, ...
                 'ArrowSize', 25, 'EdgeColor', 'm', ...
                 'XData',xx(watershed_centroids(:,1))','YData',xx(watershed_centroids(:,2))');
 
@@ -176,13 +175,26 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
         BTA_norms = [LNPStats.BTA_norm];
         shuffle_mean = mean(shuffle_norms, 2)';
         shuffle_std = 2.6 .* std(shuffle_norms,0,2)';
+        xticklabelcells = cell(1,length(LNPStats));
+
         hold on
         errorbar(1:length(LNPStats), shuffle_mean, shuffle_std, 'bo')
-        plot(1:length(LNPStats), BTA_norms, 'r*')
+        for LNP_index = 1:length(LNPStats)
+            if LNPStats(LNP_index).BTA_percentile > 0.99
+                plot(LNP_index, BTA_norms(LNP_index), 'r*')
+            else
+                plot(LNP_index, BTA_norms(LNP_index), 'b*')
+            end
+            xticklabelcells{LNP_index} = [num2str(LNPStats(LNP_index).Edges(1)) ' To ' num2str(LNPStats(LNP_index).Edges(2))];
+        end
         hold off
+        set(gca,'XTick',1:length(LNPStats))
+        set(gca,'XTickLabel',xticklabelcells)
+        set(gca,'XTickLabelRotation',90)
+
         xlabel('Behavior Index') % x-axis label
         ylabel('Filter Magnitude') % y-axis label
-        legend('Shuffled Magnitutde (95% confidence)', 'BTA Magnitutde')
+        legend('Shuffled Magnitutde (99% confidence)', 'BTA Magnitutde')
     end
 end
 
