@@ -261,48 +261,48 @@ function success = track_image_directory(folder_name, analysis_mode)
     %% STEP 7: Go through all the tracks and analyze them %% 
     
     NumTracks = length(Tracks);
-    for TN = 1:NumTracks
-        Tracks(TN).Time = Tracks(TN).Frames/parameters.SampleRate;		% Calculate time of each frame
-        Tracks(TN).NumFrames = length(Tracks(TN).Frames);		    % Number of frames
+    for track_index = 1:NumTracks
+        Tracks(track_index).Time = Tracks(track_index).Frames/parameters.SampleRate;		% Calculate time of each frame
+        Tracks(track_index).NumFrames = length(Tracks(track_index).Frames);		    % Number of frames
 
         % Smooth track data by rectangular sliding window of size WinSize;
-        Tracks(TN).SmoothX = RecSlidingWindow(Tracks(TN).Path(:,1)', parameters.SmoothWinSize);
-        Tracks(TN).SmoothY = RecSlidingWindow(Tracks(TN).Path(:,2)', parameters.SmoothWinSize);
+        Tracks(track_index).SmoothX = RecSlidingWindow(Tracks(track_index).Path(:,1)', parameters.SmoothWinSize);
+        Tracks(track_index).SmoothY = RecSlidingWindow(Tracks(track_index).Path(:,2)', parameters.SmoothWinSize);
 
         % Calculate Direction & Speed
-        Xdif = CalcDif(Tracks(TN).SmoothX, parameters.StepSize) * parameters.SampleRate;
-        Ydif = -CalcDif(Tracks(TN).SmoothY, parameters.StepSize) * parameters.SampleRate;    % Negative sign allows "correct" direction
+        Xdif = CalcDif(Tracks(track_index).SmoothX, parameters.StepSize) * parameters.SampleRate;
+        Ydif = -CalcDif(Tracks(track_index).SmoothY, parameters.StepSize) * parameters.SampleRate;    % Negative sign allows "correct" direction
                                                                                    % cacluation (i.e. 0 = Up/North)
         Ydif(Ydif == 0) = eps;     % Avoid division by zero in direction calculation
 
-        Tracks(TN).Direction = atan(Xdif./Ydif) * 360/(2*pi);	    % In degrees, 0 = Up ("North")
+        Tracks(track_index).Direction = atan(Xdif./Ydif) * 360/(2*pi);	    % In degrees, 0 = Up ("North")
 
         NegYdifIndexes = find(Ydif < 0);
-        Index1 = find(Tracks(TN).Direction(NegYdifIndexes) <= 0);
-        Index2 = find(Tracks(TN).Direction(NegYdifIndexes) > 0);
-        Tracks(TN).Direction(NegYdifIndexes(Index1)) = Tracks(TN).Direction(NegYdifIndexes(Index1)) + 180;
-        Tracks(TN).Direction(NegYdifIndexes(Index2)) = Tracks(TN).Direction(NegYdifIndexes(Index2)) - 180;
+        Index1 = find(Tracks(track_index).Direction(NegYdifIndexes) <= 0);
+        Index2 = find(Tracks(track_index).Direction(NegYdifIndexes) > 0);
+        Tracks(track_index).Direction(NegYdifIndexes(Index1)) = Tracks(track_index).Direction(NegYdifIndexes(Index1)) + 180;
+        Tracks(track_index).Direction(NegYdifIndexes(Index2)) = Tracks(track_index).Direction(NegYdifIndexes(Index2)) - 180;
 
-        Tracks(TN).Speed = sqrt(Xdif.^2 + Ydif.^2) / parameters.PixelSize;		% In mm/sec
+        Tracks(track_index).Speed = sqrt(Xdif.^2 + Ydif.^2) / parameters.PixelSize;		% In mm/sec
         
-        Tracks(TN).SmoothSpeed = smoothts(Tracks(TN).Speed, 'g', parameters.StepSize, parameters.StepSize);		% In mm/sec
+        Tracks(track_index).SmoothSpeed = smoothts(Tracks(track_index).Speed, 'g', parameters.StepSize, parameters.StepSize);		% In mm/sec
 
-        AngleChanges = CalcAngleDif(Tracks(TN).Direction, parameters.StepSize);
+        AngleChanges = CalcAngleDif(Tracks(track_index).Direction, parameters.StepSize);
         
         % Calculate angular speed
-        Tracks(TN).AngSpeed = AngleChanges * parameters.SampleRate;		% in deg/sec
+        Tracks(track_index).AngSpeed = AngleChanges * parameters.SampleRate;		% in deg/sec
 
-        Tracks(TN).BackwardAcc = CalcBackwardAcc(Tracks(TN).Speed, AngleChanges, parameters.StepSize);		% in mm/sec^2
+        Tracks(track_index).BackwardAcc = CalcBackwardAcc(Tracks(track_index).Speed, AngleChanges, parameters.StepSize);		% in mm/sec^2
         %Find Pauses
-        Tracks(TN).Pauses = IdentifyPauses(Tracks(TN), parameters);
+        Tracks(track_index).Pauses = IdentifyPauses(Tracks(track_index), parameters);
         % Identify Pirouettes (Store as indices in Tracks(TN).Pirouettes)
-        Tracks(TN).Pirouettes = IdentifyPirouettes(Tracks(TN), parameters);
+        Tracks(track_index).Pirouettes = IdentifyPirouettes(Tracks(track_index), parameters);
         % Identify Omegas (Store as indices in Tracks(TN).OmegaTurns)
-        Tracks(TN).OmegaTurns = IdentifyOmegaTurns(Tracks(TN), parameters);
+        Tracks(track_index).OmegaTurns = IdentifyOmegaTurns(Tracks(track_index), parameters);
         % Identify Runs (Store as indices in Tracks(TN).Runs)
-        Tracks(TN).Runs = IdentifyRuns(Tracks(TN), parameters);
+        Tracks(track_index).Runs = IdentifyRuns(Tracks(track_index), parameters);
         %Save the LED Voltages for this track
-        Tracks(TN).LEDVoltages = LEDVoltages(:, min(Tracks(TN).Frames):max(Tracks(TN).Frames));
+        Tracks(track_index).LEDVoltages = LEDVoltages(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
     end
     
 %% STEP 8: Calculate LED Power %%

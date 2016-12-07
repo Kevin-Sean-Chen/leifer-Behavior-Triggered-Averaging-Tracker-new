@@ -5,7 +5,7 @@ function success = calculate_behaviors(folder_name)
     parameters = load_parameters(folder_name);
     load('reference_embedding.mat')
     number_of_behaviors = max(L(:)-1);
-    relevant_track_fields = {'ProjectedEigenValues','Frames'};
+    relevant_track_fields = {'ProjectedEigenValues','Frames','Velocity'};
 
     %% Load tracks
     Tracks = load_single_folder(folder_name, relevant_track_fields);
@@ -23,7 +23,7 @@ function success = calculate_behaviors(folder_name)
     end
 
     %% get the spectra
-    [Spectra, ~, ~, ~] = generate_spectra({Tracks.ProjectedEigenValues}, parameters);
+    [Spectra, ~, ~, ~] = generate_spectra({Tracks.ProjectedEigenValues}, {Tracks.Velocity}, parameters);
 
     data = vertcat(Spectra{:});
     [embeddingValues,~] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters);
