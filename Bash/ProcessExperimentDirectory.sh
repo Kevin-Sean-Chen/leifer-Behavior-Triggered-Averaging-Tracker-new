@@ -24,8 +24,17 @@ step_to_start=$(($step_completed<$analysis_starting_point?$step_completed:$analy
 
 # Update the log to indicate which step the analysis will start on
 next_step=$(($step_to_start + 1))
+final_step=$(ScriptToOrdering.sh max)
 # echo $next_step
-UpdateLog.sh $folder_name ProcessExperimentDirectory HEAD_NODE START 'Starting_On:'$(OrderingToScript.sh $next_step)
+if [ "$next_step" -le "$final_step" ]; then
+	#there are still analysis to be done
+	UpdateLog.sh $folder_name ProcessExperimentDirectory HEAD_NODE START 'Starting_On:'$(OrderingToScript.sh $next_step)
+else
+	#no analysis to be done
+	UpdateLog.sh $folder_name ProcessExperimentDirectory HEAD_NODE FINISH EVERYTHING_DONE
+	exit
+fi
+
 
 # Delete the previous analysis files
 script_name=delete_tracks
@@ -124,7 +133,6 @@ if [ "$step_to_start" -lt "$script_order" ]; then
 	fi
 fi
 #echo $script_name' finished in '$folder_name
-
 
 # # Convert to analysis folders
 # # PROCESS_ID=$(sbatch -N1 -n1 --mem-per-cpu=4000M -t02:00:00 --mail-type=end --mail-user=mochil@princeton.edu ConvertTracksToAnalysis.sh $folder_name)

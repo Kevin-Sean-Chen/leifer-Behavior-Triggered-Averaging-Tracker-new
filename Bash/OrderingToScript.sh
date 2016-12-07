@@ -27,6 +27,9 @@ case $ordering in
         echo plot_image_directory
         ;;
 
+    6)
+        echo more_than_max
+        ;;
     *)
         echo 0
         ;;
