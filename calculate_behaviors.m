@@ -23,7 +23,7 @@ function success = calculate_behaviors(folder_name)
     end
 
     %% get the spectra
-    [Spectra, ~, ~, ~] = generate_spectra({Tracks.ProjectedEigenValues}, {Tracks.Velocity}, parameters);
+    [Spectra, ~, ~, Amps, ~] = generate_spectra({Tracks.ProjectedEigenValues}, {Tracks.Velocity}, parameters);
 
     data = vertcat(Spectra{:});
     [embeddingValues,~] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters);
@@ -32,11 +32,13 @@ function success = calculate_behaviors(folder_name)
     % cut the embeddings
     Tracks(1).Embeddings = []; %preallocate memory
     Tracks(1).Spectra = [];  %preallocate memory
+    Tracks(1).Amps = [];
     start_index = 1;
     for track_index = 1:length(Spectra)
         end_index = start_index + size(Spectra{track_index},1) - 1;
         Tracks(track_index).Embeddings = embeddingValues(start_index:end_index, :);
         Tracks(track_index).Spectra = Spectra(track_index);
+        Tracks(track_index).Amps = Amps(track_index);
         start_index = end_index + 1;
     end
 

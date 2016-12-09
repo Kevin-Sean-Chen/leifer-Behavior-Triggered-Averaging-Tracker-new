@@ -10,6 +10,10 @@ frames_before = 1*fps-1;
 frames_after = 1*fps;
 duration = frames_before+frames_after+1;
 
+if ~exist('Embeddings', 'var')
+    Embeddings = {allTracks.Embeddings};
+end
+
 %% STEP 2: allow user to select the folder to save as
 pathname = uigetdir('', 'Select Save Folder')
 if isequal(pathname,0)

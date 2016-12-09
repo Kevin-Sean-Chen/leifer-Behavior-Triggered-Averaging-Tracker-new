@@ -40,6 +40,6 @@ function [] = PlotWatershedDifference(embeddingValues1,embeddingValues2)
             'verticalalignment', 'middle');
     end
     hold off
-
+    colorbar
 end
 

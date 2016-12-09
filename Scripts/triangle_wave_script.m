@@ -80,15 +80,37 @@ downtick_behavioral_std = sqrt(downtick_behavioral_counts) ./ size(downtick_beha
 uptick_behavioral_rates = uptick_behavioral_counts ./ size(uptick_behaviors,2)*14*60;
 downtick_behavioral_rates = downtick_behavioral_counts ./ size(downtick_behaviors,2)*14*60;
 
+% figure
+% hold on
+% errorbar(uptick_behavioral_rates, uptick_behavioral_std, 'r*')
+% errorbar(downtick_behavioral_rates, downtick_behavioral_std, 'bo')
+% hold off
+% xlabel('Behavioral Region');
+% ylabel('Transition Rate (Behavior/Min)');
+% legend({'Increasing','Decreasing'});
 
-figure
-hold on
-errorbar(uptick_behavioral_rates, uptick_behavioral_std, 'r*')
-errorbar(downtick_behavioral_rates, downtick_behavioral_std, 'bo')
-hold off 
-xlabel('Behavioral Region');
-ylabel('Transition Rate (Behavior/Min)');
-legend({'Increasing','Decreasing'});
+%separate by behaviors
+for behavior_index = 1:number_of_behaviors
+    figure
+    hold on
+    relevant_indecies = find(edges(:,2) == behavior_index);
+    errorbar(uptick_behavioral_rates(relevant_indecies), uptick_behavioral_std(relevant_indecies), 'r*')
+    errorbar(downtick_behavioral_rates(relevant_indecies), downtick_behavioral_std(relevant_indecies), 'bo')
+    xticklabelcells = {};
+    for edge_index = 1:length(relevant_indecies);
+        xticklabelcells{edge_index} = [num2str(edges(relevant_indecies(edge_index),1)) ' To ' num2str(edges(relevant_indecies(edge_index),2))];
+    end
+    xticklabelcells{edge_index+1} = '';
+    set(gca,'XTick',1:size(edges,1))
+    set(gca,'XTickLabel',xticklabelcells)
+    set(gca,'XTickLabelRotation',90)
+
+    hold off 
+    xlabel('Behavioral Region');
+    ylabel('Transition Rate (Behavior/Min)');
+    legend({'Increasing','Decreasing'});
+
+end
 %% plot the LEDPower
 fps = 14;
 parameters = load_parameters();
@@ -103,3 +125,30 @@ PlotWatershed(vertcat(all_downtick_tracks(:).Embeddings));
 
 figure
 PlotWatershedDifference(vertcat(all_uptick_tracks(:).Embeddings),vertcat(all_downtick_tracks(:).Embeddings));
+%% calculate directional behaviors for triangle waves
+%get the number of behaviors
+all_transitions = vertcat(allTracks.BehavioralTransition);
+number_of_behaviors = max(all_transitions(:,1));
+clear all_transitions
+
+%get transition graph
+transition_graph = BehavioralTransitionGraph(allTracks, number_of_behaviors, false, 1);
+
+%get a list of behavioral triggers
+edges = table2array(transition_graph.Edges);
+edges = sortrows(edges, 2); %sort the edges by going into
+no_weight_edges = edges(:,1:2);
+allTracks(1).Behaviors = [];
+number_of_edges = size(no_weight_edges,1);
+
+for track_index = 1:length(allTracks)
+    triggers = false(number_of_edges, length(allTracks(track_index).Frames)); %a binary array of when behaviors occur
+    for edge_index = 1:number_of_edges
+        current_behavioral_transition = allTracks(track_index).BehavioralTransition(:,1)';
+        transition_indecies = strfind(current_behavioral_transition,no_weight_edges(edge_index,:))+1;
+        %transition into
+        transition_start_frames = allTracks(track_index).BehavioralTransition(transition_indecies,2);
+        triggers(edge_index,transition_start_frames) = true;
+    end
+    allTracks(track_index).Behaviors = triggers(:,1:length(allTracks(track_index).Frames));
+end

@@ -1,4 +1,4 @@
-function [transition_graph,normalized_adj_matrix] = BehavioralTransitionGraph(Tracks, number_of_behaviors, plotting)
+function [transition_graph,normalized_adj_matrix] = BehavioralTransitionGraph(Tracks, number_of_behaviors, plotting, ratio_included)
     % Generates a normalized adjacency matrix from tracks
 % Tracks = load_single_folder('F:\Mochi\Data\20161028\Data20161028_130913', {'BehavioralTransition'});
     if nargin < 2
@@ -7,7 +7,10 @@ function [transition_graph,normalized_adj_matrix] = BehavioralTransitionGraph(Tr
     if nargin < 3
         plotting = false;
     end
-    ratio_included = 0.5;
+    if nargin < 4
+        ratio_included = 0.5;
+    end
+    
 
     %construct the adjacency matrix
     adj_matrix = zeros(number_of_behaviors);

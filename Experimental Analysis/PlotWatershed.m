@@ -8,7 +8,7 @@ function [] = PlotWatershed(embeddingValues)
 
     [xx,density] = findPointDensity(embeddingValues,sigma,501,[-maxVal maxVal]);
     maxDensity = max(density(:));
-    density(density < 10e-6) = 5;
+    density(density < 10e-6) = 0;
 %     L = watershed(-density,8);
 % 
 %     L(L==1) = max(L(:))+1;

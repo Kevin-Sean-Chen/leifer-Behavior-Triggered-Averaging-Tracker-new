@@ -12,6 +12,7 @@ parameters = setRunParameters(parameters);
 parameters.minTemplateLength = 1;
 parameters.subsamplingIterations = 10;
 subsampling = false;
+relevant_track_fields = {'ProjectedEigenValues','Frames','Velocity'};
 
 %% STEP 2: get the experiment folders
 folders = getfolders();
@@ -22,16 +23,16 @@ if ~exist('Prefs', 'var')
 end
 
 %% STEP 3: load the tracks into memory
-[allTracks, ~, ~] = loadtracks(folders);
+[allTracks, ~, ~] = loadtracks(folders, relevant_track_fields);
 L = length(allTracks);
 
-%% STEP 4: generate spectra
-Projections = {allTracks.ProjectedEigenValues};
-% delete the tracks
-clear allTracks
-
-[Spectra, SpectraFrames, SpectraTracks, amps, f] = generate_spectra(Projections, parameters, Prefs);
-save('Spectra.mat','Spectra', 'amps', '-v7.3')
+% %% STEP 4: generate spectra
+% Projections = {allTracks.ProjectedEigenValues};
+% % delete the tracks
+% clear allTracks
+% 
+% [Spectra, SpectraFrames, SpectraTracks, amps, f] = generate_spectra(Projections, parameters, Prefs);
+% save('Spectra.mat','Spectra', 'amps', '-v7.3')
 
 %% STEP 5: Get a set of "training spectra" without edge effects
 TrainingSpectra = cell(1,L);
