@@ -1,35 +1,31 @@
 %% STEP 1: set up parameters
-parameters.numProcessors = 15;
-parameters.numProjections = 19;
-parameters.pcaModes = 5;
-parameters.samplingFreq = 14;
-parameters.minF = 0.3;
-parameters.maxF = parameters.samplingFreq ./ 2; %nyquist frequency
-parameters.trainingSetSize = 55000;
-parameters.subsamplingIterations = 1;
-parameters.minTemplateLength = 10;
-parameters = setRunParameters(parameters);
-parameters.minTemplateLength = 1;
-parameters.subsamplingIterations = 10;
 subsampling = false;
-relevant_track_fields = {'ProjectedEigenValues','Frames','Velocity'};
+relevant_track_fields = {'Spectra','Amps'};
 
 %% STEP 2: get the experiment folders
 folders = getfolders();
 
 %% STEP 2: Load the analysis preferences from Excel %%
-if ~exist('Prefs', 'var')
-    Prefs = load_excel_prefs();
-end
+parameters = load_parameters();
 
 %% STEP 3: load the tracks into memory
-[allTracks, ~, ~] = loadtracks(folders, relevant_track_fields);
+[allTracks, folder_indecies, track_indecies] = loadtracks(folders, relevant_track_fields);
 L = length(allTracks);
+Spectra = cell(1,L);
+amps = cell(1,L);
+SpectraFrames = cell(1,L);
+SpectraTracks = cell(1,L);
+for track_index = 1:length(allTracks)
+    Spectra{track_index} = allTracks(track_index).Spectra{1};
+    amps{track_index} = allTracks(track_index).Amps{1};
+    SpectraFrames{track_index} = 1:size(Spectra{track_index},1);
+    SpectraTracks{track_index} = repmat(track_index,1,size(Spectra{track_index},1));
+end
 
 % %% STEP 4: generate spectra
 % Projections = {allTracks.ProjectedEigenValues};
 % % delete the tracks
-% clear allTracks
+clear allTracks
 % 
 % [Spectra, SpectraFrames, SpectraTracks, amps, f] = generate_spectra(Projections, parameters, Prefs);
 % save('Spectra.mat','Spectra', 'amps', '-v7.3')
@@ -49,15 +45,17 @@ for track_index = 1:L
     Spectra{track_index} = []; %optional clearing of memory
 end
 
-clear Spectra
+clear Spectra amps
 
 %% STEP 6A: initialize training input
 training_input_data = vertcat(TrainingSpectra{:}); %these timpoints will be randomly sampled from
+clear TrainingSpectra
 training_input_frames = [TrainingSpectraFrames{:}];
+clear TrainingSpectraFrames
 training_input_tracks = [TrainingSpectraTracks{:}];
+clear TrainingSpectraTracks
 training_amps = vertcat(TrainingAmps{:}); 
-
-clear TrainingSpectra TrainingSpectraFrames TrainingSpectraTracks TrainingAmps
+clear TrainingAmps
 
 %% STEP 6B Option 1: Find training set by sampling uniformly
 if ~subsampling
@@ -163,7 +161,7 @@ data = vertcat(Spectra{:});
 % amps = sum(data,2);
 % data(:) = bsxfun(@rdivide,data,amps);
 
-[embeddingValues,~] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters); %[embeddingValues{i},~]
+[embeddingValues,outputStatistics] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters); %[embeddingValues{i},~]
 clear data
 
 %% STEP 9: cut the embeddings

@@ -9,10 +9,16 @@ fps = 14;
 frames_before = 1*fps-1;
 frames_after = 1*fps;
 duration = frames_before+frames_after+1;
+parameters = load_parameters();
+relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Direction','Speed','ProjectedEigenValues'};
+
+ [ allTracks, folder_indecies, track_indecies ] = loadtracks(folders);
 
 if ~exist('Embeddings', 'var')
     Embeddings = {allTracks.Embeddings};
 end
+embeddingValues = vertcat(Embeddings{:});
+% track_indecies = folder_indecies_to_track_indecies(folder_indecies);
 
 %% STEP 2: allow user to select the folder to save as
 pathname = uigetdir('', 'Select Save Folder')
@@ -104,6 +110,8 @@ for watershed_region = 1:max(L(:)-1)
 
     %% STEP 6: plot the training points selected
     sample_figure = figure('Position', [0, 0, size(xx,2), size(xx,2)])
+    [ii,jj] = find(L==0);
+    maxDensity = max(density(:));
     hold on
     imagesc(xx,xx,density)
     for i = 1:N
@@ -124,6 +132,7 @@ for watershed_region = 1:max(L(:)-1)
     %% STEP 7: plot the behaviors
 
     %load the worm images
+    clear required_worm_images
     required_worm_images(N).worm_images = [];
     for worm_images_index = 1:N
         track_index = selected_tracks(worm_images_index);
@@ -131,7 +140,13 @@ for watershed_region = 1:max(L(:)-1)
         required_worm_images(worm_images_index) = load(image_file);
     end
 
-
+    %calculate phi_dt
+    required_worm_images(N).phi_dt = [];
+    for worm_images_index = 1:N
+        track_index = selected_tracks(worm_images_index);
+        required_worm_images(worm_images_index).phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, parameters)';
+    end
+    
     behavior_figure = figure('Position', [0, 0, 400, 400]);
     outputVideo = VideoWriter(saveFileName,'MPEG-4');
     outputVideo.FrameRate = 14;
@@ -147,9 +162,7 @@ for watershed_region = 1:max(L(:)-1)
             else
                 subplot_tight(N_rows,N_columns,subplot_index,0);
                 plot_worm_frame(required_worm_images(subplot_index).worm_images(:,:,worm_frame_index), squeeze(allTracks(track_index).Centerlines(:,:,worm_frame_index)), ...
-                allTracks(track_index).UncertainTips(worm_frame_index), ...
-                allTracks(track_index).Eccentricity(worm_frame_index), allTracks(track_index).Direction(worm_frame_index), ...
-                allTracks(track_index).Speed(worm_frame_index),  allTracks(track_index).TotalScore(worm_frame_index), 0);
+                [], [], [], required_worm_images(worm_images_index).phi_dt(worm_frame_index), [], 0);
             end
         end
 

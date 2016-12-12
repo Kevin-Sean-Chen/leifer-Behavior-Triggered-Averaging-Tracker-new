@@ -19,17 +19,22 @@ case $ordering in
         echo auto_resolve_problems
         ;;
 
-	4)
-        echo calculate_behaviors
+    4)
+        echo calculate_spectra
         ;;
 
 	5)
+        echo calculate_behaviors
+        ;;
+
+	6)
         echo plot_image_directory
         ;;
 
-    6)
+    7)
         echo more_than_max
         ;;
+        
     *)
         echo 0
         ;;

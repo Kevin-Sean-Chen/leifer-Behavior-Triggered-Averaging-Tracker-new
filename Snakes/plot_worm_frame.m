@@ -33,8 +33,8 @@ function [] = plot_worm_frame(I, center_lines, UncertainTips, eccentricity, dire
 %     quiver(size(I,2)/2, size(I,1)/2, sind(direction)*speed*100, -cosd(direction)*speed*100, 'AutoScale','off', 'Linewidth', 1.5);
 %     %title (['Eccentricity = ', num2str(eccentricity)]);    
 %     title (['( ', num2str(centroid(1,1)),' , ', num2str(centroid(1,1)),' )']);
-%     %score
-%     text(10, 10, num2str(score), 'Color', 'y');
+    %score
+    text(10, 10, num2str(score), 'Color', 'y');
 %     %eccentricity
 %     text(10, 60, num2str(eccentricity), 'Color', 'y');
     hold off;
