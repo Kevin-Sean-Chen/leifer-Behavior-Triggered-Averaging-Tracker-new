@@ -61,7 +61,7 @@ function Tracks = find_stereotyped_behaviors(Tracks, L, xx)
             stereotyped_behavior_transition_ends = stereotyped_behavior_ends(stereotyped_behavior_transition_ends_logical);
             stereotyped_behavior_transition_duration = stereotyped_behavior_transition_ends - stereotyped_behavior_transition_beginnings;
         else
-            a = 1;
+            disp(['error: ' num2str(length(stereotyped_behavior_transition_beginnings_logical)) ' ' num2str(length(stereotyped_behavior_annotation))])
         end
 
         %define transitions as changes stereotyped behaviors
