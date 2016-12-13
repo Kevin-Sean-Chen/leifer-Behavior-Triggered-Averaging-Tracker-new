@@ -16,7 +16,7 @@ function success = calculate_spectra(folder_name)
     catch
         %sometimes matlab attempts to write to the same temp file. wait and
         %restart
-        pause(20);
+        pause(randi(60));
         parpool(feature('numcores'))
     end
 

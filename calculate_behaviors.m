@@ -18,7 +18,7 @@ function success = calculate_behaviors(folder_name)
     catch
         %sometimes matlab attempts to write to the same temp file. wait and
         %restart
-        pause(20);
+        pause(randi(60));
         parpool(feature('numcores'))
     end
 
@@ -29,8 +29,6 @@ function success = calculate_behaviors(folder_name)
 
     % cut the embeddings
     Tracks(1).Embeddings = []; %preallocate memory
-    Tracks(1).Spectra = [];  %preallocate memory
-    Tracks(1).Amps = [];
     start_index = 1;
     for track_index = 1:length(Tracks)
         end_index = start_index + size(Tracks(track_index).Spectra,1) - 1;
