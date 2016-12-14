@@ -23,16 +23,20 @@ case "$script_name" in
         echo 4
         ;;
 
-	calculate_behaviors)
+    calculate_embeddings)
         echo 5
         ;;
 
-	plot_image_directory)
+	calculate_behaviors)
         echo 6
         ;;
 
+	plot_image_directory)
+        echo 7
+        ;;
+
     max)
-        echo 6
+        echo 7
         ;;
         
     *)

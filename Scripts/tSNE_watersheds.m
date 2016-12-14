@@ -1,5 +1,6 @@
 %taken from returnTemplates.m
-embeddingValues = vertcat(Embeddings{:});
+%embeddingValues = vertcat(Embeddings{:});
+embeddingValues = vertcat(allTracks.Embeddings);
 
 maxVal = max(max(abs(embeddingValues)));
 maxVal = round(maxVal * 1.1);

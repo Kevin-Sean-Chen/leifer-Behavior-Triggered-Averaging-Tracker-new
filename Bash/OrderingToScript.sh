@@ -23,15 +23,19 @@ case $ordering in
         echo calculate_spectra
         ;;
 
-	5)
-        echo calculate_behaviors
+    5)
+        echo calculate_embeddings
         ;;
 
 	6)
+        echo calculate_behaviors
+        ;;
+
+	7)
         echo plot_image_directory
         ;;
 
-    7)
+    8)
         echo more_than_max
         ;;
         

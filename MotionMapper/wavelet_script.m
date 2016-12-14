@@ -1,6 +1,6 @@
 %% STEP 1: set up parameters
 subsampling = false;
-relevant_track_fields = {'Spectra','Amps'};
+relevant_track_fields = {'Embeddings','Centerlines','Speed','Velocity','Frames'};
 
 %% STEP 2: get the experiment folders
 folders = getfolders();
