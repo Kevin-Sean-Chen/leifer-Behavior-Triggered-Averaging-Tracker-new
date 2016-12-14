@@ -31,7 +31,7 @@ function success = calculate_behaviors(folder_name)
 %                 transition_end_frames = Tracks(track_index).BehavioralTransition(transition_indecies,3);
 %                 triggers(behavior_index,transition_end_frames) = true;
         end
-        Tracks(track_index).Behaviors = triggers(:,1:size(Tracks(track_index).Embeddings,1)));
+        Tracks(track_index).Behaviors = triggers(:,1:size(Tracks(track_index).Embeddings,1));
     end
 
     %save
