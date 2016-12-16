@@ -34,7 +34,7 @@ function [] = plot_worm_frame(I, center_lines, UncertainTips, eccentricity, dire
 %     %title (['Eccentricity = ', num2str(eccentricity)]);    
 %     title (['( ', num2str(centroid(1,1)),' , ', num2str(centroid(1,1)),' )']);
     %score
-    text(10, 10, num2str(score), 'Color', 'y');
+%     text(10, 10, num2str(score), 'Color', 'y');
 %     %eccentricity
 %     text(10, 60, num2str(eccentricity), 'Color', 'y');
     hold off;

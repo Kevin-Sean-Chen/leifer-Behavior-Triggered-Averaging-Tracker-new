@@ -3,6 +3,7 @@ function success = calculate_embeddings(folder_name)
     addpath(genpath(pwd))
     %set up parameters
     parameters = load_parameters(folder_name);
+    load('reference_embedding.mat')
     relevant_track_fields = {'Spectra'};
 
     %% Load tracks

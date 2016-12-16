@@ -6,26 +6,26 @@ N_rows = 4;
 N_columns = 4;
 N = N_rows*N_columns;
 fps = 14;
-frames_before = 1*fps-1;
-frames_after = 1*fps;
+frames_before = 1.5*fps-1;
+frames_after = 1.5*fps;
 duration = frames_before+frames_after+1;
 parameters = load_parameters();
-relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Direction','Speed','ProjectedEigenValues'};
+relevant_track_fields = {'BehavioralTransition','Embeddings','Direction','Velocity'};
 
- [ allTracks, folder_indecies, track_indecies ] = loadtracks(folders);
-
-if ~exist('Embeddings', 'var')
-    Embeddings = {allTracks.Embeddings};
-end
-embeddingValues = vertcat(Embeddings{:});
-% track_indecies = folder_indecies_to_track_indecies(folder_indecies);
-
-%% STEP 2: allow user to select the folder to save as
-pathname = uigetdir('', 'Select Save Folder')
-if isequal(pathname,0)
-    %cancel
-   return
-end
+%  [ allTracks, folder_indecies, track_indecies ] = loadtracks(folders);
+% 
+% if ~exist('Embeddings', 'var')
+%     Embeddings = {allTracks.Embeddings};
+% end
+% embeddingValues = vertcat(Embeddings{:});
+% % track_indecies = folder_indecies_to_track_indecies(folder_indecies);
+% 
+% %% STEP 2: allow user to select the folder to save as
+% pathname = uigetdir('', 'Select Save Folder')
+% if isequal(pathname,0)
+%     %cancel
+%    return
+% end
 
 for watershed_region = 1:max(L(:)-1)
     saveFileName = fullfile(pathname,[num2str(watershed_region), '.mp4']);
@@ -140,12 +140,12 @@ for watershed_region = 1:max(L(:)-1)
         required_worm_images(worm_images_index) = load(image_file);
     end
 
-    %calculate phi_dt
-    required_worm_images(N).phi_dt = [];
-    for worm_images_index = 1:N
-        track_index = selected_tracks(worm_images_index);
-        required_worm_images(worm_images_index).phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, parameters)';
-    end
+%     %calculate phi_dt
+%     required_worm_images(N).phi_dt = [];
+%     for worm_images_index = 1:N
+%         track_index = selected_tracks(worm_images_index);
+%         required_worm_images(worm_images_index).phi_dt = worm_phase_velocity(allTracks(track_index).ProjectedEigenValues, parameters)';
+%     end
     
     behavior_figure = figure('Position', [0, 0, 400, 400]);
     outputVideo = VideoWriter(saveFileName,'MPEG-4');
@@ -162,7 +162,7 @@ for watershed_region = 1:max(L(:)-1)
             else
                 subplot_tight(N_rows,N_columns,subplot_index,0);
                 plot_worm_frame(required_worm_images(subplot_index).worm_images(:,:,worm_frame_index), squeeze(allTracks(track_index).Centerlines(:,:,worm_frame_index)), ...
-                [], [], [], required_worm_images(worm_images_index).phi_dt(worm_frame_index), [], 0);
+                [], [], [], [], [], 0);
             end
         end
 
