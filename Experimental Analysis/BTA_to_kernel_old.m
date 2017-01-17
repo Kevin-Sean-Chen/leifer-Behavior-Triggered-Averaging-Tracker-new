@@ -1,4 +1,4 @@
-function [linear_kernel] = BTA_to_kernel(BTA, trigger_count, meanLEDPower, stdLEDPower)
+function [linear_kernel, kernel_lengths] = BTA_to_kernel_old(BTA, trigger_count, meanLEDPower, stdLEDPower)
 %This function gets the kernel section of the BTA
 %   The kernel is defined as bounded by zeros that contain all the significant
 %   regions
@@ -7,7 +7,7 @@ function [linear_kernel] = BTA_to_kernel(BTA, trigger_count, meanLEDPower, stdLE
     duration_threshold = 1*fps;
     significance = 3; %how many times the mean of the angular error?
     linear_kernel = zeros(size(BTA));
-    
+    kernel_lengths = zeros(1,size(BTA,1));
     for behavior_index = 1:size(BTA,1)
         significance_threshold = significance*stdLEDPower*sqrt(2/trigger_count(behavior_index));
 
@@ -51,6 +51,7 @@ function [linear_kernel] = BTA_to_kernel(BTA, trigger_count, meanLEDPower, stdLE
             linear_kernel(behavior_index,BTA_indecies) = mean_subtracted_BTA(BTA_indecies);
             %the linear kernel is time reversed BTA
             linear_kernel(behavior_index,:) = fliplr(linear_kernel(behavior_index,:));
+            kernel_lengths(behavior_index) = length(BTA_indecies);
         end
     end
 end

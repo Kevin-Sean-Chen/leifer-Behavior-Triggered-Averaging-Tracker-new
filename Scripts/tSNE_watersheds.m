@@ -26,21 +26,22 @@ watershed_centroids = round(watershed_centroids);
 
 density(density == 5) = 0;
 %modify jet map
-my_colormap = jet;
+my_colormap = othercolor('OrRd9');
 my_colormap(1,:) = [1 1 1];
 
 figure
 hold on
 imagesc(xx,xx,density)
-plot(xx(jj),xx(ii),'k.')
 axis equal tight off xy
-caxis([0 maxDensity * .8])
+caxis([0 maxDensity * .6])
 colormap(my_colormap)
-for region_index = 1:size(watershed_centroids,1)-1
-    text(xx(watershed_centroids(region_index,1)), ...
-        xx(watershed_centroids(region_index,2)), ...
-        num2str(region_index), 'color', 'k', ...
-        'fontsize', 12, 'horizontalalignment', 'center', ...
-        'verticalalignment', 'middle');
-end
+%plot(xx(jj),xx(ii),'k.')
+% for region_index = 1:size(watershed_centroids,1)-1
+%     text(xx(watershed_centroids(region_index,1)), ...
+%         xx(watershed_centroids(region_index,2)), ...
+%         num2str(region_index), 'color', 'k', ...
+%         'fontsize', 12, 'horizontalalignment', 'center', ...
+%         'verticalalignment', 'middle');
+% end
 hold off
+colorbar

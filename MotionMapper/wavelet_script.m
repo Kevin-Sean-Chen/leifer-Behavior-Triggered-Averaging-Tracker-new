@@ -202,8 +202,11 @@ maxDensity = max(density(:));
 %reload the tracks
 [allTracks, folder_indecies, track_indecies] = loadtracks(folders);
 
+my_colormap = othercolor('OrRd9');
+my_colormap(1,:) = [1 1 1];
+
 for track_index = 1:length(allTracks);
-    plot_embedding = Embeddings{track_index};
+    plot_embedding = allTracks(track_index).Embeddings;
     image_file = fullfile([folders{folder_indecies(track_index)},filesep,'individual_worm_imgs',filesep,'worm_',num2str(track_indecies(track_index)),'.mat']);
     save_file = fullfile([folders{folder_indecies(track_index)},filesep,'individual_worm_imgs',filesep,'behaviormap_', num2str(track_indecies(track_index))]);
     load(image_file);
@@ -216,9 +219,9 @@ for track_index = 1:length(allTracks);
         subplot_tight(1,2,2,0);
 
         plot_worm_frame(worm_images(:,:,worm_frame_index), squeeze(allTracks(track_index).Centerlines(:,:,worm_frame_index)), ...
-        allTracks(track_index).UncertainTips(worm_frame_index), ...
-        allTracks(track_index).Eccentricity(worm_frame_index), allTracks(track_index).Direction(worm_frame_index), ...
-        allTracks(track_index).Speed(worm_frame_index),  allTracks(track_index).TotalScore(worm_frame_index), 0);
+        [], ...
+        [], [], ...
+        [],  [], 0);
 
         freezeColors
 
@@ -226,10 +229,12 @@ for track_index = 1:length(allTracks);
         hold on
         imagesc(xx,xx,density)
         axis equal tight off xy
-        caxis([0 maxDensity * .8])
-        colormap(jet)
+%         caxis([0 maxDensity * .8])
+%         colormap(jet)
+        caxis([0 maxDensity * .6])
+        colormap(my_colormap)
         plot(xx(jj),xx(ii),'k.') %watershed borders
-        plot(plot_embedding(worm_frame_index,1), plot_embedding(worm_frame_index,2), 'om', 'MarkerSize', 15, 'LineWidth', 3)
+        plot(plot_embedding(worm_frame_index,1), plot_embedding(worm_frame_index,2), 'ob', 'MarkerSize', 15, 'LineWidth', 3)
         hold off
 
         writeVideo(outputVideo, getframe(gcf));

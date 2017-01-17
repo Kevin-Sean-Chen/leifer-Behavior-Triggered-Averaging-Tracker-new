@@ -28,11 +28,13 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
 
     %get all the LEDVoltages from all experiments
     all_LEDVoltages = cell(1,length(folders));
+    meanLEDVoltages = cell(1,length(folders));
     for folder_index = 1:length(folders)
         folder_name = folders{folder_index};
         % Load Voltages
         fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
         all_LEDVoltages{folder_index} = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+        meanLEDVoltages{folder_index} = mean(all_LEDVoltages{folder_index});
         fclose(fid);
     end
     
@@ -41,8 +43,8 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
     meanLEDPower = mean(allLEDPower);
     stdLEDPower = std(allLEDPower);
 
-    allLEDVoltages = [Tracks.LEDVoltages];
-    meanLEDVoltages = mean(allLEDVoltages);
+%     allLEDVoltages = [Tracks.LEDVoltages];
+%     meanLEDVoltages = mean(allLEDVoltages);
 
     
     %calculate the BTA and linear kernel
@@ -104,7 +106,7 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
             all_filtered_LEDVoltages = cell(1,length(folders));
             for folder_index = 1:length(folders)
                 %convolve the linear kernels with the input signal of LED voltages
-                all_filtered_LEDVoltages{folder_index} = conv(all_LEDVoltages{folder_index}-meanLEDVoltages, linear_kernel(behavior_index,:), 'same');
+                all_filtered_LEDVoltages{folder_index} = conv(all_LEDVoltages{folder_index}-meanLEDVoltages{folder_index}, linear_kernel(behavior_index,:), 'same');
             end
             
             %get all the filtered signals concatenated together

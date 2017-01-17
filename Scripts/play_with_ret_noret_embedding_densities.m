@@ -1,6 +1,8 @@
-PlotWatershed(vertcat(retTracks(:).Embeddings));
-figure
-PlotWatershed(vertcat(noretTracks(:).Embeddings));
+%PlotWatershed([vertcat(allTracks_GWN_ret(:).Embeddings);vertcat(allTracks_GWN_noret(:).Embeddings)]);
+% 
+% PlotWatershed(vertcat(allTracks_GWN_ret(:).Embeddings));
+% figure
+% PlotWatershed(vertcat(allTracks_GWN_noret(:).Embeddings));
 
 figure
-PlotWatershedDifference(vertcat(retTracks(:).Embeddings),vertcat(noretTracks(:).Embeddings));
+PlotWatershedDifference(vertcat(allTracks_GWN_ret(:).Embeddings),vertcat(allTracks_GWN_noret(:).Embeddings));

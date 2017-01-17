@@ -1,14 +1,12 @@
 function [LNPStats, meanLEDPower, stdLEDPower] = directional_FitLNP(Tracks,folder_indecies,folders)
 %directional_FitLNP takes in tracks and outputs the parameters of the LNP
 %based on which behaviors transition into which other one
-    
+    load('reference_embedding.mat')
     %get the number of behaviors
-    all_transitions = vertcat(Tracks.BehavioralTransition);
-    number_of_behaviors = max(all_transitions(:,1));
-    clear all_transitions
+    number_of_behaviors = max(L(:))-1;
     
     %get transition graph
-    transition_graph = BehavioralTransitionGraph(Tracks, number_of_behaviors);
+    transition_graph = BehavioralTransitionGraph(Tracks, number_of_behaviors, true);
     
     %get a list of behavioral triggers
     edges = table2array(transition_graph.Edges);

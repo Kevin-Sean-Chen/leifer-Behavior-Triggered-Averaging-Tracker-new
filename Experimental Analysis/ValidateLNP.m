@@ -4,11 +4,13 @@ function [TestLNPStats] = ValidateLNP(Tracks, folder_indecies, folders, LNPStats
     numbins = 10;
 
     all_LEDVoltages = cell(1,length(folders));
+    meanLEDVoltages = cell(1,length(folders));
     for folder_index = 1:length(folders)
         folder_name = folders{folder_index};
         % Load Voltages
         fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
         all_LEDVoltages{folder_index} = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+        meanLEDVoltages{folder_index} = mean(all_LEDVoltages{folder_index});
         fclose(fid);
     end
     
@@ -18,9 +20,9 @@ function [TestLNPStats] = ValidateLNP(Tracks, folder_indecies, folders, LNPStats
 %     allLEDPower = [Tracks.LEDVoltages];
 %     meanLEDPower = mean(allLEDPower);
 %     stdLEDPower = std(allLEDPower);
-
-    allLEDVoltages = [Tracks.LEDVoltages];
-    meanLEDVoltages = mean(allLEDVoltages);
+% 
+%     allLEDVoltages = [Tracks.LEDVoltages];
+%     meanLEDVoltages = mean(allLEDVoltages);
 
     all_behaviors = horzcat(Tracks.Behaviors);
     linear_kernel = vertcat(LNPStats.linear_kernel);
@@ -54,7 +56,8 @@ function [TestLNPStats] = ValidateLNP(Tracks, folder_indecies, folders, LNPStats
             all_filtered_LEDVoltages = cell(1,length(folders));
             for folder_index = 1:length(folders)
                 %convolve the linear kernels with the input signal of LED voltages
-                all_filtered_LEDVoltages{folder_index} = conv(all_LEDVoltages{folder_index}-meanLEDVoltages, linear_kernel(behavior_index,:), 'same');
+                all_filtered_LEDVoltages{folder_index} = conv(all_LEDVoltages{folder_index}-meanLEDVoltages{folder_index}, linear_kernel(behavior_index,:), 'same');
+                plot(all_filtered_LEDVoltages{folder_index})
             end
 
             %get all the filtered signals concatenated together
@@ -65,10 +68,14 @@ function [TestLNPStats] = ValidateLNP(Tracks, folder_indecies, folders, LNPStats
                 filtered_signal = filtered_signal .* Tracks(track_index).LEDPower ./ Tracks(track_index).LEDVoltages;
                 all_filtered_signal(current_frame_index:current_frame_index+length(Tracks(track_index).Frames)-1) = filtered_signal;
                 current_frame_index = current_frame_index+length(Tracks(track_index).Frames);
+%                 plot(filtered_signal)
+%                 pause
             end
             
             %make histogram of filtered signal
-            current_bin_edges = LNPStats(behavior_index).bin_edges;
+%             current_bin_edges = LNPStats(behavior_index).bin_edges; %use the previously fitted bin edges
+            current_bin_edges = linspace(min(all_filtered_signal), max(all_filtered_signal), numbins+1);
+            current_bin_edges(end) = current_bin_edges(end) + 1;
             TestLNPStats(behavior_index).bin_edges = current_bin_edges;
             [current_filtered_signal_histogram, ~] = histc(all_filtered_signal, current_bin_edges);
             current_filtered_signal_histogram = current_filtered_signal_histogram(1:end-1);

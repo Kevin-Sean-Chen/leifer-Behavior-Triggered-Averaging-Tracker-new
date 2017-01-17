@@ -32,9 +32,11 @@ function [non_linearity_fit, non_linearities, bin_centers, errors] = fit_nonline
 
     
     weights = 1./errors;
-    
-    non_linearity_fit = fit(bin_centers',non_linearities','exp1','weights',weights);
-
+    try 
+        non_linearity_fit = fit(bin_centers',non_linearities','exp1','weights',weights);
+    catch
+        non_linearity_fit = [];
+    end
 
 end
 

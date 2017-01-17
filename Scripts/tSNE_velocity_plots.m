@@ -3,15 +3,9 @@ image_size = [70, 70];
 
 for track_index = 1:length(allTracks)
     Track = allTracks(track_index);
-    watershed_xy_indecies = SpaceMapping(Embeddings{track_index},xx);
+    watershed_xy_indecies = SpaceMapping(Track.Embeddings,xx);
 
-    direction_vector = [[Track.Speed].*-cosd([Track.Direction]); [Track.Speed].*sind([Track.Direction])];
-    head_vector = reshape(Track.Centerlines(1,:,:),2,[]) - (image_size(1)/2);    
-    %normalize into unit vector
-    head_normalization = hypot(head_vector(1,:), head_vector(2,:));
-    head_vector = head_vector ./ repmat(head_normalization, 2, 1);
-    
-    head_direction_dot_product = dot(head_vector, direction_vector);
+    head_direction_dot_product = Track.Velocity;
 
     for frame_index = 1:length(allTracks(track_index).Frames)
 %       if head_direction_dot_product(frame_index) < 0
@@ -25,7 +19,7 @@ end
 mean_observations = zeros(size(observations));
 for row_index = 1:size(observations,1)
     for column_index = 1:size(observations,2)
-        mean_observations(row_index, column_index) = std(observations{row_index, column_index});
+        mean_observations(row_index, column_index) = mean(observations{row_index, column_index});
     end
 end
 

@@ -4,7 +4,7 @@
     %clear all;
     %set up parameters
     load('reference_embedding.mat')
-    relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings'};
+    relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
 %     relevant_track_fields = {'Behaviors','Frames','LEDPower','LEDVoltages'};
 
     if true %nargin < 1
@@ -36,7 +36,8 @@
     disp('Fitting LNP');
     %the very last entry in Experiments is the average of all experiments
     %fit the LNP
-    [LNPStats, meanLEDPower, stdLEDPower] = directional_FitLNP(allTracks,folder_indecies,folders);
+%    [LNPStats, meanLEDPower, stdLEDPower] = directional_FitLNP(allTracks,folder_indecies,folders);
+    [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks,folder_indecies,folders);
 
     %sort it by the To node
     LNPStats(1).FromNode = [];
@@ -46,8 +47,9 @@
         LNPStats(transition_index).ToNode = LNPStats(transition_index).Edges(2);
     end
     LNPStats = nestedSortStruct(LNPStats,{'ToNode','FromNode'});
+    PlotBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
     
-    PlotDirectionalBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
+%     PlotDirectionalBehavioralMappingExperimentGroup(LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
     save(saveFileName, 'folders', 'LNPStats', 'L', 'density', 'xx', 'meanLEDPower', 'stdLEDPower');
 
 % end

@@ -19,24 +19,24 @@ function [] = PlotWatershed(embeddingValues)
     watershed_centroids = vertcat(watershed_centroids.Centroid);
     watershed_centroids = round(watershed_centroids);
 
-    %modify jet map
-    my_colormap = jet;
+    %modify col0r map
+    my_colormap = othercolor('OrRd9');
     my_colormap(1,:) = [1 1 1];
 
     %figure
     hold on
     imagesc(xx,xx,density)
-    plot(xx(jj),xx(ii),'k.')
+%     plot(xx(jj),xx(ii),'k.')
     axis equal tight off xy
     caxis([0 maxDensity])
     colormap(my_colormap)
-    for region_index = 1:size(watershed_centroids,1)-1
-        text(xx(watershed_centroids(region_index,1)), ...
-            xx(watershed_centroids(region_index,2)), ...
-            num2str(region_index), 'color', 'k', ...
-            'fontsize', 12, 'horizontalalignment', 'center', ...
-            'verticalalignment', 'middle');
-    end
+%     for region_index = 1:size(watershed_centroids,1)-1
+%         text(xx(watershed_centroids(region_index,1)), ...
+%             xx(watershed_centroids(region_index,2)), ...
+%             num2str(region_index), 'color', 'k', ...
+%             'fontsize', 12, 'horizontalalignment', 'center', ...
+%             'verticalalignment', 'middle');
+%     end
     hold off
 
 end

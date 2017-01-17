@@ -16,7 +16,8 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
     plot_filtered_signal_given_reversal_histogram = 0;
     plot_non_linearity = 1;
     
-
+    number_of_behaviors = max(L(:))-1;
+   
     if nargin > 4
         [ii,jj] = find(L==0);
     %     all_density = density(:);
@@ -27,7 +28,7 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
         watershed_centroids = regionprops(L, 'centroid');
         watershed_centroids = vertcat(watershed_centroids.Centroid);
         watershed_centroids = round(watershed_centroids);
-        watershed_centroids = watershed_centroids(1:12,:);
+        watershed_centroids = watershed_centroids(1:number_of_behaviors,:);
         
         %modify jet map
         my_colormap = jet;
@@ -43,8 +44,6 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
     non_linearity_plot_number = filtered_signal_given_reversal_histogram_plot_number+plot_non_linearity;
     watershed_plot_number = non_linearity_plot_number+plot_watershed;
     plots_per_experiment = watershed_plot_number;
-    
-    number_of_behaviors = max(L(:))-1;
     
     for behavior_index = 1:length(LNPStats)
         %plot watershed
@@ -69,6 +68,11 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
                 'XData',xx(watershed_centroids(:,1))','YData',xx(watershed_centroids(:,2))');
 
             hold off
+        end
+        
+        if LNPStats(behavior_index).trigger_count == 0
+            %no transition event
+            continue
         end
         
         %plot BTA
@@ -127,14 +131,15 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
             set(gca,'XTick',round(LNPStats(behavior_index).bin_edges*100)/100)
         end
         
-        bin_centers = LNPStats(behavior_index).bin_centers;
-%        non_linearity_fit = fit(bin_centers',non_linearity','exp1');   %refit of necessary
-        non_linearity_fit = LNPStats(behavior_index).non_linearity_fit;
-        LNPStats(behavior_index).exp_fit_a = non_linearity_fit.a;
-        LNPStats(behavior_index).exp_fit_b = non_linearity_fit.b;
-        
+       
         %plot non linearity
         if plot_non_linearity
+            bin_centers = LNPStats(behavior_index).bin_centers;
+    %        non_linearity_fit = fit(bin_centers',non_linearity','exp1');   %refit of necessary
+            non_linearity_fit = LNPStats(behavior_index).non_linearity_fit;
+            LNPStats(behavior_index).exp_fit_a = non_linearity_fit.a;
+            LNPStats(behavior_index).exp_fit_b = non_linearity_fit.b;
+
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(behavior_index-1) + non_linearity_plot_number);
             non_linearity = LNPStats(behavior_index).non_linearity;
             fig = gcf;

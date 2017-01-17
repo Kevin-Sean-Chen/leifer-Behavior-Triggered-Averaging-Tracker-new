@@ -1,8 +1,34 @@
 folders = getfoldersGUI();
 [allTracks, folder_indecies, track_indecies ] = loadtracks(folders,{'BehavioralTransition',...
     'Path','Frames','LEDPower','LEDVoltages','Behaviors','Embeddings'});
+%% calculate directional behaviors for triangle waves
+%get the number of behaviors
+number_of_behaviors = max(L(:))-1;
+clear all_transitions
 
-%calculate the triggers for LNP fitting
+%get transition graph
+transition_graph = BehavioralTransitionGraph(allTracks, number_of_behaviors, false, 1);
+
+%get a list of behavioral triggers
+edges = table2array(transition_graph.Edges);
+edges = sortrows(edges, 2); %sort the edges by going into
+no_weight_edges = edges(:,1:2);
+allTracks(1).Behaviors = [];
+number_of_edges = size(no_weight_edges,1);
+
+for track_index = 1:length(allTracks)
+    triggers = false(number_of_edges, length(allTracks(track_index).Frames)); %a binary array of when behaviors occur
+    for edge_index = 1:number_of_edges
+        current_behavioral_transition = allTracks(track_index).BehavioralTransition(:,1)';
+        transition_indecies = strfind(current_behavioral_transition,no_weight_edges(edge_index,:))+1;
+        %transition into
+        transition_start_frames = allTracks(track_index).BehavioralTransition(transition_indecies,2);
+        triggers(edge_index,transition_start_frames) = true;
+    end
+    allTracks(track_index).Behaviors = triggers(:,1:length(allTracks(track_index).Frames));
+end
+
+%% calculate the triggers for LNP fitting without direction
 number_of_behaviors = max(L(:)-1);
 allTracks(1).Behaviors = [];
 for track_index = 1:length(allTracks)
@@ -125,30 +151,117 @@ PlotWatershed(vertcat(all_downtick_tracks(:).Embeddings));
 
 figure
 PlotWatershedDifference(vertcat(all_uptick_tracks(:).Embeddings),vertcat(all_downtick_tracks(:).Embeddings));
-%% calculate directional behaviors for triangle waves
-%get the number of behaviors
-all_transitions = vertcat(allTracks.BehavioralTransition);
-number_of_behaviors = max(all_transitions(:,1));
-clear all_transitions
 
-%get transition graph
-transition_graph = BehavioralTransitionGraph(allTracks, number_of_behaviors, false, 1);
+%% plot bar graph comparison style uptick vs downtick behavioral rates for directional
+from_region = 5;
+to_region = 3;
+edge_index = find(edges(:,1) == from_region & edges(:,2) == to_region);
 
-%get a list of behavioral triggers
-edges = table2array(transition_graph.Edges);
-edges = sortrows(edges, 2); %sort the edges by going into
-no_weight_edges = edges(:,1:2);
-allTracks(1).Behaviors = [];
-number_of_edges = size(no_weight_edges,1);
+X = 1:2;
+Y = [uptick_behavioral_rates(edge_index), downtick_behavioral_rates(edge_index)];
+E = [uptick_behavioral_std(edge_index), downtick_behavioral_std(edge_index)];
+figure('Position', [400, 400, 700, 700])
+ax = gca;
+%ax.XTick = ;
+%             ax.YTick = linspace(0.64,0.84,5);
+ax.FontSize = 18;
 
-for track_index = 1:length(allTracks)
-    triggers = false(number_of_edges, length(allTracks(track_index).Frames)); %a binary array of when behaviors occur
-    for edge_index = 1:number_of_edges
-        current_behavioral_transition = allTracks(track_index).BehavioralTransition(:,1)';
-        transition_indecies = strfind(current_behavioral_transition,no_weight_edges(edge_index,:))+1;
-        %transition into
-        transition_start_frames = allTracks(track_index).BehavioralTransition(transition_indecies,2);
-        triggers(edge_index,transition_start_frames) = true;
-    end
-    allTracks(track_index).Behaviors = triggers(:,1:length(allTracks(track_index).Frames));
+hold on
+% bar(1, Y(1),'k')
+% bar(2, Y(2),'w')
+
+errorbar(X(1),Y(1),E(1),'r.','linewidth',2,'markersize',40)
+errorbar(X(2),Y(2),E(2),'b.','linewidth',2,'markersize',40)
+plot(X,Y,'m-','linewidth',2)
+
+%Width of the top and bottom lines of errorbar
+xlength = 0.15;
+colors = 'rb';
+% Make horizontal lines with 'line'
+for k = 1:length(X)
+    x = [X(k) - xlength, X(k) + xlength];
+    y_h = [Y(k) + E(k), Y(k) + E(k)];
+    line(x, y_h,'color',colors(k),'linewidth',2);
+    y_b = [Y(k) - E(k), Y(k) - E(k)];
+    line(x, y_b,'color',colors(k),'linewidth',2);
 end
+limits = get(gca,'YLim');
+set(gca,'YTick',linspace(limits(1),limits(2),NumTicks))
+set(gca, 'XTick', [])
+%% plot bar graph comparison style uptick vs downtick behavioral rates for nondirectional
+region_index = 9;
+X = 1:2;
+Y = [uptick_behavioral_rates(region_index), downtick_behavioral_rates(region_index)];
+E = [uptick_behavioral_std(region_index), downtick_behavioral_std(region_index)];
+figure('Position', [400, 400, 700, 700])
+ax = gca;
+%ax.XTick = ;
+%             ax.YTick = linspace(0.64,0.84,5);
+ax.FontSize = 18;
+
+hold on
+% bar(1, Y(1),'k')
+% bar(2, Y(2),'w')
+
+errorbar(X(1),Y(1),E(1),'r.','linewidth',2,'markersize',40)
+errorbar(X(2),Y(2),E(2),'b.','linewidth',2,'markersize',40)
+plot(X,Y,'m-','linewidth',2)
+
+%Width of the top and bottom lines of errorbar
+xlength = 0.15;
+colors = 'rb';
+% Make horizontal lines with 'line'
+for k = 1:length(X)
+    x = [X(k) - xlength, X(k) + xlength];
+    y_h = [Y(k) + E(k), Y(k) + E(k)];
+    line(x, y_h,'color',colors(k),'linewidth',2);
+    y_b = [Y(k) - E(k), Y(k) - E(k)];
+    line(x, y_b,'color',colors(k),'linewidth',2);
+end
+limits = get(gca,'YLim');
+set(gca,'YTick',linspace(limits(1),limits(2),NumTicks))
+set(gca, 'XTick', [])
+%% plot bar graph comparison style uptick vs downtick behavioral rates for behavioral ratios
+numerator_region = 9;
+denominator_region = 2;
+
+X = 1:2;
+Y = [uptick_behavioral_rates(numerator_region) ./ uptick_behavioral_rates(denominator_region), ...
+    downtick_behavioral_rates(numerator_region) ./ downtick_behavioral_rates(denominator_region)];
+
+E = [];
+E(1) = sqrt((uptick_behavioral_std(numerator_region)./uptick_behavioral_rates(denominator_region))^2+(uptick_behavioral_rates(numerator_region)*uptick_behavioral_std(denominator_region)./(uptick_behavioral_rates(denominator_region)^2))^2);
+E(2) = sqrt((downtick_behavioral_std(numerator_region)./downtick_behavioral_rates(denominator_region))^2+(downtick_behavioral_rates(numerator_region)*downtick_behavioral_std(denominator_region)./(downtick_behavioral_rates(denominator_region)^2))^2);
+%E(2) = sqrt((sqrt(downtick_behavioral_counts(numerator_region)-1)./downtick_behavioral_counts(denominator_region))^2+(downtick_behavioral_counts(numerator_region)*sqrt(downtick_behavioral_counts(uptick_behavioral_std(numerator_region))-1)./(downtick_behavioral_counts(denominator_region)^2))^2);
+
+% E(1) = sqrt((Y(1)^2)*((uptick_behavioral_std(numerator_region)./uptick_behavioral_rates(numerator_region))^2 + (uptick_behavioral_std(denominator_region)./uptick_behavioral_rates(denominator_region)))^2 - (2*uptick_behavioral_std(numerator_region)*uptick_behavioral_std(denominator_region)./uptick_behavioral_rates(numerator_region)./uptick_behavioral_rates(denominator_region)));
+% E(2) = sqrt((Y(2)^2)*((downtick_behavioral_std(numerator_region)./downtick_behavioral_rates(numerator_region))^2 + (downtick_behavioral_std(denominator_region)./downtick_behavioral_rates(denominator_region)))^2 - (2*downtick_behavioral_std(numerator_region)*downtick_behavioral_std(denominator_region)./downtick_behavioral_rates(numerator_region)./downtick_behavioral_rates(denominator_region)));
+
+
+figure('Position', [400, 400, 700, 700])
+ax = gca;
+%ax.XTick = ;
+%             ax.YTick = linspace(0.64,0.84,5);
+ax.FontSize = 18;
+
+hold on
+% bar(1, Y(1),'k')
+% bar(2, Y(2),'w')
+
+errorbar(X(1),Y(1),E(1),'r.','linewidth',2,'markersize',40)
+errorbar(X(2),Y(2),E(2),'b.','linewidth',2,'markersize',40)
+plot(X,Y,'m-','linewidth',2)
+
+%Width of the top and bottom lines of errorbar
+xlength = 0.15;
+colors = 'rb';
+% Make horizontal lines with 'line'
+for k = 1:length(X)
+    x = [X(k) - xlength, X(k) + xlength];
+    y_h = [Y(k) + E(k), Y(k) + E(k)];
+    line(x, y_h,'color',colors(k),'linewidth',2);
+    y_b = [Y(k) - E(k), Y(k) - E(k)];
+    line(x, y_b,'color',colors(k),'linewidth',2);
+end
+
+set(gca, 'XTick', [])

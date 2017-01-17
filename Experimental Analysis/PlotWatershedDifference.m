@@ -23,7 +23,7 @@ function [] = PlotWatershedDifference(embeddingValues1,embeddingValues2)
     watershed_centroids = round(watershed_centroids);
 
     %modify jet map
-    my_colormap = jet;
+    my_colormap = redblue;
 
     %figure
     hold on
@@ -32,13 +32,13 @@ function [] = PlotWatershedDifference(embeddingValues1,embeddingValues2)
     axis equal tight off xy
     caxis([-maxDensity maxDensity])
     colormap(my_colormap)
-    for region_index = 1:size(watershed_centroids,1)-1
-        text(xx(watershed_centroids(region_index,1)), ...
-            xx(watershed_centroids(region_index,2)), ...
-            num2str(region_index), 'color', 'k', ...
-            'fontsize', 12, 'horizontalalignment', 'center', ...
-            'verticalalignment', 'middle');
-    end
+%     for region_index = 1:size(watershed_centroids,1)-1
+%         text(xx(watershed_centroids(region_index,1)), ...
+%             xx(watershed_centroids(region_index,2)), ...
+%             num2str(region_index), 'color', 'k', ...
+%             'fontsize', 12, 'horizontalalignment', 'center', ...
+%             'verticalalignment', 'middle');
+%     end
     hold off
     colorbar
 end
