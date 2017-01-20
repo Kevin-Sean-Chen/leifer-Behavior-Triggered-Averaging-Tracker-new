@@ -56,21 +56,25 @@ function [TestLNPStats] = ValidateLNP(Tracks, folder_indecies, folders, LNPStats
             all_filtered_LEDVoltages = cell(1,length(folders));
             for folder_index = 1:length(folders)
                 %convolve the linear kernels with the input signal of LED voltages
-                all_filtered_LEDVoltages{folder_index} = conv(all_LEDVoltages{folder_index}-meanLEDVoltages{folder_index}, linear_kernel(behavior_index,:), 'same');
-                plot(all_filtered_LEDVoltages{folder_index})
+                all_filtered_LEDVoltages{folder_index} = padded_conv(all_LEDVoltages{folder_index}-meanLEDVoltages{folder_index}, linear_kernel(behavior_index,:));
+%                 figure
+%                 hold on
+%                 plot(all_LEDVoltages{folder_index}-meanLEDVoltages{folder_index})
+%                 plot(all_filtered_LEDVoltages{folder_index})
             end
 
             %get all the filtered signals concatenated together
             all_filtered_signal = zeros(1, length(allLEDPower));
             current_frame_index = 1;
             for track_index = 1:length(Tracks)
-                filtered_signal = all_filtered_LEDVoltages{folder_indecies(track_index)}(Tracks(track_index).Frames);
-                filtered_signal = filtered_signal .* Tracks(track_index).LEDPower ./ Tracks(track_index).LEDVoltages;
+                current_LEDVoltages2Power = Tracks(track_index).LEDPower ./ Tracks(track_index).LEDVoltages;
+                filtered_signal = current_LEDVoltages2Power .* all_filtered_LEDVoltages{folder_indecies(track_index)}(Tracks(track_index).Frames);
                 all_filtered_signal(current_frame_index:current_frame_index+length(Tracks(track_index).Frames)-1) = filtered_signal;
                 current_frame_index = current_frame_index+length(Tracks(track_index).Frames);
 %                 plot(filtered_signal)
-%                 pause
             end
+
+%             plot(all_filtered_signal)
             
             %make histogram of filtered signal
 %             current_bin_edges = LNPStats(behavior_index).bin_edges; %use the previously fitted bin edges

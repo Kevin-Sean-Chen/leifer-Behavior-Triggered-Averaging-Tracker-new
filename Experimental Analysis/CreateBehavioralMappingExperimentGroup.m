@@ -36,8 +36,8 @@
     disp('Fitting LNP');
     %the very last entry in Experiments is the average of all experiments
     %fit the LNP
-%    [LNPStats, meanLEDPower, stdLEDPower] = directional_FitLNP(allTracks,folder_indecies,folders);
-    [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks,folder_indecies,folders);
+    [LNPStats, meanLEDPower, stdLEDPower] = directional_FitLNP(allTracks,folder_indecies,folders);
+%     [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(allTracks,folder_indecies,folders);
 
     %sort it by the To node
     LNPStats(1).FromNode = [];

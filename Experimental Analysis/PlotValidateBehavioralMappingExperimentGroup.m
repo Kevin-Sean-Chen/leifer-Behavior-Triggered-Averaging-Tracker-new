@@ -30,7 +30,7 @@ function [] = PlotValidateBehavioralMappingExperimentGroup (TestLNPStats, LNPSta
         watershed_centroids = vertcat(watershed_centroids.Centroid);
         watershed_centroids = round(watershed_centroids);
         %modify jet map
-        my_colormap = jet;
+        my_colormap = othercolor('OrRd9');
         my_colormap(1,:) = [1 1 1];
     else
         plot_watershed = 0;
