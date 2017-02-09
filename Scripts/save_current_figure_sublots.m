@@ -9,7 +9,7 @@ for subplot_index = 1:length(subplots)
         hax_new = copyobj(subplots(subplot_index), hfig);
         set(hax_new, 'Position', get(0, 'DefaultAxesPosition'));
         colormap(current_colormap);
-        saveas(hfig,[save_folder, filesep, num2str(subplot_index), '.png'],'png');
+        saveas(hfig,[save_folder, filesep, num2str(subplot_index), '.pdf'],'pdf0');
         close(hfig)
     end
 end

@@ -7,10 +7,10 @@ for iteration = 1:1
     figure('Position', [400, 400, 400, 100])
     hold on
     %shaded error bar represents the mean of the angular error
-    plot(-BTA_seconds_before:1/fps:BTA_seconds_after, fliplr(stim_section), '-k', 'Linewidth', 3);
+    plot(-BTA_seconds_before:1/fps:BTA_seconds_after, fliplr(stim_section), '-r', 'Linewidth', 3);
     meanLEDVoltageY = zeros(1,length(LNPStats(behavior_index).BTA));
     meanLEDVoltageY(:) = meanLEDPower;
-    plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r', 'Linewidth', 3)
+%     plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r', 'Linewidth', 3)
     hold off
     axis([-10 10 0 18])
 %     ax = gca;

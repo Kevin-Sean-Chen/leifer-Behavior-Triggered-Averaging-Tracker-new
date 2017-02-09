@@ -1,4 +1,4 @@
-function [] = PlotWatershedDifference(embeddingValues1,embeddingValues2)
+function [density_diff] = PlotWatershedDifference(embeddingValues1,embeddingValues2)
 %Plots the density map along with the watershed
     maxVal = max(max(abs([embeddingValues1;embeddingValues2])));
     maxVal = round(maxVal * 1.1);

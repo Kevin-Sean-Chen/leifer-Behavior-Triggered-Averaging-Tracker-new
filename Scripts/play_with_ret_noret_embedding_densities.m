@@ -5,4 +5,4 @@
 % PlotWatershed(vertcat(allTracks_GWN_noret(:).Embeddings));
 
 figure
-PlotWatershedDifference(vertcat(allTracks_GWN_ret(:).Embeddings),vertcat(allTracks_GWN_noret(:).Embeddings));
+density = PlotWatershedDifference(vertcat(allTracks_GWN_ret(:).Embeddings),vertcat(allTracks_GWN_noret(:).Embeddings));

@@ -31,11 +31,10 @@ my_colormap(1,:) = [1 1 1];
 
 figure
 hold on
-imagesc(xx,xx,density)
-axis equal tight off xy
-caxis([0 maxDensity * .6])
-colormap(my_colormap)
-%plot(xx(jj),xx(ii),'k.')
+% imagesc(xx,xx,density)
+% caxis([0 maxDensity * .6])
+%  colormap(my_colormap)
+plot(xx(jj),xx(ii),'k.')
 % for region_index = 1:size(watershed_centroids,1)-1
 %     text(xx(watershed_centroids(region_index,1)), ...
 %         xx(watershed_centroids(region_index,2)), ...
@@ -43,5 +42,10 @@ colormap(my_colormap)
 %         'fontsize', 12, 'horizontalalignment', 'center', ...
 %         'verticalalignment', 'middle');
 % end
+axis equal tight xy
 hold off
 colorbar
+xlimits=round(get(gca,'xlim'));
+set(gca,'xtick',xlimits);
+ylimits=round(get(gca,'ylim'));
+set(gca,'ytick',ylimits);
