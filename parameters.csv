@@ -1,5 +1,5 @@
 Parameter,Description,Default,GEN-69VSW12,GEN-B0Q5F42,GEN-69VSW12;mec-4,GEN-B0Q5F42;mec-4,GEN-69VSW12;str-2,GEN-B0Q5F42;str-2,GEN-69VSW12;lowres,flies
-MinWormArea,Min size of single worm (pixels),100,,,,,,,50,1000
+MinWormArea,Min size of single worm (pixels),100,,,,,,,25,1000
 MaxWormArea,Max size of single worm (pixels),800,,,,,,,600,10000
 MaxDistance,Max distance between same worm in successive frames (pixels),25,,,,,,,,500
 SizeChangeThreshold,Max size change by worm in successive frames (pixels),75,,,,,,,50,500
@@ -40,7 +40,7 @@ PauseSpeedThresh,Smooth speed threshold for identifying pauses (mm/s),0.01,,,,,,
 MinPauseDuration,Min pause duration (s),0.5,,,,,,,,
 MaxBackwardsFrames,"Max time a worm can go ""backwards"" (s) for correcting head/tail assignment",10,,,,,,,,
 ImageSize,Individual Image Size (height and width in pixels),70,,,,,,,,500
-MinAverageWormArea,Min Average Worm Size (pixels),175,,,,,,,,1500
+MinAverageWormArea,Min Average Worm Size (pixels),175,,,,,,,60,1500
 MinPhaseVelocity,Min Phase Velocity (rad/s),-1.8283,,,,,,,,
 MaxPhaseVelocity,Max Phase Velocity (rad/s),2.0537,,,,,,,,
 ProgressDir,Directory to record progress,C:\Users\mochil\Dropbox\LeiferShaevitz\Github\leifer-Behavior-Triggered-Averaging-Tracker,,,,,,,,
