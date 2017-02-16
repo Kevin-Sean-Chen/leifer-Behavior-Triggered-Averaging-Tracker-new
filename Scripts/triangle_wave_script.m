@@ -265,3 +265,33 @@ for k = 1:length(X)
 end
 
 set(gca, 'XTick', [])
+
+%% Predict the changes to behavioral rate wrt time for every behavior
+% then take the average behavioral rate for the uptick and downtick
+% regions
+LEDVoltages = load([folders{1}, filesep, 'LEDVoltages.txt']);
+parameters = load_parameters(folders{1});
+LEDPowers = LEDVoltages ./ 5 .* parameters.avgPower500;
+for LNP_index = 1:length(LNPStats)
+    LNPStats(LNP_index).predicted_triangle_rate = PredictLNP(LEDPowers,LNPStats(LNP_index).linear_kernel,LNPStats(LNP_index).non_linearity_fit);
+end
+
+
+second_deriv = [0, diff(diff(LEDVoltages)), 0];
+uptick_starts = [1, find(second_deriv > 0.01)];
+uptick_ends = [find(second_deriv < -0.01), length(LEDVoltages)];
+
+for section_index = 2:2
+    start_frame = uptick_starts(section_index)+1;
+    end_frame = uptick_ends(section_index);
+
+
+end
+
+downtick_starts = find(second_deriv < -0.01);
+downtick_ends = [find(second_deriv > 0.01), length(LEDVoltages)];
+for section_index = 2:2
+    start_frame = downtick_starts(section_index)+1;
+    end_frame = downtick_ends(section_index);
+
+end

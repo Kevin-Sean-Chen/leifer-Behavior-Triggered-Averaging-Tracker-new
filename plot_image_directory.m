@@ -7,9 +7,16 @@ function success = plot_image_directory(folder_name)
     parameters = load_parameters(folder_name); %load experiment parameters
     mask = parameters.Mask;
 
-    relevant_track_fields = {'Centerlines','UncertainTips','Eccentricity',...
-        'Direction','Speed','TotalScore','Active','Path','LastCoordinates',...
-        'Frames','NumFrames','Pirouettes','Runs','Size','SmoothSpeed','AngSpeed'};
+    if parameters.IndividualVideoPlottingFrameRate > 0
+        %plot individual worms
+        relevant_track_fields = {'Centerlines','UncertainTips','Eccentricity',...
+            'Direction','Speed','TotalScore','Active','Path','LastCoordinates',...
+            'Frames','NumFrames','Pirouettes','Runs','Size','SmoothSpeed','AngSpeed'};
+    else
+        %plot whole field only
+        relevant_track_fields = {'Active','Path','LastCoordinates',...
+            'Frames','NumFrames','Pirouettes','Runs','Size','SmoothSpeed','AngSpeed'};        
+    end
     %% Load tracks
     Tracks = load_single_folder(folder_name, relevant_track_fields);
     if isempty(Tracks)

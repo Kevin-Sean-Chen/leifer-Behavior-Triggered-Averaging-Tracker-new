@@ -1,9 +1,9 @@
 % analysis options
-tracking = 0;
-finding_centerline = 0;
+tracking = 1;
+finding_centerline = 1;
 resolving_problems = 1;
-plotting = 0;
-calculate_behavior = 0;
+plotting = 1;
+calculate_behavior = 1;
 backup = 0;
 parameters = load_parameters(); %load default parameters
 
@@ -25,7 +25,6 @@ if tracking
         total_image_files = total_image_files + length(image_files);
     end
     
-    parfor_progress(parameters.ProgressDir, round(total_image_files/50));
     if folder_count > 1
         %use parfor
         parfor folder_index = 1:folder_count
@@ -36,10 +35,9 @@ if tracking
     else
         for folder_index = 1:folder_count
             folder_name = folders{folder_index};
-            track_image_directory(folder_name, 'analysis');
+            track_image_directory(folder_name, 'all');
         end
     end
-    parfor_progress(parameters.ProgressDir, 0);
 end
 
 %% STEP 4: Find centerlines %%
