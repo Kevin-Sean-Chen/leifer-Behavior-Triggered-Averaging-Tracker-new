@@ -13,6 +13,7 @@ function [] = PlotWatershed(embeddingValues)
 % 
 %     L(L==1) = max(L(:))+1;
 %     L = L - 1;
+    L = encapsulate_watershed_matrix(L);
     [ii,jj] = find(L==0);
 
     watershed_centroids = regionprops(L, 'centroid');
@@ -20,13 +21,13 @@ function [] = PlotWatershed(embeddingValues)
     watershed_centroids = round(watershed_centroids);
 
     %modify col0r map
-    my_colormap = othercolor('OrRd9');
+    my_colormap = parula;
     my_colormap(1,:) = [1 1 1];
 
     %figure
     hold on
     imagesc(xx,xx,density)
-%     plot(xx(jj),xx(ii),'k.')
+    plot(xx(jj),xx(ii),'k.')
     axis equal tight off xy
     caxis([0 maxDensity])
     colormap(my_colormap)

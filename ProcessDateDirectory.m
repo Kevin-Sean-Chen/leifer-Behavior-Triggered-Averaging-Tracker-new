@@ -1,15 +1,15 @@
 % analysis options
 tracking = 1;
-finding_centerline = 1;
-resolving_problems = 1;
+finding_centerline = 0;
+resolving_problems = 0;
 plotting = 1;
-calculate_behavior = 1;
+calculate_behavior = 0;
 backup = 0;
 parameters = load_parameters(); %load default parameters
 
 
 %% STEP 1: Get folders
-[folders, folder_count] = getfolders();
+%[folders, folder_count] = getfolders();
 
 %% STEP 3: Track and save the individual worm images %%
 if tracking

@@ -1,5 +1,5 @@
-folders = getfoldersGUI();
-[allTracks, folder_indecies, track_indecies ] = loadtracks(folders,{'BehavioralTransition',...
+folders_tri_ret = getfoldersGUI();
+[allTracks_tri_ret, folder_indecies, track_indecies ] = loadtracks(folders_tri_ret,{'BehavioralTransition',...
     'Path','Frames','LEDPower','LEDVoltages','Behaviors','Embeddings'});
 %% calculate directional behaviors for triangle waves
 %get the number of behaviors
@@ -7,45 +7,45 @@ number_of_behaviors = max(L(:))-1;
 clear all_transitions
 
 %get transition graph
-transition_graph = BehavioralTransitionGraph(allTracks, number_of_behaviors, false, 1);
+transition_graph = BehavioralTransitionGraph(allTracks_tri_ret, number_of_behaviors, false, 1);
 
 %get a list of behavioral triggers
 edges = table2array(transition_graph.Edges);
 edges = sortrows(edges, 2); %sort the edges by going into
 no_weight_edges = edges(:,1:2);
-allTracks(1).Behaviors = [];
+allTracks_tri_ret(1).Behaviors = [];
 number_of_edges = size(no_weight_edges,1);
 
-for track_index = 1:length(allTracks)
-    triggers = false(number_of_edges, length(allTracks(track_index).Frames)); %a binary array of when behaviors occur
+for track_index = 1:length(allTracks_tri_ret)
+    triggers = false(number_of_edges, length(allTracks_tri_ret(track_index).Frames)); %a binary array of when behaviors occur
     for edge_index = 1:number_of_edges
-        current_behavioral_transition = allTracks(track_index).BehavioralTransition(:,1)';
+        current_behavioral_transition = allTracks_tri_ret(track_index).BehavioralTransition(:,1)';
         transition_indecies = strfind(current_behavioral_transition,no_weight_edges(edge_index,:))+1;
         %transition into
-        transition_start_frames = allTracks(track_index).BehavioralTransition(transition_indecies,2);
+        transition_start_frames = allTracks_tri_ret(track_index).BehavioralTransition(transition_indecies,2);
         triggers(edge_index,transition_start_frames) = true;
     end
-    allTracks(track_index).Behaviors = triggers(:,1:length(allTracks(track_index).Frames));
+    allTracks_tri_ret(track_index).Behaviors = triggers(:,1:length(allTracks_tri_ret(track_index).Frames));
 end
 
 %% calculate the triggers for LNP fitting without direction
 number_of_behaviors = max(L(:)-1);
-allTracks(1).Behaviors = [];
-for track_index = 1:length(allTracks)
-    triggers = false(number_of_behaviors, length(allTracks(track_index).Frames)); %a binary array of when behaviors occur
+allTracks_tri_ret(1).Behaviors = [];
+for track_index = 1:length(allTracks_tri_ret)
+    triggers = false(number_of_behaviors, length(allTracks_tri_ret(track_index).Frames)); %a binary array of when behaviors occur
     for behavior_index = 1:number_of_behaviors
-        transition_indecies = allTracks(track_index).BehavioralTransition(:,1) == behavior_index;
+        transition_indecies = allTracks_tri_ret(track_index).BehavioralTransition(:,1) == behavior_index;
         %transition into of
-        transition_start_frames = allTracks(track_index).BehavioralTransition(transition_indecies,2);
+        transition_start_frames = allTracks_tri_ret(track_index).BehavioralTransition(transition_indecies,2);
         triggers(behavior_index,transition_start_frames) = true;
 %                 %transition out of
 %                 transition_end_frames = Tracks(track_index).BehavioralTransition(transition_indecies,3);
 %                 triggers(behavior_index,transition_end_frames) = true;
     end
-    allTracks(track_index).Behaviors = triggers(:,1:length(allTracks(track_index).LEDVoltages));
+    allTracks_tri_ret(track_index).Behaviors = triggers(:,1:length(allTracks_tri_ret(track_index).LEDVoltages));
 end
 
-[TestLNPStats] = ValidateLNP(allTracks, folder_indecies, folders, LNPStats);
+[TestLNPStats] = ValidateLNP(allTracks_tri_ret, folder_indecies, folders_tri_ret, LNPStats);
 PlotValidateBehavioralMappingExperimentGroup(TestLNPStats, LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
 
 %% cut up tracks into 10 min sections and compare to LNP params
@@ -58,15 +58,15 @@ for section_index = 1:number_of_sections
     start_frame = (section_index-1)*max_frame_number/number_of_sections+1;
     end_frame = section_index*max_frame_number/number_of_sections;
 
-    [section_Tracks, section_track_indecies] = FilterTracksByTime(allTracks,start_frame,end_frame);
-    [TestLNPStats] =  ValidateLNP(section_Tracks,folder_indecies(section_track_indecies),folders,LNPStats);
+    [section_Tracks, section_track_indecies] = FilterTracksByTime(allTracks_tri_ret,start_frame,end_frame);
+    [TestLNPStats] =  ValidateLNP(section_Tracks,folder_indecies(section_track_indecies),folders_tri_ret,LNPStats);
 
     PlotValidateBehavioralMappingExperimentGroup(TestLNPStats, LNPStats, meanLEDPower, stdLEDPower, L, density, xx);
 end
 
 %% cut up tracks into uptick frames and downtick frames
 %get what the triangle wave looks like
-LEDVoltages = load([folders{1}, filesep, 'LEDVoltages.txt']);
+LEDVoltages = load([folders_tri_ret{1}, filesep, 'LEDVoltages.txt']);
 second_deriv = [0, diff(diff(LEDVoltages)), 0];
 uptick_starts = [1, find(second_deriv > 0.01)];
 uptick_ends = [find(second_deriv < -0.01), length(LEDVoltages)];
@@ -76,7 +76,7 @@ for section_index = 1:length(uptick_starts)
     start_frame = uptick_starts(section_index)+1;
     end_frame = uptick_ends(section_index);
 
-    [temp_tracks, temp_track_indecies] = FilterTracksByTime(allTracks,start_frame,end_frame);
+    [temp_tracks, temp_track_indecies] = FilterTracksByTime(allTracks_tri_ret,start_frame,end_frame);
     all_uptick_tracks = [all_uptick_tracks, temp_tracks];
     all_uptick_track_indecies = [all_uptick_track_indecies, temp_track_indecies];
 end
@@ -89,7 +89,7 @@ for section_index = 1:length(uptick_starts)
     start_frame = downtick_starts(section_index)+1;
     end_frame = downtick_ends(section_index);
 
-    [temp_tracks, temp_track_indecies] = FilterTracksByTime(allTracks,start_frame,end_frame);
+    [temp_tracks, temp_track_indecies] = FilterTracksByTime(allTracks_tri_ret,start_frame,end_frame);
     all_downtick_tracks = [all_downtick_tracks, temp_tracks];
     all_downtick_track_indecies = [all_downtick_track_indecies, temp_track_indecies];
 end
@@ -185,8 +185,8 @@ for k = 1:length(X)
     y_b = [Y(k) - E(k), Y(k) - E(k)];
     line(x, y_b,'color',colors(k),'linewidth',2);
 end
-limits = get(gca,'YLim');
-set(gca,'YTick',linspace(limits(1),limits(2),NumTicks))
+y_limits = get(gca,'YLim');
+set(gca,'YTick',linspace(y_limits(1),y_limits(2),NumTicks))
 set(gca, 'XTick', [])
 %% plot bar graph comparison style uptick vs downtick behavioral rates for nondirectional
 region_index = 9;
@@ -207,6 +207,10 @@ errorbar(X(1),Y(1),E(1),'r.','linewidth',2,'markersize',40)
 errorbar(X(2),Y(2),E(2),'b.','linewidth',2,'markersize',40)
 plot(X,Y,'m-','linewidth',2)
 
+% %plot the predicted rates
+% plot(X(1),LNPStats(region_index).uptick_rate, 'r*')
+% plot(X(2),LNPStats(region_index).downtick_rate, 'b*')
+
 %Width of the top and bottom lines of errorbar
 xlength = 0.15;
 colors = 'rb';
@@ -218,8 +222,14 @@ for k = 1:length(X)
     y_b = [Y(k) - E(k), Y(k) - E(k)];
     line(x, y_b,'color',colors(k),'linewidth',2);
 end
-limits = get(gca,'YLim');
-set(gca,'YTick',linspace(limits(1),limits(2),NumTicks))
+y_limits = get(gca,'YLim');
+x_limits = get(gca,'XLim');
+
+axis([x_limits,y_limits(1),y_limits(2)]);
+axis([x_limits,1,1.35]);
+y_limits = get(gca,'YLim');
+
+set(gca,'YTick',linspace(y_limits(1),y_limits(2),NumTicks))
 set(gca, 'XTick', [])
 %% plot bar graph comparison style uptick vs downtick behavioral rates for behavioral ratios
 numerator_region = 9;
@@ -269,29 +279,27 @@ set(gca, 'XTick', [])
 %% Predict the changes to behavioral rate wrt time for every behavior
 % then take the average behavioral rate for the uptick and downtick
 % regions
-LEDVoltages = load([folders{1}, filesep, 'LEDVoltages.txt']);
-parameters = load_parameters(folders{1});
+LEDVoltages = load([folders_tri_ret{1}, filesep, 'LEDVoltages.txt']);
+parameters = load_parameters(folders_tri_ret{1});
 LEDPowers = LEDVoltages ./ 5 .* parameters.avgPower500;
-for LNP_index = 1:length(LNPStats)
-    LNPStats(LNP_index).predicted_triangle_rate = PredictLNP(LEDPowers,LNPStats(LNP_index).linear_kernel,LNPStats(LNP_index).non_linearity_fit);
-end
-
 
 second_deriv = [0, diff(diff(LEDVoltages)), 0];
 uptick_starts = [1, find(second_deriv > 0.01)];
 uptick_ends = [find(second_deriv < -0.01), length(LEDVoltages)];
-
-for section_index = 2:2
-    start_frame = uptick_starts(section_index)+1;
-    end_frame = uptick_ends(section_index);
-
-
-end
-
 downtick_starts = find(second_deriv < -0.01);
 downtick_ends = [find(second_deriv > 0.01), length(LEDVoltages)];
-for section_index = 2:2
-    start_frame = downtick_starts(section_index)+1;
-    end_frame = downtick_ends(section_index);
 
+%find a section for uptick and downtick. the predictions are gonna be
+%periodic anyways
+uptick_start_frame = uptick_starts(2)+1;
+uptick_end_frame = uptick_ends(2);
+downtick_start_frame = downtick_starts(2)+1;
+downtick_end_frame = downtick_ends(2);
+
+for LNP_index = 1:length(LNPStats)
+    predicted_triangle_rate = PredictLNP(LEDPowers,LNPStats(LNP_index).linear_kernel,LNPStats(LNP_index).non_linearity_fit);
+    LNPStats(LNP_index).uptick_rate = mean(predicted_triangle_rate(uptick_start_frame:uptick_end_frame));
+    LNPStats(LNP_index).downtick_rate = mean(predicted_triangle_rate(downtick_start_frame:downtick_end_frame));
 end
+
+

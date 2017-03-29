@@ -16,6 +16,7 @@ function success = track_image_directory(folder_name, analysis_mode)
         'SmoothX','SmoothY','Direction','Speed','SmoothSpeed','AngSpeed', ...
         'BackwardAcc','Pirouettes','LEDVoltages','Pauses','OmegaTurns','Runs','MergedBlobIndex'};
     
+
     %% STEP 2: See if a track file exists, if it does, there are some options that use them %%
     Tracks = load_single_folder(folder_name, relevant_track_fields);
     if ~isempty(Tracks)
@@ -35,6 +36,11 @@ function success = track_image_directory(folder_name, analysis_mode)
     
     %% STEP 3: Load images and other properties from the directory %%
     % Get all the tif file names (probably jpgs)
+    %tap correct
+    if parameters.TapCorrection 
+        %debugging tapping mode
+        tap_preprocessing(folder_name);
+    end
     
     image_files=dir([folder_name, filesep, '*.jpg']); %get all the jpg files (maybe named tif)
     if isempty(image_files)

@@ -11,11 +11,23 @@ function [density_diff] = PlotWatershedDifference(embeddingValues1,embeddingValu
     
     density_diff = density1-density2;
     
+    %get the average density difference
+    L_flat = L(:);
+    watershed_avg_density_diff = zeros(1,max(L_flat-1));
+    density_diff = density_diff(:); %linearize
+    for watershed_region = 1:max(L(:)-1)
+        watershed_avg_density_diff(watershed_region) = mean(density_diff(L_flat == watershed_region));
+    end
+
+    max_avg_difference = max(abs(watershed_avg_density_diff));
+    labeled_avg_diff = zeros(size(L_flat));
+    
+    for watershed_region = 1:max(L(:)-1)
+        labeled_avg_diff(L_flat == watershed_region) = watershed_avg_density_diff(watershed_region);
+    end
+    labeled_avg_diff = reshape(labeled_avg_diff,size(L,1),size(L,2));
+
     maxDensity = max(abs(density_diff(:)));
-%     L = watershed(-density,8);
-% 
-%     L(L==1) = max(L(:))+1;
-%     L = L - 1;
     [ii,jj] = find(L==0);
 
     watershed_centroids = regionprops(L, 'centroid');
@@ -27,10 +39,16 @@ function [density_diff] = PlotWatershedDifference(embeddingValues1,embeddingValu
 
     %figure
     hold on
-    imagesc(xx,xx,density_diff)
+    %plot the point by point difference
+%     imagesc(xx,xx,density_diff)
+%     plot(xx(jj),xx(ii),'k.')
+%     axis equal tight off xy
+%     caxis([-maxDensity maxDensity])
+    %plot the average difference
+    imagesc(xx,xx,labeled_avg_diff)
     plot(xx(jj),xx(ii),'k.')
     axis equal tight off xy
-    caxis([-maxDensity maxDensity])
+    caxis([-max_avg_difference max_avg_difference])
     colormap(my_colormap)
 %     for region_index = 1:size(watershed_centroids,1)-1
 %         text(xx(watershed_centroids(region_index,1)), ...

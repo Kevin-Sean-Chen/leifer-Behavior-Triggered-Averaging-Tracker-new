@@ -29,8 +29,9 @@ hold on
 imagesc(xx,xx,density)
 plot(xx(jj),xx(ii),'k.')
 axis equal tight off xy
+maxDensity = max(density(:));
 caxis([0 maxDensity * .8])
-colormap(jet)
+colormap(parula)
 hold off
 
 [x,y] = getpts;
@@ -38,9 +39,17 @@ close
 selected_point = [x(1), y(1)];
 
 %% STEP 4a: get example points based on closeness to the selected point
-[~,possible_training_indecies] = pdist2(trainingEmbedding,selected_point,'euclidean','Smallest',size(trainingEmbedding,1));
-possible_tracks = trainingSetTracks(possible_training_indecies);
-possible_frames = trainingSetFrames(possible_training_indecies);
+[~,possible_indecies] = pdist2(all_embeddings,selected_point,'euclidean','Smallest',size(all_embeddings,1));
+frame_indecies_per_frame = [allTracks.Frames];
+track_indecies_per_frame = zeros(size(frame_indecies_per_frame));
+current_index = 1;
+for track_index = 1:length(allTracks)
+    track_indecies_per_frame(current_index:current_index+length(allTracks(track_index).Frames)-1) = repmat(track_index,1,length(allTracks(track_index).Frames));
+    current_index = current_index + length(allTracks(track_index).Frames);
+end
+
+possible_tracks = track_indecies_per_frame(possible_indecies);
+possible_frames = frame_indecies_per_frame(possible_indecies);
 
 % %% STEP 4b: get example points based on watershed region
 % watershed_x = SpaceMapping(selected_point(1),xx);
@@ -49,11 +58,11 @@ possible_frames = trainingSetFrames(possible_training_indecies);
 % 
 % %find all training points in the region
 % [watershed_ii,watershed_jj] = find(L==watershed_region);
-% watershed_space_embedding = SpaceMapping(trainingEmbedding,xx);
+% watershed_space_embedding = SpaceMapping(all_embeddings,xx);
 % possible_training_indecies = find(ismember(watershed_space_embedding,[watershed_jj,watershed_ii],'rows'));
 % possible_training_indecies = possible_training_indecies(randperm(length(possible_training_indecies))); %randomize order
-% possible_tracks = trainingSetTracks(possible_training_indecies);
-% possible_frames = trainingSetFrames(possible_training_indecies);
+% possible_tracks = track_indecies(possible_training_indecies);
+% possible_frames = frame_indecies(possible_training_indecies);
 
 %% STEP 5: get N points that fits the criteria
 selected_training_indecies = [];
@@ -82,7 +91,7 @@ while length(selected_training_indecies) < N
             data_point_accepted = true;
         end
         if data_point_accepted
-            selected_training_indecies = [selected_training_indecies, possible_training_indecies(current_index)];
+            selected_training_indecies = [selected_training_indecies, possible_indecies(current_index)];
             selected_tracks = [selected_tracks, current_track_number];
             selected_frames = [selected_frames, current_frame_number];  
         end
@@ -90,8 +99,8 @@ while length(selected_training_indecies) < N
     current_index = current_index + 1;
 end
 
-selected_embedded_points = trainingEmbedding(selected_training_indecies, :);
-selected_feature_vectors = trainingSetData(selected_training_indecies,:);
+selected_embedded_points = all_embeddings(selected_training_indecies, :);
+% selected_feature_vectors = trainingSetData(selected_training_indecies,:);
 
 %% STEP 6: plot the training points selected
 sample_figure = figure('Position', [0, 0, size(xx,2), size(xx,2)])
@@ -137,10 +146,7 @@ for relative_frame_index = -frames_before:frames_after
             continue
         else
             subplot_tight(N_rows,N_columns,subplot_index,0);
-            plot_worm_frame(required_worm_images(subplot_index).worm_images(:,:,worm_frame_index), squeeze(allTracks(track_index).Centerlines(:,:,worm_frame_index)), ...
-            allTracks(track_index).UncertainTips(worm_frame_index), ...
-            allTracks(track_index).Eccentricity(worm_frame_index), allTracks(track_index).Direction(worm_frame_index), ...
-            allTracks(track_index).Speed(worm_frame_index),  allTracks(track_index).TotalScore(worm_frame_index), 0);
+            plot_worm_frame(required_worm_images(subplot_index).worm_images(:,:,worm_frame_index));
         end
     end
     
@@ -167,7 +173,7 @@ close(outputVideo)
 close(behavior_figure)
 
 %% STEP 8: plot feature vectors
-feature_vector_figure = figure('Position', [0, 0, 800, 800]);
-imagesc(selected_feature_vectors);
-colorbar
-saveas(feature_vector_figure,fullfile(pathname,[filename(1:end-4), '_featurevector.png']),'png');
+% feature_vector_figure = figure('Position', [0, 0, 800, 800]);
+% imagesc(selected_feature_vectors);
+% colorbar
+% saveas(feature_vector_figure,fullfile(pathname,[filename(1:end-4), '_featurevector.png']),'png');

@@ -1,5 +1,5 @@
 function [folders, folder_tags, folder_count] = catalog_tags(folder_name)
-%get the experimental folders
+%get the experimental folders recursively
     folders = {};
     folder_count = 0;
     folder_tags = cell(0,0);
@@ -18,7 +18,11 @@ function [folders, folder_tags, folder_count] = catalog_tags(folder_name)
             %this is an image folder with tags
             folder_count = folder_count + 1;
             folders{folder_count} = folder_name;
-            folder_tags(1,1) = {textread([folder_name, filesep, 'tags.txt'], '%s', 'delimiter', ' ')};
+            %make the date of the experiment into a tag
+            path = strsplit(folder_name,filesep);
+            date_folder = path{length(path)-1};
+            my_tags = textread([folder_name, filesep, 'tags.txt'], '%s', 'delimiter', ' ');
+            folder_tags(1,1) = {[my_tags; date_folder]};
         end
     else
         allFiles = dir(folder_name); %get all the subfolders

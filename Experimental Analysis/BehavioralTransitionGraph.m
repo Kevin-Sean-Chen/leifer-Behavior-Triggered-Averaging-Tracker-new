@@ -1,5 +1,6 @@
-function [transition_graph,normalized_adj_matrix] = BehavioralTransitionGraph(Tracks, number_of_behaviors, plotting, ratio_included)
+function [transition_graph,normalized_adj_matrix, adj_matrix, adj_matrix_duration_occupied] = BehavioralTransitionGraph(Tracks, number_of_behaviors, plotting, ratio_included)
     % Generates a normalized adjacency matrix from tracks
+    % the generated adjacency matrix has "from" columns and "to" rows
 % Tracks = load_single_folder('F:\Mochi\Data\20161028\Data20161028_130913', {'BehavioralTransition'});
     if nargin < 2
         number_of_behaviors = 12;
@@ -14,16 +15,20 @@ function [transition_graph,normalized_adj_matrix] = BehavioralTransitionGraph(Tr
 
     %construct the adjacency matrix
     adj_matrix = zeros(number_of_behaviors);
+    adj_matrix_duration_occupied = zeros(number_of_behaviors);
     for track_index = 1:length(Tracks)
         if size(Tracks(track_index).BehavioralTransition,1) > 1
          from_indecies = Tracks(track_index).BehavioralTransition(1:end-1,1);
          to_indecies = Tracks(track_index).BehavioralTransition(2:end,1);
+         duration_occupied = Tracks(track_index).BehavioralTransition(2:end,4);
             for transition_index = 1:length(from_indecies)
                 %skip the behavior 0 and above specified behavior
                 if from_indecies(transition_index) > 0 && to_indecies(transition_index) > 0 && ...
                     from_indecies(transition_index) <= number_of_behaviors && to_indecies(transition_index) <= number_of_behaviors
                      adj_matrix(from_indecies(transition_index),to_indecies(transition_index)) = ...
                          adj_matrix(from_indecies(transition_index),to_indecies(transition_index)) + 1;
+                     adj_matrix_duration_occupied(from_indecies(transition_index),to_indecies(transition_index)) = ...
+                         adj_matrix_duration_occupied(from_indecies(transition_index),to_indecies(transition_index)) + duration_occupied(transition_index);
                 end
             end
         end

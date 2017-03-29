@@ -10,6 +10,6 @@ function [predicted_behavior_rate] = PredictLNP(LEDPower, linear_kernel, modeled
     filtered_signal = padded_conv(LEDPower, linear_kernel);
     predicted_behavior_rate = modeled_fit(filtered_signal);
     predicted_behavior_rate = reshape(predicted_behavior_rate, [], bin_size);
-    predicted_behavior_rate = mean(predicted_behavior_rate, 2)' .* fps * 60;
+    predicted_behavior_rate = mean(predicted_behavior_rate, 2)';
 end
 
