@@ -1,6 +1,8 @@
 folders_tri_ret = getfoldersGUI();
-[allTracks_tri_ret, folder_indecies, track_indecies ] = loadtracks(folders_tri_ret,{'BehavioralTransition',...
-    'Path','Frames','LEDPower','LEDVoltages','Behaviors','Embeddings'});
+load('reference_embedding.mat')
+relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
+
+[allTracks_tri_ret, folder_indecies, track_indecies ] = loadtracks(folders_tri_ret,relevant_track_fields);
 %% calculate directional behaviors for triangle waves
 %get the number of behaviors
 number_of_behaviors = max(L(:))-1;
@@ -106,37 +108,37 @@ downtick_behavioral_std = sqrt(downtick_behavioral_counts) ./ size(downtick_beha
 uptick_behavioral_rates = uptick_behavioral_counts ./ size(uptick_behaviors,2)*14*60;
 downtick_behavioral_rates = downtick_behavioral_counts ./ size(downtick_behaviors,2)*14*60;
 
-% figure
-% hold on
-% errorbar(uptick_behavioral_rates, uptick_behavioral_std, 'r*')
-% errorbar(downtick_behavioral_rates, downtick_behavioral_std, 'bo')
-% hold off
-% xlabel('Behavioral Region');
-% ylabel('Transition Rate (Behavior/Min)');
-% legend({'Increasing','Decreasing'});
+figure
+hold on
+errorbar(uptick_behavioral_rates, uptick_behavioral_std, 'r*')
+errorbar(downtick_behavioral_rates, downtick_behavioral_std, 'bo')
+hold off
+xlabel('Behavioral Region');
+ylabel('Transition Rate (Behavior/Min)');
+legend({'Increasing','Decreasing'});
 
-%separate by behaviors
-for behavior_index = 1:number_of_behaviors
-    figure
-    hold on
-    relevant_indecies = find(edges(:,2) == behavior_index);
-    errorbar(uptick_behavioral_rates(relevant_indecies), uptick_behavioral_std(relevant_indecies), 'r*')
-    errorbar(downtick_behavioral_rates(relevant_indecies), downtick_behavioral_std(relevant_indecies), 'bo')
-    xticklabelcells = {};
-    for edge_index = 1:length(relevant_indecies);
-        xticklabelcells{edge_index} = [num2str(edges(relevant_indecies(edge_index),1)) ' To ' num2str(edges(relevant_indecies(edge_index),2))];
-    end
-    xticklabelcells{edge_index+1} = '';
-    set(gca,'XTick',1:size(edges,1))
-    set(gca,'XTickLabel',xticklabelcells)
-    set(gca,'XTickLabelRotation',90)
-
-    hold off 
-    xlabel('Behavioral Region');
-    ylabel('Transition Rate (Behavior/Min)');
-    legend({'Increasing','Decreasing'});
-
-end
+% %separate by behaviors
+% for behavior_index = 1:number_of_behaviors
+%     figure
+%     hold on
+%     relevant_indecies = find(edges(:,2) == behavior_index);
+%     errorbar(uptick_behavioral_rates(relevant_indecies), uptick_behavioral_std(relevant_indecies), 'r*')
+%     errorbar(downtick_behavioral_rates(relevant_indecies), downtick_behavioral_std(relevant_indecies), 'bo')
+%     xticklabelcells = {};
+%     for edge_index = 1:length(relevant_indecies);
+%         xticklabelcells{edge_index} = [num2str(edges(relevant_indecies(edge_index),1)) ' To ' num2str(edges(relevant_indecies(edge_index),2))];
+%     end
+%     xticklabelcells{edge_index+1} = '';
+%     set(gca,'XTick',1:size(edges,1))
+%     set(gca,'XTickLabel',xticklabelcells)
+%     set(gca,'XTickLabelRotation',90)
+% 
+%     hold off 
+%     xlabel('Behavioral Region');
+%     ylabel('Transition Rate (Behavior/Min)');
+%     legend({'Increasing','Decreasing'});
+% 
+% end
 %% plot the LEDPower
 fps = 14;
 parameters = load_parameters();

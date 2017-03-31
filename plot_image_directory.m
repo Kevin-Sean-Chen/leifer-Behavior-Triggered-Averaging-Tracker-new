@@ -35,8 +35,6 @@ function success = plot_image_directory(folder_name)
     if parameters.PlottingFrameRate <= 0
         success = true;
         return
-    else 
-        parameters.PlottingFrameRate = 14;
     end
     
     % Get all the tif file names (probably jpgs)
