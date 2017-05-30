@@ -1,7 +1,7 @@
 #!/bin/bash
 output_file_name=/tigress/LEIFER/Mochi/logs/viewoutput.csv
 folder_name=$1
-
+repress_completed=$2
 log_name=$1/status.csv
 
 if ! test -w $log_name; then 
@@ -37,11 +37,15 @@ last_step=$(ScriptToOrdering.sh max)
 if [ "$step_completed" -ge "$last_step" ]; then
 	#we are done last character is a stop!
 	progress_bar=$(PrintProgressBar.sh $step_completed)'|'
+	completed=1
 else
 	progress_bar=$(PrintProgressBar.sh $step_completed)'>'
+	completed=0
 fi
 
 
 short_folder_name=$(basename $folder_name)
 
-echo $short_folder_name' '$progress_bar' '$last_script_name' '$status' '$comment' '$day_diff'-'$time_diff' '$jobID>>$output_file_name
+if [[ ("$completed" == 0 ) || ( "$repress_completed" == 0) ]]; then
+	echo $short_folder_name' '$progress_bar' '$last_script_name' '$status' '$comment' '$day_diff'-'$time_diff' '$jobID>>$output_file_name
+fi
