@@ -1,5 +1,5 @@
 function [ Velocity ] = find_velocity(Speed, Direction, Centerlines, image_size)
-%UNTITLED Summary of this function goes here
+%generates the velocity vector that gets binarized into "directionality"
     
     direction_vector = [Speed.*-cosd(Direction); Speed.*sind(Direction)];
     head_vector = reshape(Centerlines(1,:,:),2,[]) - (image_size/2);    

@@ -1,3 +1,13 @@
+load('reference_embedding.mat')
+
+relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
+folders = getfoldersGUI();
+
+[allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
+
+
+
+
 observations = cell(size(L));
 image_size = [70, 70];
 

@@ -1,0 +1,1 @@
+PlotWatershed(vertcat(allTracks.Embeddings));

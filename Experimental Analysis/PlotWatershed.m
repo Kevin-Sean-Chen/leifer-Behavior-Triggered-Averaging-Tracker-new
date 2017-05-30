@@ -1,12 +1,17 @@
 function [] = PlotWatershed(embeddingValues)
 %Plots the density map along with the watershed
-    maxVal = max(max(abs(embeddingValues)));
-    maxVal = round(maxVal * 1.1);
     load('reference_embedding.mat')
+    if nargin > 0
+        maxVal = max(max(abs(embeddingValues)));
+        maxVal = round(maxVal * 1.1);
 
-    sigma = 4; %change smoothing factor if necessary
+        sigma = 4; %change smoothing factor if necessary
 
-    [xx,density] = findPointDensity(embeddingValues,sigma,501,[-maxVal maxVal]);
+        [xx,density] = findPointDensity(embeddingValues,sigma,501,[-maxVal maxVal]);
+        maxDensity = max(density(:));
+        density(density < 10e-6) = 0;
+    end
+    
     maxDensity = max(density(:));
     density(density < 10e-6) = 0;
 %     L = watershed(-density,8);
@@ -21,7 +26,8 @@ function [] = PlotWatershed(embeddingValues)
     watershed_centroids = round(watershed_centroids);
 
     %modify col0r map
-    my_colormap = parula;
+    %my_colormap = parula;
+    my_colormap = othercolor('OrRd9');
     my_colormap(1,:) = [1 1 1];
 
     %figure
@@ -38,7 +44,6 @@ function [] = PlotWatershed(embeddingValues)
 %             'fontsize', 12, 'horizontalalignment', 'center', ...
 %             'verticalalignment', 'middle');
 %     end
-    hold off
-
+    colorbar
 end
 

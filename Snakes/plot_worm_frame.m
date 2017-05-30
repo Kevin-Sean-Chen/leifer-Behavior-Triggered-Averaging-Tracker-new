@@ -19,11 +19,11 @@ function [] = plot_worm_frame(I, center_lines, UncertainTips, eccentricity, dire
     if nargin > 1
        %plotting more than the image
            hold on
-        plot(center_lines(:,2), center_lines(:,1), '-g','LineWidth',1)
-    %     plot(center_lines(:,2), center_lines(:,1), '-g','LineWidth',3)
+        %plot(center_lines(:,2), center_lines(:,1), '-g','LineWidth',1)
+        %plot(center_lines(:,2), center_lines(:,1), '-g','LineWidth',3)
         %head
-        plot(center_lines(1,2), center_lines(1,1), '.g','markersize',20)
-    %     plot(center_lines(1,2), center_lines(1,1), '.g','markersize',50)
+        %plot(center_lines(1,2), center_lines(1,1), '.g','markersize',20)
+        %plot(center_lines(1,2), center_lines(1,1), '.g','markersize',50)
 
     %     %uncertain tips
     %     if ~isempty(UncertainTips.Tips)

@@ -1,6 +1,9 @@
 function [ new_labels ] = combine_watersheds( L, indecies_to_combine )
 %This function combines the indecies in indecies_to_combine
-
+    if length(indecies_to_combine) < 2
+        new_labels = L;
+        return
+    end
     BW = im2bw(L, 0);
     BW_combined_indecies = ismember(L, indecies_to_combine);
     BW_combined_indecies = bwmorph(BW_combined_indecies,'close');

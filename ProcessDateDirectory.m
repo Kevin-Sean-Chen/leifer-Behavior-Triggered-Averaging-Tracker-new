@@ -1,8 +1,8 @@
 % analysis options
-tracking = 1;
+tracking = 0;
 finding_centerline = 0;
 resolving_problems = 0;
-plotting = 1;
+plotting = -2;
 calculate_behavior = 0;
 backup = 0;
 parameters = load_parameters(); %load default parameters

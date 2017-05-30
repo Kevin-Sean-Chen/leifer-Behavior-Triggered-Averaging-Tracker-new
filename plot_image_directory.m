@@ -7,6 +7,7 @@ function success = plot_image_directory(folder_name)
     parameters = load_parameters(folder_name); %load experiment parameters
     mask = parameters.Mask;
 
+    parameters.IndividualVideoPlottingFrameRate = 14;
     if parameters.IndividualVideoPlottingFrameRate > 0
         %plot individual worms
         relevant_track_fields = {'Centerlines','UncertainTips','Eccentricity',...
