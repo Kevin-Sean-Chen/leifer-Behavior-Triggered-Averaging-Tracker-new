@@ -6,8 +6,7 @@ function success = plot_image_directory(folder_name)
     number_of_images_for_median_projection = 20;
     parameters = load_parameters(folder_name); %load experiment parameters
     mask = parameters.Mask;
-
-    parameters.IndividualVideoPlottingFrameRate = 14;
+    
     if parameters.IndividualVideoPlottingFrameRate > 0
         %plot individual worms
         relevant_track_fields = {'Centerlines','UncertainTips','Eccentricity',...
