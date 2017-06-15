@@ -5,7 +5,7 @@ job_ID=$3
 status=$4
 comment=$5
 
-log_name=$1/status.csv
+log_name=${1%/}/status.csv
 
 master_log_name=/tigress/LEIFER/Mochi/logs/masterlog.csv
 error_log_name=/tigress/LEIFER/Mochi/logs/errorlog.csv

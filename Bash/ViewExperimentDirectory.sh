@@ -2,7 +2,7 @@
 output_file_name=/tigress/LEIFER/Mochi/logs/viewoutput.csv
 folder_name=$1
 repress_completed=$2
-log_name=$1/status.csv
+log_name=${1%/}/status.csv
 
 if ! test -w $log_name; then 
 	# log file does not exist, create it and exit

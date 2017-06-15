@@ -4,7 +4,7 @@ folder_name=$1
 script_name=$2
 job_ID=$3
 
-log_name=$1/status.csv
+log_name=${1%/}/status.csv
 
 #read the last line of the log
 last_line=$(tac $log_name |egrep -m 1 .)

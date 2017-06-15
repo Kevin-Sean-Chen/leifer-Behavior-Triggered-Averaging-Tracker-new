@@ -3,7 +3,7 @@
 # Returns empty nothing has been completed so far
 folder_name=$1
 
-log_name=$1/status.csv
+log_name=${1%/}/status.csv
 
 if ! test -w $log_name; then 
 	# log file does not exist, create it and exit
