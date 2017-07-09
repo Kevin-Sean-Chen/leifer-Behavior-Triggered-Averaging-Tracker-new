@@ -1,5 +1,5 @@
 #!/bin/bash
-folder_name=$1
+folder_name=${1%/}
 UpdateLog.sh $folder_name delete_tracks HEAD_NODE START Deleting_Analysis_Files
 
 declare -a files_removed
