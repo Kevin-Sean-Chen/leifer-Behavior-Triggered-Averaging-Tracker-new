@@ -1,5 +1,5 @@
 #!/bin/bash
-output_file_name=/tigress/LEIFER/Mochi/logs/viewoutput.csv
+output_file_name=~/logs/viewoutput.csv
 folder_name=$1
 repress_completed=$2
 log_name=${1%/}/status.csv

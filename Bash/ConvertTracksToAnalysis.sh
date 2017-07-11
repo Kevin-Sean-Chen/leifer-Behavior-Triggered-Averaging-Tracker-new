@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/mochil/github/leifer-Behavior-Triggered-Averaging-Tracker
+cd ~/github/leifer-Behavior-Triggered-Averaging-Tracker
 
 echo 'converting tracks to analysis folders'
 

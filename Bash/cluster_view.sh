@@ -1,6 +1,6 @@
 #!/bin/bash
 export PATH=$PATH:~/github/leifer-Behavior-Triggered-Averaging-Tracker/Bash
-output_file_name=/tigress/LEIFER/Mochi/logs/viewoutput.csv
+output_file_name=~/logs/viewoutput.csv
 
 cd ~/outputs/
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 # save the previous logs with the current timestamp and initialize new logs
 
-log_directory=/tigress/LEIFER/Mochi/logs/
+log_directory=~/logs/
 master_log_name=masterlog.csv
 error_log_name=errorlog.csv
 log_header=Script_Name,Status,Time,Folder_Name,JobID,Computer_Name,Comment

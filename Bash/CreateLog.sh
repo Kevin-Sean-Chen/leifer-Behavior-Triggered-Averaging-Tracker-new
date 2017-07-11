@@ -5,7 +5,7 @@ job_ID=$3
 
 log_name=${1%/}/status.csv
 
-master_log_name=/tigress/LEIFER/Mochi/logs/masterlog.csv
+master_log_name=~/logs/masterlog.csv
 
 current_time=$(date +%F_%T)
 

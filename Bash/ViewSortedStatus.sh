@@ -1,6 +1,6 @@
 #!/bin/bash
-output_file_name=/tigress/LEIFER/Mochi/logs/viewoutput.csv
-sorted_output_file_name=/tigress/LEIFER/Mochi/logs/sortedviewoutput.csv
+output_file_name=~/logs/viewoutput.csv
+sorted_output_file_name=~/logs/sortedviewoutput.csv
 
 #sort the ouputs
 sort -k2,2 -k3,3 -k4,4 -k5,5 -k6,6 $output_file_name>$sorted_output_file_name

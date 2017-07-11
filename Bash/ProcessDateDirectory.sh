@@ -14,7 +14,7 @@ else
 	# loop through all the directories in a date folder
 
 	# log in the master log
-	master_log_name=/tigress/LEIFER/Mochi/logs/masterlog.csv
+	master_log_name=~/logs/masterlog.csv
 	current_time=$(date +%F_%T)
 	log_entry=ProcessDateDirectory,START,$current_time,$date_folder,HEAD_NODE,$(hostname),'Starting_At:'$(OrderingToScript.sh $next_step)
 	echo $log_entry>>$master_log_name

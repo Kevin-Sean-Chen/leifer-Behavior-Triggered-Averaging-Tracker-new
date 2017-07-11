@@ -7,8 +7,8 @@ comment=$5
 
 log_name=${1%/}/status.csv
 
-master_log_name=/tigress/LEIFER/Mochi/logs/masterlog.csv
-error_log_name=/tigress/LEIFER/Mochi/logs/errorlog.csv
+master_log_name=~/logs/masterlog.csv
+error_log_name=~/logs/errorlog.csv
 
 current_time=$(date +%F_%T)
 
