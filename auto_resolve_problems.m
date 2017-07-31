@@ -16,7 +16,12 @@ function success = auto_resolve_problems(folder_name)
     for track_index = 1:length(Tracks)
         Track = Tracks(track_index);
         potential_problems = Track.PotentialProblems;
-        if sum(potential_problems) > 0
+        if isempty(potential_problems)
+            % this track is marked for deletion in centerline_finding
+            Modifications(modifications_index).TrackIndex = track_index;
+            Modifications(modifications_index).Action = 1; %delete
+            modifications_index = modifications_index + 1;
+        elseif sum(potential_problems) > 0
             %there is a potential problem in this track
             frames_with_potential_problems = potential_problems > 0;
             if sum(frames_with_potential_problems) / length(frames_with_potential_problems) > 0.03 
