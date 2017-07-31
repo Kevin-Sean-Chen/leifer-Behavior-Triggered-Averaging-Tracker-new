@@ -1,7 +1,8 @@
 function [Percentage, reversal_counts, frame_count]= ReversalPercentage(folders, Tracks, frames)
     fps = 14;
     allTracks = [];
-    
+    relevant_fields = {'Frames','Pirouettes'};
+
     if nargin < 1 %no folders are given, ask user to select
         folders = {};
         while true
@@ -17,9 +18,7 @@ function [Percentage, reversal_counts, frame_count]= ReversalPercentage(folders,
     if nargin < 3 %Folders are given but no Tracks are given
         for folder_index = 1:length(folders)
             folder_name = folders{folder_index};
-            cd(folder_name) %open the directory of image sequence
-            load('tracks.mat')
-            allTracks = [allTracks, Tracks];
+            allTracks = loadtracks({folder_name},relevant_fields);
             try
                 load('parameters.txt')
                 frames = parameters(length(parameters));

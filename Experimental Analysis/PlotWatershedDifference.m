@@ -28,7 +28,7 @@ function [density_diff] = PlotWatershedDifference(embeddingValues1,embeddingValu
     labeled_avg_diff = reshape(labeled_avg_diff,size(L,1),size(L,2));
 
     maxDensity = max(abs(density_diff(:)));
-    [ii,jj] = find(L==0);
+    [ii,jj] = find(encapsulate_watershed_matrix(L)==0);
 
     watershed_centroids = regionprops(L, 'centroid');
     watershed_centroids = vertcat(watershed_centroids.Centroid);
