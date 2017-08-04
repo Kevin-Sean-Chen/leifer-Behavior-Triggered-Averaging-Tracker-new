@@ -2,7 +2,11 @@ function success = calculate_behaviors(folder_name)
 % use behavioral mapping to analyze a group of experiments
     addpath(genpath(pwd))
     %set up parameters
-%     parameters = load_parameters(folder_name);
+    parameters = load_parameters(folder_name);
+    if parameters.TrackOnly
+        success = true;
+        return
+    end
     load('reference_embedding.mat')
     number_of_behaviors = max(L(:)-1);
     relevant_track_fields = {'Embeddings'};

@@ -78,3 +78,4 @@ training_numPoints,number of points to evaluate in each training set file,10000,
 minTemplateLength,minimum training set template length,1,,,,,,,,,
 subsamplingIterations,number of iterataions of t-SNE to perform to subsample,10,,,,,,,,,
 TapCorrection,determines if we should correct for motion blurring due to tapper use,0,,,,,,,,,1
+TrackOnly,Only do tracking. No centerlines and behavioral analysis,0,,,,,,,1,,

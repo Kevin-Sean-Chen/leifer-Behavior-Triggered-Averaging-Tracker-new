@@ -56,29 +56,16 @@ function [X, Y, meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies,fo
     allLEDPower = [Tracks.LEDPower];
     meanLEDPower = mean(allLEDPower);
     stdLEDPower = std(allLEDPower);
-
-    %calculate the BTA and linear kernel
+    clear allLEDPower
+    
     Behaviors = circshift_triggers({Tracks(:).Behaviors}, BTA_seconds_before_and_after, false, true);
-    
-    StimRows = cell(size(Behaviors));
-    Y = horzcat(Behaviors{:})'; %binary matrix with all the behavioral transitions
-    
-    clear Behaviors allLEDPower 
-    %getting the staggered stimulus rows
-    parfor track_index = 1:length(Tracks)
-        StimRows{track_index} = makeStimRows(transpose(Tracks(track_index).LEDPower),BTA_length);
-    end
+    Stim = {Tracks(:).LEDPower - meanLEDPower}; %mean offset the stimulus
     
     clear Tracks
     
-    X = vertcat(StimRows{:}); %build design matrix
+    [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, false);
+
     
-    %loop through the behaviors and get the whitened sta for each
-    for behavior_index = 1:1
-        nsp = sum(Y(:,behavior_index)); %number of spikes
-        sta = (X'*sps)/nsp;
-        wsta = (X'*X)\sta*nsp; %whiten the STA
-    end
     
 %     [BTA, trigger_count, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, true);
 %     clear Behaviors LEDPowers

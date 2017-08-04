@@ -3,6 +3,12 @@ function success = calculate_spectra(folder_name)
     addpath(genpath(pwd))
     %set up parameters
     parameters = load_parameters(folder_name);
+    
+    if parameters.TrackOnly
+        success = true;
+        return
+    end
+    
     relevant_track_fields = {'ProjectedEigenValues','Frames','Velocity'};
 
     %% Load tracks

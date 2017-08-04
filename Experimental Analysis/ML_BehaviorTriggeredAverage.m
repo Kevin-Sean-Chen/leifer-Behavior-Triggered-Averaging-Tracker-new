@@ -1,17 +1,32 @@
-function [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, LEDPowers, bootstrap)
+function [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, meanLEDPower, bootstrap)
     %finds the behavior triggered average, optionally determine the
     %significance of the BTA by shuffling transitions randomly and finding
     %the BTA
+    fps = 14;
     BTA_seconds_before_and_after = 10;
     number_of_random_shuffles = 100;
+    
     number_of_behaviors = size(Behaviors{1},1);
-
+    seconds_before = BTA_seconds_before_and_after;
+    seconds_after = BTA_seconds_before_and_after;
+    BTA_length = (fps*seconds_before)+(fps*seconds_after)+1;
+    
     if nargin < 3
         %default for bootstrap is true
         bootstrap = true;
     end
-    Concatenated_LEDPowers = horzcat(LEDPowers{:});
-    mean_LEDPowers = mean(Concatenated_LEDPowers);
+    
+    StimRows = cell(size(Stim));
+    sps = horzcat(Behaviors{:})'; %binary matrix with all the behavioral transitions
+    
+    %getting the staggered stimulus rows
+    parfor track_index = 1:length(Stim)
+        StimRows{track_index} = makeStimRows(transpose(Stim{track_index}),BTA_length);
+    end
+    
+    Stim = vertcat(StimRows{:}); %build design matrix
+    clear StimRows
+    
     
     %get triggers accounting for edges
     no_edge_Behaviors = circshift_triggers(Behaviors,BTA_seconds_before_and_after,false);

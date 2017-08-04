@@ -56,6 +56,10 @@ for behavior_index = 1:1
     end
     hold off;
 
+    [~, min_idx] = min(msetest);
+    
+    w_ridge_min = w_ridge(:,min_idx);
+    plot(w_ridge_min)
 %     figure
 %     semilogx(lamvals,msetrain)
 %     xlabel('lambda');

@@ -2,6 +2,11 @@ function success = find_centerlines(folder_name)
     addpath(genpath(pwd))
     
     parameters = load_parameters(folder_name); %load experiment parameters
+    if parameters.TrackOnly
+        success = true;
+        return
+    end
+    
     relevant_track_fields = {'Eccentricity','Direction','Speed'};
 
     %% Load tracks

@@ -2,9 +2,16 @@ function success = auto_resolve_problems(folder_name)
 % automatically resolve centerline problems
     addpath(genpath(pwd))
     parameters = load_parameters(folder_name); %load experiment parameters
+
+    if parameters.TrackOnly
+        success = true;
+        return
+    end
+    
     frames_around_problem_to_cut = 28;
     min_track_length = parameters.MinTrackLength;
 
+    
     %% Load tracks
     Tracks = load_single_folder(folder_name);
     if isempty(Tracks)
