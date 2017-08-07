@@ -1,6 +1,12 @@
-function [X, Y, meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies,folders)
+%function [X, Y, meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies,folders)
 %FitLNP takes in tracks and outputs the parameters of the LNP
 %   Detailed explanation goes here
+
+    relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
+    %select folders
+    folders = getfoldersGUI();
+    [Tracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
+
     numbins = 10;
     
     fps = 14;
@@ -58,12 +64,14 @@ function [X, Y, meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies,fo
     stdLEDPower = std(allLEDPower);
     clear allLEDPower
     
-    Behaviors = circshift_triggers({Tracks(:).Behaviors}, BTA_seconds_before_and_after, false, true);
-    Stim = {Tracks(:).LEDPower - meanLEDPower}; %mean offset the stimulus
-    
+    Behaviors = {Tracks(:).Behaviors};
+    Stim = cell(size(Behaviors));
+    for track_index = 1:length(Tracks)
+        Stim{track_index} = Tracks(track_index).LEDPower - meanLEDPower; %mean offset the stimulus
+    end
     clear Tracks
     
-    [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, false);
+    [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, true);
 
     
     
@@ -162,5 +170,5 @@ function [X, Y, meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies,fo
 %             disp(num2str(behavior_index));
 %         end
 %     end
-end
+%end
 

@@ -1,11 +1,12 @@
-function [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, meanLEDPower, bootstrap)
+function [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, bootstrap)
     %finds the behavior triggered average, optionally determine the
     %significance of the BTA by shuffling transitions randomly and finding
     %the BTA
     fps = 14;
     BTA_seconds_before_and_after = 10;
-    number_of_random_shuffles = 100;
-    
+    number_of_random_shuffles = 10;
+    trainfrac = .8;  % fraction of data to use for training
+
     number_of_behaviors = size(Behaviors{1},1);
     seconds_before = BTA_seconds_before_and_after;
     seconds_after = BTA_seconds_before_and_after;
@@ -16,37 +17,66 @@ function [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage
         bootstrap = true;
     end
     
-    StimRows = cell(size(Stim));
-    sps = horzcat(Behaviors{:})'; %binary matrix with all the behavioral transitions
-    
-    %getting the staggered stimulus rows
-    parfor track_index = 1:length(Stim)
+    %getting the design matrix
+    StimRows = cell(size(Stim)); 
+    for track_index = 1:length(Stim)
         StimRows{track_index} = makeStimRows(transpose(Stim{track_index}),BTA_length);
     end
-    
-    Stim = vertcat(StimRows{:}); %build design matrix
+    X = vertcat(StimRows{:}); %build design matrix
+    nThi = size(X,1);
     clear StimRows
     
-    
     %get triggers accounting for edges
-    no_edge_Behaviors = circshift_triggers(Behaviors,BTA_seconds_before_and_after,false);
-    Concatenated_Behaviors = horzcat(no_edge_Behaviors{:});
-    
-    [BTA, behaviorCounts, BTA_std] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after);
+    no_edge_Behaviors = circshift_triggers(Behaviors, BTA_seconds_before_and_after, false, true);
+    Y = horzcat(no_edge_Behaviors{:})';
+    clear no_edge_Behaviors
+
+    % Divide data into "training" and "test" sets for cross-validation
+    ntrain = ceil(nThi*trainfrac);  % number of training samples
+    ntest = nThi-ntrain; % number of test samples
+    randsequence = randperm(nThi);
+    iitest = randsequence(1:ntest); % time indices for test
+    iitrain = randsequence(ntest+1:end);   % time indices for training
+    Xtrain = X(iitrain,:); % training stimulus
+    Xtest = X(iitest,:); % test stimulus
+    Ytrain = Y(iitrain,:);
+    Ytest = Y(iitest,:);
+    clear X randsequence iitest iitrain randsequence  %get rid of original design matrix to save memory
+
+    [BTA, behaviorCounts, BTA_std] = ML_BehaviorTriggeredAverage_whitened_ridge(Xtrain,Xtest,Ytrain,Ytest);
     
     if bootstrap
-        BTA_norm = sqrt(sum((BTA-mean_LEDPowers).^2, 2));
+        BTA_norm = sqrt(sum(BTA.^2, 2));
 
         %perform bootstrapping
         shuffle_norms = zeros(number_of_behaviors,number_of_random_shuffles);
         for shuffle_index = 1:number_of_random_shuffles
-            %get triggers accounting for edges
-            no_edge_Behaviors = circshift_triggers(Behaviors,BTA_seconds_before_and_after,true);
-            Concatenated_Behaviors = horzcat(no_edge_Behaviors{:});
-            [shuffle_BTA, ~, ~] = fastparallel_BehaviorTriggeredAverage(Concatenated_Behaviors,Concatenated_LEDPowers,BTA_seconds_before_and_after);
+            % do the BTA many many times
+            
+            %getting the design matrix
+            StimRows = cell(size(Stim)); 
+            for track_index = 1:length(Stim)
+                StimRows{track_index} = makeStimRows(transpose(Stim{track_index}),BTA_length);
+            end
+            X = vertcat(StimRows{:}); %build design matrix
+            clear StimRows
 
+            % Divide data into "training" and "test" sets for cross-validation
+            ntrain = ceil(nThi*trainfrac);  % number of training samples
+            ntest = nThi-ntrain; % number of test samples
+            randsequence = randperm(nThi);
+            iitest = randsequence(1:ntest); % time indices for test
+            iitrain = randsequence(ntest+1:end);   % time indices for training
+            Xtrain = X(iitrain,:); % training stimulus
+            Xtest = X(iitest,:); % test stimulus
+            Ytrain = Y(iitrain,:);
+            Ytest = Y(iitest,:);
+            clear X randsequence iitest iitrain randsequence  %get rid of original design matrix to save memory
+
+            [shuffle_BTA, ~, ~] = ML_BehaviorTriggeredAverage_whitened_ridge(Xtrain,Xtest,Ytrain,Ytest);
+            
             %get the L2 norm of the shuffled_BTAs
-            shuffle_norm = sqrt(sum((shuffle_BTA-mean_LEDPowers).^2, 2));
+            shuffle_norm = sqrt(sum(shuffle_BTA.^2, 2));
             shuffle_norms(:,shuffle_index) = shuffle_norm;
 
             disp(num2str(shuffle_index));
@@ -63,6 +93,5 @@ function [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage
         BTA_stats.BTA_percentile = BTA_percentile;
     else
         BTA_stats = [];
-
     end
 end

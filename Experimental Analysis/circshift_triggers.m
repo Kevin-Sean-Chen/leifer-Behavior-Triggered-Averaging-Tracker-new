@@ -10,7 +10,8 @@ function [ Behaviors ] = circshift_triggers(Behaviors, BTA_seconds_before_and_af
     fps = 14;
     distance_to_edge = fps*BTA_seconds_before_and_after;
     if randomize
-       parfor track_index = 1:length(Behaviors)
+       %parfor track_index = 1:length(Behaviors)
+       for track_index = 1:length(Behaviors)
             shift = unidrnd(size(Behaviors{track_index},2));
             Behaviors{track_index} = circshift(Behaviors{track_index},shift,2);
             if remove_edge
@@ -21,7 +22,8 @@ function [ Behaviors ] = circshift_triggers(Behaviors, BTA_seconds_before_and_af
             end
         end
     else
-        parfor track_index = 1:length(Behaviors)
+        %parfor track_index = 1:length(Behaviors)
+        for track_index = 1:length(Behaviors)
             if remove_edge
                 Behaviors{track_index} = Behaviors{track_index}(:,distance_to_edge+1:end-distance_to_edge);
             else
