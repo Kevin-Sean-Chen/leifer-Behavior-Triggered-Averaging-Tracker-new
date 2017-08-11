@@ -1,82 +1,71 @@
-% %loop through the behaviors and get the whitened sta for each
-X = X-9;
+    for behavior_index = 1:number_of_behaviors
+        LNPStats(behavior_index).BTA = BTA(behavior_index,:);    
+        LNPStats(behavior_index).BTA_RMSD = BTA_RMSD(behavior_index,:);    
+        LNPStats(behavior_index).linear_kernel = linear_kernel(behavior_index,:);
+        LNPStats(behavior_index).trigger_count = trigger_count(behavior_index,:);
+        
+        if isempty(BTA_stats)
+            LNPStats(behavior_index).BTA_norm = [];
+            LNPStats(behavior_index).shuffle_norms = [];
+            LNPStats(behavior_index).BTA_percentile = [];
 
-nThi = size(X,1);
-ntfilt = 281;
-% 
-% % Set up grid of lambda values (ridge parameters)
-lamvals = 2.^(1:46); % it's common to use a log-spaced set of values
-nlam = length(lamvals);
-% 
-% Divide data into "training" and "test" sets for cross-validation
+        else
+            LNPStats(behavior_index).BTA_norm = BTA_stats.BTA_norm(behavior_index);
+            LNPStats(behavior_index).shuffle_norms = BTA_stats.shuffle_norms(behavior_index,:);
+            LNPStats(behavior_index).BTA_percentile = BTA_stats.BTA_percentile(behavior_index);
+        end
+        
+        if isempty(nonzeros(linear_kernel(behavior_index,:)))
+            %special case: flat kernel
+            bin_centers = 0:numbins-1;
+            non_linearity = zeros(1,numbins);
+            LNPStats(behavior_index).bin_edges = bin_centers;
+            LNPStats(behavior_index).filtered_signal_histogram = [];
+            LNPStats(behavior_index).filtered_signal_given_reversal_histogram = [];
+            LNPStats(behavior_index).non_linearity_fit = fit(bin_centers',non_linearity','exp1');
+            LNPStats(behavior_index).non_linearity = non_linearity;
+            LNPStats(behavior_index).bin_centers = bin_centers;
+            LNPStats(behavior_index).errors = zeros(1,numbins);
+        else            
+           
+            %calculate the filtered LEDVoltages for all experiments
+            all_filtered_LEDVoltages = cell(1,length(folders));
+            for folder_index = 1:length(folders)
+                %convolve the linear kernels with the input signal of LED voltages
+%                 all_filtered_LEDVoltages{folder_index} = conv(all_LEDVoltages{folder_index}-meanLEDVoltages{folder_index}, linear_kernel(behavior_index,:), 'same');
+                all_filtered_LEDVoltages{folder_index} = padded_conv(all_LEDVoltages{folder_index}-meanLEDVoltages{folder_index}, linear_kernel(behavior_index,:));
+            end
+            
+            %get all the filtered signals concatenated together
+            all_filtered_signal = zeros(1, length(allLEDPower));
+            current_frame_index = 1;
+            for track_index = 1:length(Tracks)
+                current_LEDVoltages2Power = Tracks(track_index).LEDVoltage2Power;
+                filtered_signal = current_LEDVoltages2Power .* all_filtered_LEDVoltages{folder_indecies(track_index)}(Tracks(track_index).Frames);
+                all_filtered_signal(current_frame_index:current_frame_index+length(Tracks(track_index).Frames)-1) = filtered_signal;
+                current_frame_index = current_frame_index+length(Tracks(track_index).Frames);
+            end
 
-trainfrac = .8;  % fraction of data to use for training
-ntrain = ceil(nThi*trainfrac);  % number of training samples
-ntest = nThi-ntrain; % number of test samples
-iitest = 1:ntest; % time indices for test
-iitrain = ntest+1:nThi;   % time indices for training
-Xtrain = X(iitrain,:); % training stimulus
-Xtest = X(iitest,:); % test stimulus
-clear X
-% Xtrain = [ones(ntrain,1),Xtrain];
-% Xtest = [ones(ntest,1),Xtest];
+            %make histogram of filtered signal
+            current_bin_edges = linspace(min(all_filtered_signal), max(all_filtered_signal), numbins+1);
+            current_bin_edges(end) = current_bin_edges(end) + 1;
+            LNPStats(behavior_index).bin_edges = current_bin_edges;
 
+            [current_filtered_signal_histogram, ~] = histc(all_filtered_signal, current_bin_edges);
+            current_filtered_signal_histogram = current_filtered_signal_histogram(1:end-1);
+            LNPStats(behavior_index).filtered_signal_histogram = current_filtered_signal_histogram;
 
-for behavior_index = 1:1
-    % Allocate space for train and test errors
-    msetrain = zeros(nlam,1);  % training error
-    msetest = zeros(nlam,1);   % test error
-    w_ridge = zeros(ntfilt,nlam); % filters for each lambda
-
-    spstrain = Y(iitrain,behavior_index);
-    spstest =  Y(iitest,behavior_index);
-
-    % Precompute some quantities (X'X and X'*y) for training and test data
-    XXtr = Xtrain'*Xtrain;
-    XYtr = Xtrain'*spstrain;  % spike-triggered average, training data
-    Imat = eye(ntfilt); % identity matrix of size of filter + const
-    %Imat(1,1) = 0; % don't apply penalty to constant coeff
-    
-    figure; hold on;
-    for jj = 1:nlam
-        % Compute ridge regression estimate
-        w = (XXtr+lamvals(jj)*Imat) \ XYtr; 
-
-        % Compute MSE
-        msetrain(jj) = (mean((spstrain-Xtrain*w).^2)); % training error
-        msetest(jj) = (mean((spstest-Xtest*w).^2)); % test error
-
-        % store the filter
-        w_ridge(:,jj) = w;
-
-        % plot it
-        plot(w);
-        title(['ridge estimate: lambda = ', num2str(lamvals(jj))]);
-        xlabel('time before spike (s)'); drawnow;
+            %get histogram of filtered_signal given a reversal
+            current_filtered_signal_given_behavior = all_filtered_signal(all_behaviors(behavior_index,:));
+            current_filtered_signal_given_behavior_histogram = histc(current_filtered_signal_given_behavior, current_bin_edges);
+            current_filtered_signal_given_behavior_histogram = current_filtered_signal_given_behavior_histogram(1:end-1);
+            LNPStats(behavior_index).filtered_signal_given_reversal_histogram = current_filtered_signal_given_behavior_histogram;
+        %     figure
+        %     bar(bin_edges(1:end-1), filtered_signal_given_reversal_histogram');
+        %     set(gca,'XTick',round(bin_edges*100)/100)
+            [LNPStats(behavior_index).non_linearity_fit, LNPStats(behavior_index).non_linearity, ...
+                LNPStats(behavior_index).bin_centers, LNPStats(behavior_index).errors] = ...
+                fit_nonlinearity(current_filtered_signal_given_behavior_histogram, current_filtered_signal_histogram, current_bin_edges);
+            disp(num2str(behavior_index));
+        end
     end
-    hold off;
-
-    [~, min_idx] = min(msetest);
-    
-    w_ridge_min = w_ridge(:,min_idx);
-    plot(w_ridge_min)
-%     figure
-%     semilogx(lamvals,msetrain)
-%     xlabel('lambda');
-%     ylabel('MSE on training set');
-%     
-%     figure
-%     semilogx(lamvals,msetest)
-%     xlabel('lambda');
-%     ylabel('MSE on testing set');
-
-%     nsp = sum(Y(:,behavior_index)); %number of spikes
-%     sta = (X'*Y(:,behavior_index))/nsp;
-%     wsta = (X'*X)\sta*nsp; %whiten the STA
-    %establish training and testing datasets
-    
-end
-% figure
-% plot(sta)
-% figure
-% plot(wsta)

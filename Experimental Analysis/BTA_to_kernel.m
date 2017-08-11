@@ -1,4 +1,4 @@
-function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats, meanLEDPower)
+function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats)
 %This function gets the kernel section of the BTA
 %   The kernel is defined as bounded by zeros that contain all the significant
 %   regions
@@ -16,7 +16,7 @@ function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats, meanLEDPower)
 
         if real_kernel
             %mean offset
-            linear_kernel(behavior_index, :) = BTA(behavior_index, :) - meanLEDPower;
+            linear_kernel(behavior_index, :) = BTA(behavior_index, :);
             %the linear kernel is time reversed BTA
             linear_kernel(behavior_index,:) = fliplr(linear_kernel(behavior_index,:));
         end

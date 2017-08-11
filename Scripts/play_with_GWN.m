@@ -1,5 +1,5 @@
 %% load Tracks
-relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
+% relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
 
 %select folders
 folders_GWN_ret = getfoldersGUI();
@@ -7,13 +7,13 @@ folders_GWN_ret = getfoldersGUI();
 % folders_tri_ret = getfoldersGUI();
 
 %ret
-[allTracks_GWN_ret, folder_indecies_GWN_ret, track_indecies_GWN_ret] = loadtracks(folders_GWN_ret,relevant_track_fields);
+% [allTracks_GWN_ret, folder_indecies_GWN_ret, track_indecies_GWN_ret] = loadtracks(folders_GWN_ret,relevant_track_fields);
 % %noret
 % [allTracks_GWN_noret, folder_indecies_GWN_noret, track_indecies_GWN_noret] = loadtracks(folders_GWN_noret,relevant_track_fields);
 % %triangleret
 % [allTracks_tri_ret, folder_indecies_tri_ret, track_indecies_tri_ret] = loadtracks(folders_tri_ret,relevant_track_fields);
 
-load('reference_embedding.mat')
+%load('reference_embedding.mat')
 
 % allTracks = [allTracks_GWN_ret, allTracks_GWN_noret];
 % folders = [folders_GWN_ret, folders_GWN_noret];
@@ -24,7 +24,6 @@ load('reference_embedding.mat')
 %get LNPs
 % [LNPStats_directional_ret, meanLEDPower_directional_ret, stdLEDPower_directional_ret] = directional_FitLNP(allTracks_GWN_ret,folder_indecies_GWN_ret,folders_GWN_ret);
 % [LNPStats_nondirectional_ret, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret] = FitLNP(allTracks_GWN_ret,folder_indecies_GWN_ret,folders_GWN_ret);
-[X, Y, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret] = ML_FitLNP(allTracks_GWN_ret,folder_indecies_GWN_ret,folders_GWN_ret);
 
 %% compare behavioral rates for ret and noret GWN conditions
 % behavioral rates
@@ -91,11 +90,13 @@ legend({'behavior 1', 'behavior 2', 'behavior 3','behavior 4', 'behavior 5', 'be
     'behavior 7', 'behavior 8', 'behavior 9', 'unassigned frames'})
 
 %% playing with ML estimation
-figure
-[X_subsampled,indecies_picked] = datasample(X,floor(size(X,1)./100),1,'Replace',false);
-Y_subsampled = Y(indecies_picked,:);
+% figure
+% [X_subsampled,indecies_picked] = datasample(X,floor(size(X,1)./100),1,'Replace',false);
+% Y_subsampled = Y(indecies_picked,:);
+% Behavior_triggered_X = X_subsampled(Y_subsampled(:,9),:);
+% BTA = mean(Behavior_triggered_X,1);
+% plot(BTA)
 
-Behavior_triggered_X = X_subsampled(Y_subsampled(:,9),:);
-BTA = mean(Behavior_triggered_X,1);
+[LNPStats, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret] = ML_FitLNP(folders_GWN_ret);
 
-plot(BTA)
+PlotBehavioralMappingExperimentGroup (LNPStats, 0, stdLEDPower_nondirectional_ret, L, density, xx)

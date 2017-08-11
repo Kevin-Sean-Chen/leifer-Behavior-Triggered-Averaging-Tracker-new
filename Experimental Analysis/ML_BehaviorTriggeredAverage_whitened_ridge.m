@@ -1,4 +1,4 @@
-function [BTA, behaviorCounts, BTA_std] = ML_BehaviorTriggeredAverage_whitened_ridge(Xtrain,Xtest,Ytrain,Ytest)
+function [BTA, behaviorCounts, BTA_RMSD] = ML_BehaviorTriggeredAverage_whitened_ridge(Xtrain,Xtest,Ytrain,Ytest)
 %This function performs the core BTA caculation
 
 %nThi = size(X,1);
@@ -10,8 +10,8 @@ lamvals = 2.^(15:46); % it's common to use a log-spaced set of values
 nlam = length(lamvals);
 
 BTA = zeros(number_of_behaviors,ntfilt);
-BTA_std = zeros(number_of_behaviors,ntfilt);
-behaviorCounts = sum(Ytrain,2);
+BTA_RMSD = zeros(number_of_behaviors,ntfilt);
+behaviorCounts = sum(Ytrain,1);
 
 for behavior_index = 1:number_of_behaviors
     % Allocate space for train and test errors
@@ -33,8 +33,8 @@ for behavior_index = 1:number_of_behaviors
         w = (XXtr+lamvals(jj)*Imat) \ XYtr; 
 
         % Compute MSE
-        msetrain(jj) = (mean((spstrain-Xtrain*w).^2)); % training error
-        msetest(jj) = (mean((spstest-Xtest*w).^2)); % test error
+        msetrain(jj) = mean((spstrain-Xtrain*w).^2); % training error
+        msetest(jj) = mean((spstest-Xtest*w).^2); % test error
 
         % store the filter
         w_ridge(:,jj) = w;
@@ -47,9 +47,11 @@ for behavior_index = 1:number_of_behaviors
 %     hold off;
 
     %the filter is the the one with the min MSE for the testing set
-    [~, min_idx] = min(msetest);
+    [min_msetest, min_idx] = min(msetest);
     w_ridge_min = w_ridge(:,min_idx);
 %     plot(w_ridge_min)
     BTA(behavior_index,:) = w_ridge_min';
+    %the error bar on the BTA is the sqrt of the mean squared error
+    BTA_RMSD(behavior_index,:) = sqrt(min_msetest);
 end
 

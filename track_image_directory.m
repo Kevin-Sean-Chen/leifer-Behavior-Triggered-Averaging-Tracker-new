@@ -318,7 +318,7 @@ function success = track_image_directory(folder_name, analysis_mode)
     savetracks(Tracks,folder_name);
     
 %% STEP 10: save each worms images %%
-    if isempty(Tracks) || ~parameters.SaveIndividualImages
+    if isempty(Tracks) || ~parameters.SaveIndividualImages || parameters.TrackOnly
         success = true;
         return
     end

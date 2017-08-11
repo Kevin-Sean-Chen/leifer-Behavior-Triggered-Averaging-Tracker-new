@@ -1,4 +1,4 @@
-function [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, bootstrap)
+function [BTA, behaviorCounts, BTA_RMSD, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, bootstrap)
     %finds the behavior triggered average, optionally determine the
     %significance of the BTA by shuffling transitions randomly and finding
     %the BTA
@@ -43,7 +43,7 @@ function [BTA, behaviorCounts, BTA_std, BTA_stats] = ML_BehaviorTriggeredAverage
     Ytest = Y(iitest,:);
     clear X randsequence iitest iitrain randsequence  %get rid of original design matrix to save memory
 
-    [BTA, behaviorCounts, BTA_std] = ML_BehaviorTriggeredAverage_whitened_ridge(Xtrain,Xtest,Ytrain,Ytest);
+    [BTA, behaviorCounts, BTA_RMSD] = ML_BehaviorTriggeredAverage_whitened_ridge(Xtrain,Xtest,Ytrain,Ytest);
     
     if bootstrap
         BTA_norm = sqrt(sum(BTA.^2, 2));

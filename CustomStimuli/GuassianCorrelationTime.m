@@ -44,3 +44,7 @@ figure;
 % ylabel('Power/Frequency (dB/Hz)')
 
 periodogram(voltages,rectwin(length(voltages)),length(voltages),fps, 'power')
+
+figure 
+autocorr(voltages)
+xlabel('frames (at 14fps)')

@@ -1,4 +1,5 @@
 fps = 14;
+
 [FileName,PathName,~] = uigetfile;
 voltages = load([PathName,filesep,FileName]);
 
