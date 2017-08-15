@@ -55,6 +55,6 @@ function parameters = load_parameters(folder_name)
     end
     
     parameters.ProgressDir = pwd;
-
+    
 end
 
