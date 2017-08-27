@@ -1,6 +1,7 @@
 load('reference_embedding.mat')
 %load tracks
-relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
+% relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
+relevant_track_fields = {'BehavioralTransition','Frames'};
 
 %select folders
 folders_platetap = getfoldersGUI();
@@ -21,27 +22,12 @@ allTracks = [];
 
 for folder_index = 1:length(folders_platetap)
     %load the tracks for this folder
-    [current_tracks, folder_indecies_revstim_ret, track_indecies_revstim_ret] = loadtracks(folders_platetap,relevant_track_fields);
+    [current_tracks, folder_indecies_revstim_ret, track_indecies_revstim_ret] = loadtracks(folders_platetap{folder_index},relevant_track_fields);
     current_tracks = BehavioralTransitionToBehavioralAnnotation(current_tracks);
     
     %generate the Behavior matricies
-    current_tracks(1).Behaviors = [];
-    current_tracks(1).LocalFrameIndex = [];
-    for track_index = 1:length(current_tracks)
-        triggers = false(number_of_behaviors, length(current_tracks(track_index).Frames)); %a binary array of when behaviors occur
-        for behavior_index = 1:number_of_behaviors
-            transition_indecies = current_tracks(track_index).BehavioralTransition(:,1) == behavior_index;
-            %transition into of
-            transition_start_frames = current_tracks(track_index).BehavioralTransition(transition_indecies,2);
-            triggers(behavior_index,transition_start_frames) = true;
-    %                 %transition out of
-    %                 transition_end_frames = Tracks(track_index).BehavioralTransition(transition_indecies,3);
-    %                 triggers(behavior_index,transition_end_frames) = true;
-        end
-        current_tracks(track_index).Behaviors = triggers(:,1:length(current_tracks(track_index).LEDVoltages));
-        current_tracks(track_index).LocalFrameIndex = 1:length(current_tracks(track_index).LEDVoltages);
-        
-    end
+    current_tracks = get_behavior_triggers(current_tracks);
+    
     allTracks = [allTracks, current_tracks];
 end
 

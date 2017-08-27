@@ -1,8 +1,15 @@
-function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats)
+function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats,meanLEDPower,apply_threshold)
 %This function gets the kernel section of the BTA
 %   The kernel is defined as bounded by zeros that contain all the significant
 %   regions
 
+    if nargin<3
+        meanLEDPower = 0;
+    end
+    if nargin<4
+        apply_threshold = true;
+    end
+    
     linear_kernel = zeros(size(BTA));
     percentile_threshold = 0.99;
     
@@ -14,9 +21,9 @@ function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats)
             real_kernel = false;
         end
 
-        if real_kernel
+        if real_kernel || ~apply_threshold
             %mean offset
-            linear_kernel(behavior_index, :) = BTA(behavior_index, :);
+            linear_kernel(behavior_index, :) = BTA(behavior_index, :)-meanLEDPower;
             %the linear kernel is time reversed BTA
             linear_kernel(behavior_index,:) = fliplr(linear_kernel(behavior_index,:));
         end

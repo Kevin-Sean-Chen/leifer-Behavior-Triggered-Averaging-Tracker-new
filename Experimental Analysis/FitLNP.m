@@ -1,7 +1,11 @@
-function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,folders)
+function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,folders,cross_valdiation)
 %FitLNP takes in tracks and outputs the parameters of the LNP
 %   Detailed explanation goes here
     numbins = 10;
+    
+    if nargin<4
+        cross_valdiation = false;
+    end
     
     fps = 14;
     BTA_seconds_before_and_after = 10;
@@ -10,23 +14,7 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
     BTA_length = (fps*seconds_before)+(fps*seconds_after)+1;
     
     if ~isfield(Tracks, 'Behaviors')
-        load('reference_embedding.mat')
-        %calculate the triggers for LNP fitting
-        number_of_behaviors = max(L(:)-1);
-        Tracks(1).Behaviors = [];
-        for track_index = 1:length(Tracks)
-            triggers = false(number_of_behaviors, length(Tracks(track_index).LEDVoltages)); %a binary array of when behaviors occur
-            for behavior_index = 1:number_of_behaviors
-                transition_indecies = Tracks(track_index).BehavioralTransition(:,1) == behavior_index;
-                %transition into of
-                transition_start_frames = Tracks(track_index).BehavioralTransition(transition_indecies,2);
-                triggers(behavior_index,transition_start_frames) = true;
-        %                 %transition out of
-        %                 transition_end_frames = Tracks(track_index).BehavioralTransition(transition_indecies,3);
-        %                 triggers(behavior_index,transition_end_frames) = true;
-            end
-            Tracks(track_index).Behaviors = triggers(:,1:length(Tracks(track_index).LEDVoltages));
-        end
+        Tracks = get_behavior_triggers(Tracks);
     end
     
     %filter out tracks that are too short
@@ -65,10 +53,10 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
     %calculate the BTA and linear kernel
     Behaviors = {Tracks(:).Behaviors};
     LEDPowers = {Tracks(:).LEDPower};
-    [BTA, trigger_count, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, true);
+    [BTA, trigger_count, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Behaviors, LEDPowers, ~cross_valdiation);
     clear Behaviors LEDPowers
 
-    linear_kernel = BTA_to_kernel(BTA, BTA_stats, meanLEDPower);
+    linear_kernel = BTA_to_kernel(BTA, BTA_stats, meanLEDPower, ~cross_valdiation);
 
     %smooth the linear_kernel? Approximate by gaussian and exponential?
     

@@ -29,7 +29,7 @@ function [folders, folder_tags, folder_count] = catalog_tags(folder_name)
         for file_index = 1:length(allFiles)
             if allFiles(file_index).isdir && ~strcmp(allFiles(file_index).name, '.') && ~strcmp(allFiles(file_index).name, '..')
                 %recursively add experimental folders
-                [sub_folders, sub_folder_tags, sub_folder_count] = catalog_tags([folder_name, '\', allFiles(file_index).name]);
+                [sub_folders, sub_folder_tags, sub_folder_count] = catalog_tags([folder_name, filesep, allFiles(file_index).name]);
                 folders = [folders, sub_folders];
                 folder_tags = [folder_tags, sub_folder_tags];
                 folder_count = folder_count + sub_folder_count;

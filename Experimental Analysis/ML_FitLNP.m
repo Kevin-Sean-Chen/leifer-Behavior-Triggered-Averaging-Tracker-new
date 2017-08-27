@@ -1,6 +1,9 @@
-function [LNPStats,meanLEDPower, stdLEDPower] = ML_FitLNP(folders)
+function [LNPStats,meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies,folders,cross_valdiation)
 % FitLNP takes in tracks and outputs the parameters of the LNP
-    relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
+    
+    if nargin<4
+        cross_valdiation = false;
+    end
     numbins = 10;
     fps = 14;
     BTA_seconds_before_and_after = 10;
@@ -8,28 +11,8 @@ function [LNPStats,meanLEDPower, stdLEDPower] = ML_FitLNP(folders)
     seconds_after = BTA_seconds_before_and_after;
     BTA_length = (fps*seconds_before)+(fps*seconds_after)+1;
     
-%     %select folders
-%     folders = getfoldersGUI();
-    [Tracks, folder_indecies, ~] = loadtracks(folders,relevant_track_fields);
-
     if ~isfield(Tracks, 'Behaviors')
-        load('reference_embedding.mat')
-        %calculate the triggers for LNP fitting
-        number_of_behaviors = max(L(:)-1);
-        Tracks(1).Behaviors = [];
-        for track_index = 1:length(Tracks)
-            triggers = false(number_of_behaviors, length(Tracks(track_index).LEDVoltages)); %a binary array of when behaviors occur
-            for behavior_index = 1:number_of_behaviors
-                transition_indecies = Tracks(track_index).BehavioralTransition(:,1) == behavior_index;
-                %transition into of
-                transition_start_frames = Tracks(track_index).BehavioralTransition(transition_indecies,2);
-                triggers(behavior_index,transition_start_frames) = true;
-        %                 %transition out of
-        %                 transition_end_frames = Tracks(track_index).BehavioralTransition(transition_indecies,3);
-        %                 triggers(behavior_index,transition_end_frames) = true;
-            end
-            Tracks(track_index).Behaviors = triggers(:,1:length(Tracks(track_index).LEDVoltages));
-        end
+        Tracks = get_behavior_triggers(Tracks);
     end
     
     %filter out tracks that are too short
@@ -66,48 +49,13 @@ function [LNPStats,meanLEDPower, stdLEDPower] = ML_FitLNP(folders)
     for track_index = 1:length(Tracks)
         Stim{track_index} = Tracks(track_index).LEDPower - meanLEDPower; %mean offset the stimulus
     end
-    clear Tracks
     
     [BTA, trigger_count, BTA_RMSD, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, true);
 
     clear Behaviors Stim
 
-    
-    %% reload tracks
-    [Tracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
-
-    if ~isfield(Tracks, 'Behaviors')
-        load('reference_embedding.mat')
-        %calculate the triggers for LNP fitting
-        number_of_behaviors = max(L(:)-1);
-        Tracks(1).Behaviors = [];
-        for track_index = 1:length(Tracks)
-            triggers = false(number_of_behaviors, length(Tracks(track_index).LEDVoltages)); %a binary array of when behaviors occur
-            for behavior_index = 1:number_of_behaviors
-                transition_indecies = Tracks(track_index).BehavioralTransition(:,1) == behavior_index;
-                %transition into of
-                transition_start_frames = Tracks(track_index).BehavioralTransition(transition_indecies,2);
-                triggers(behavior_index,transition_start_frames) = true;
-        %                 %transition out of
-        %                 transition_end_frames = Tracks(track_index).BehavioralTransition(transition_indecies,3);
-        %                 triggers(behavior_index,transition_end_frames) = true;
-            end
-            Tracks(track_index).Behaviors = triggers(:,1:length(Tracks(track_index).LEDVoltages));
-        end
-    end
-    
-    %filter out tracks that are too short
-    indecies_to_remove = [];
-    for track_index = 1:length(Tracks)
-        if length(Tracks(track_index).Frames) < BTA_length
-            indecies_to_remove = [indecies_to_remove, track_index];
-        end
-    end
-    Tracks(indecies_to_remove) = [];
-    folder_indecies(indecies_to_remove) = [];
-    
     %% fit NL
-    linear_kernel = BTA_to_kernel(BTA, BTA_stats);
+    linear_kernel = BTA_to_kernel(BTA, BTA_stats,~cross_valdiation);
     allLEDPower = [Tracks.LEDPower];
     
     %smooth the linear_kernel? Approximate by gaussian and exponential?

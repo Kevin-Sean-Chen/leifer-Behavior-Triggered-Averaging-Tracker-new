@@ -1,110 +1,116 @@
 % function [K_LNP, K_Shuffle] = CrossValidation()
 %CrossValidation compares the predicted reversal rate with a null model
-%   Detailed explanation goes here
+% %   Detailed explanation goes here
     fps = 14;
-    allTracks = [];
-    trial_number = 1000;
+    number_of_trials = 100;
     dt = 1/(fps*60);
+    training_ratio = .8;
+    load('reference_embedding.mat');
+    number_of_behaviors = max(L(:))-1;
+    relevant_track_fields = {'BehavioralTransition','Frames','LEDPower','LEDVoltage2Power'};    
+    %folders = getfoldersGUI();
     
-    [filename,pathname] = uigetfile('*.mat','Select Experiment Group');
-    
-    if isequal(filename,0) || isequal(pathname,0)
-        %cancel
-       return
-    else
-        openFileName = fullfile(pathname,filename);
-        if exist(openFileName, 'file')
-          % File exists.  Load the folders
-          load(openFileName)
-          folders = {Experiments(1:end-1).Folder};
-        end
-    end
-
     %load the tracks
-    for folder_index = 1:length(folders)
-        folder_name = folders{folder_index};
-        cd(folder_name) %open the directory of image sequence
-        load('tracks.mat')
-        if length(allTracks) == 0
-            allTracks = Tracks;
-        else
-            allTracks = [allTracks, Tracks];
-        end
-    end
+    [allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
     
-    % Get binary array of when certain behaviors start and the predicted
-    % behavioral rate
-    for track_index = 1:length(allTracks)
-        pirouettes = allTracks(track_index).Pirouettes;
-        behaviors = zeros(1, length(allTracks(track_index).LEDVoltages)); %a binary array of when behaviors occur
-        for pirouette_index = 1:size(pirouettes,1)
-            pirouetteStart = pirouettes(pirouette_index,1);
-            behaviors(pirouetteStart) = 1;
-        end
-        allTracks(track_index).Behaviors = logical(behaviors);
-    end
-    
-    LNPScore = zeros(1, trial_number);
-    ShuffleScore = zeros(1, trial_number);
-    parfor trial_index = 1:trial_number
+    % Get binary array of when behavior transitions are
+    allTracks = get_behavior_triggers(allTracks,false);
+
+    LNPScore = zeros(number_of_behaviors, number_of_trials);
+    ShuffleScore = zeros(number_of_behaviors, number_of_trials);
+
+    for trial_index = 1:number_of_trials
         %take half the tracks and use them to fit the model while use the other
         %half to cross validate
         PermutatedTracks = randperm(length(allTracks));
-        fitTracks = allTracks(PermutatedTracks(1:floor(length(allTracks)/2)));
-        validationTracks = allTracks(PermutatedTracks(floor(length(allTracks)/2)+1:end));
+        fit_indecies = PermutatedTracks(1:floor(length(allTracks)*training_ratio));
+        validation_indecies = PermutatedTracks(floor(length(allTracks)*training_ratio)+1:end);
+
+        fitTracks = allTracks(fit_indecies);
+        validationTracks = allTracks(validation_indecies);
+        fit_folder_indecies = folder_indecies(fit_indecies);
 
         %fit the LNP
-        [linear_kernel, non_linearity_fit, ~, ~, ~, ~, ~, ~] = FitLNP(fitTracks);
+        [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(fitTracks, fit_folder_indecies, folders, true);
 
-        exp_fit_a = non_linearity_fit.a;
-        exp_fit_b = non_linearity_fit.b;
-
+        validationTracks(1).PredictedRate = []; %preallocate memory
         %calculate the predicted rate for each validation track
         for validation_track_index = 1:length(validationTracks)
-            validationTracks(validation_track_index).PredictedRate = PredictLNP(validationTracks(validation_track_index).LEDVoltages, linear_kernel, exp_fit_a, exp_fit_b);
+			validationTracks(validation_track_index).PredictedRate = zeros(number_of_behaviors, length(validationTracks(validation_track_index).LEDPower));
+        	for behavior_index = 1:number_of_behaviors
+            	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, LNPStats(behavior_index).linear_kernel, LNPStats(behavior_index).non_linearity_fit);
+        	end
         end
-        Behaviors = double(~[validationTracks.Behaviors]);
-        %Behaviors(Behaviors == 0) = -1;
-        PredictedRate = [validationTracks.PredictedRate];
-        rdt = PredictedRate.*dt;
-        PredictedProbability = rdt.*exp(-rdt);
-        %ShuffledBehaviors = Behaviors(randperm(length(Behaviors)));
         
-        LNPScore(trial_index) = dot(Behaviors, PredictedProbability)/norm(Behaviors)/norm(PredictedProbability);
-        %K_Shuffle(trial_index) = dot(ShuffledBehaviors, PredictedRate)/norm(ShuffledBehaviors)/norm(PredictedRate);
+        Behaviors = [validationTracks.Behaviors];
+        PredictedRate = [validationTracks.PredictedRate];
+        
+        for behavior_index = 1:number_of_behaviors
+            LNPScore(behavior_index,trial_index) = compare_predicted_and_actual_rates(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
+        end
+        
+        
+        %shuffle and refit
+        allTracks = get_behavior_triggers(allTracks,true);
+        fitTracks = allTracks(fit_indecies);
+        validationTracks = allTracks(validation_indecies);
+
+        %fit the shuffled LNP
+        [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(fitTracks, fit_folder_indecies, folders, true);
+
+        validationTracks(1).PredictedRate = []; %preallocate memory
+        %calculate the predicted rate for each validation track
+        for validation_track_index = 1:length(validationTracks)
+			validationTracks(validation_track_index).PredictedRate = zeros(number_of_behaviors, length(validationTracks(validation_track_index).LEDPower));
+        	for behavior_index = 1:number_of_behaviors
+            	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, LNPStats(behavior_index).linear_kernel, LNPStats(behavior_index).non_linearity_fit);
+        	end
+        end
+        
+        Behaviors = [validationTracks.Behaviors];
+        PredictedRate = [validationTracks.PredictedRate];
+        
+        for behavior_index = 1:number_of_behaviors
+            ShuffleScore(behavior_index,trial_index) = compare_predicted_and_actual_rates(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
+        end
     end
+    
+
     
 %     figure
 %     hist(LNPScore)
     
-    parfor trial_index = 1:trial_number
-        %take half the tracks and use them to fit the model while use the other
-        %half to cross validate
-        PermutatedTracks = randperm(length(allTracks));
-        fitTracks = allTracks(PermutatedTracks(1:floor(length(allTracks)/2)));
-        validationTracks = allTracks(PermutatedTracks(floor(length(allTracks)/2)+1:end));
-
-        %fit the LNP
-        [linear_kernel, non_linearity_fit, ~, ~, ~, ~, ~, ~] = FitLNP(fitTracks);
-
-        exp_fit_a = non_linearity_fit.a;
-        exp_fit_b = non_linearity_fit.b;
-
-        %calculate the predicted rate for each validation track
-        for validation_track_index = 1:length(validationTracks)
-            validationTracks(validation_track_index).PredictedRate = PredictLNP(validationTracks(validation_track_index).LEDVoltages, linear_kernel, exp_fit_a, exp_fit_b);
-        end
-        Behaviors = double(~[validationTracks.Behaviors]);
-        %Behaviors(Behaviors == 0) = -1;
-        PredictedRate = [validationTracks.PredictedRate];
-        rdt = PredictedRate.*dt;
-        PredictedProbability = rdt.*exp(rdt);
-        ShuffledBehaviors = Behaviors(randperm(length(Behaviors)));
-        
-        %K_LNP(trial_index) = dot(Behaviors, PredictedRate)/norm(Behaviors)/norm(PredictedRate);
-        ShuffleScore(trial_index) = dot(ShuffledBehaviors, PredictedProbability)/norm(ShuffledBehaviors)/norm(PredictedProbability);
-    end
+%     parfor trial_index = 1:trial_number
+%         %take half the tracks and use them to fit the model while use the other
+%         %half to cross validate
+%         PermutatedTracks = randperm(length(allTracks));
+%         fitTracks = allTracks(PermutatedTracks(1:floor(length(allTracks)/2)));
+%         validationTracks = allTracks(PermutatedTracks(floor(length(allTracks)/2)+1:end));
+% 
+%         %fit the LNP
+%         [linear_kernel, non_linearity_fit, ~, ~, ~, ~, ~, ~] = FitLNP(fitTracks);
+% 
+%         exp_fit_a = non_linearity_fit.a;
+%         exp_fit_b = non_linearity_fit.b;
+% 
+%         %calculate the predicted rate for each validation track
+%         for validation_track_index = 1:length(validationTracks)
+%             validationTracks(validation_track_index).PredictedRate = PredictLNP(validationTracks(validation_track_index).LEDVoltages, linear_kernel, exp_fit_a, exp_fit_b);
+%         end
+%         Behaviors = double(~[validationTracks.Behaviors]);
+%         %Behaviors(Behaviors == 0) = -1;
+%         PredictedRate = [validationTracks.PredictedRate];
+%         rdt = PredictedRate.*dt;
+%         PredictedProbability = rdt.*exp(rdt);
+%         ShuffledBehaviors = Behaviors(randperm(length(Behaviors)));
+%         
+%         %K_LNP(trial_index) = dot(Behaviors, PredictedRate)/norm(Behaviors)/norm(PredictedRate);
+%         ShuffleScore(trial_index) = dot(ShuffledBehaviors, PredictedProbability)/norm(ShuffledBehaviors)/norm(PredictedProbability);
+%     end
 %     figure
 %     hist(ShuffleScore)
-    p = CompareTwoHistograms(LNPScore, ShuffleScore, 'LNP Score', 'Shuffled Score')
+
+
+
+%     p = CompareTwoHistograms(LNPScore, ShuffleScore, 'LNP Score', 'Shuffled Score')
     % end
