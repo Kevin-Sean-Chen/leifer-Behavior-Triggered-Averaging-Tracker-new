@@ -28,7 +28,7 @@ final_step=$(ScriptToOrdering.sh max)
 # echo $next_step
 if [ "$next_step" -le "$final_step" ]; then
 	#there are still analysis to be done
-	UpdateLog.sh $folder_name ProcessExperimentDirectory HEAD_NODE START 'Starting_On:'$(OrderingToScript.sh $next_step)
+	UpdateLog.sh $folder_name ProcessExperimentDirectory HEAD_NODE START 'Starting_On:'$(OrderingToScript.sh $next_step)' git-version:'$(GetGitHash.sh)
 else
 	#no analysis to be done
 	UpdateLog.sh $folder_name ProcessExperimentDirectory HEAD_NODE FINISH EVERYTHING_DONE
