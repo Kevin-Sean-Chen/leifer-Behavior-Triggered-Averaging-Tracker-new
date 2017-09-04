@@ -66,6 +66,11 @@ for folder_index = 1:length(folders_platetap)
     end
 end
 
+%sort the stimulus intensities
+[stimulus_intensities, sort_index] = sort(stimulus_intensities);
+all_behavior_transitions_for_frame = all_behavior_transitions_for_frame(sort_index);
+all_behavior_annotations_for_frame= all_behavior_annotations_for_frame(sort_index);
+
 %% 1 plot the transition rates as a function of time
 for stimulus_index = 1:length(stimulus_intensities)
     % plot the transition rates centered on stim delivery
@@ -93,26 +98,27 @@ for stimulus_index = 1:length(stimulus_intensities)
     ax.FontSize = 10;
 end
 %% 2 plot the behavioral ratios as a function of time
+behavior_counts_for_frame = zeros(number_of_behaviors,length(stimulus_intensities),total_window_frames);
+behavior_ratios_for_frame = zeros(number_of_behaviors,length(stimulus_intensities),total_window_frames);
+
 for stimulus_index = 1:length(stimulus_intensities)
-
     % plot the transition rates centered on stim delivery
-    behavior_counts_for_frame = zeros(number_of_behaviors,total_window_frames);
-    behavior_ratios_for_frame = zeros(number_of_behaviors,total_window_frames);
-
     total_counts_for_frame = zeros(1,total_window_frames);
     for frame_index = 1:total_window_frames
         for behavior_index = 1:number_of_behaviors
-            behavior_counts_for_frame(behavior_index,frame_index) = sum(find(all_behavior_annotations_for_frame{stimulus_index}{frame_index}==behavior_index));
+            behavior_counts_for_frame(behavior_index,stimulus_index,frame_index) = sum(find(all_behavior_annotations_for_frame{stimulus_index}{frame_index}==behavior_index));
         end
-        behavior_ratios_for_frame(:,frame_index) = behavior_counts_for_frame(:,frame_index)./sum(behavior_counts_for_frame(:,frame_index)); %get ratio
+        behavior_ratios_for_frame(:,stimulus_index,frame_index) = behavior_counts_for_frame(:,stimulus_index,frame_index)./sum(behavior_counts_for_frame(:,stimulus_index,frame_index)); %get ratio
     end
+end
 
+for stimulus_index = 1:length(stimulus_intensities)
     my_colors = lines(number_of_behaviors);
     figure
     hold on
     for behavior_index = 1:number_of_behaviors
     %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-        plot(-time_window_before/fps:1/fps:time_window_after/fps, behavior_ratios_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
     end
     hold off
     xlabel('Time (s)') % x-axis label
@@ -122,5 +128,23 @@ for stimulus_index = 1:length(stimulus_intensities)
     legend('show');
     ax = gca;
     ax.FontSize = 10;
+end
 
+%% plot the behavioral ratios for various intensities on the same plot
+for behavior_index = 1:number_of_behaviors
+    my_colors = lines(length(stimulus_intensities));
+    figure
+    hold on
+    for stimulus_index = 1:length(stimulus_intensities)
+    %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
+        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 1,'DisplayName',[num2str(stimulus_intensities(stimulus_index)), 'uW/mm2']);
+    end
+    hold off
+    xlabel('Time (s)') % x-axis label
+    ylabel('Behavioral Ratio') % y-axis label
+    title(['Behavior = ', num2str(behavior_index)]);
+
+    legend('show');
+    ax = gca;
+    ax.FontSize = 10;
 end

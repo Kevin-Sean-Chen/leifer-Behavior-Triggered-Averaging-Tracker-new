@@ -8,7 +8,7 @@
     load('reference_embedding.mat');
     number_of_behaviors = max(L(:))-1;
     relevant_track_fields = {'BehavioralTransition','Frames','LEDPower','LEDVoltage2Power'};    
-    %folders = getfoldersGUI();
+    folders = getfoldersGUI();
     
     %load the tracks
     [allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
