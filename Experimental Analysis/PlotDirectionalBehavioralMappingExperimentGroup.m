@@ -89,7 +89,7 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
 %             xlabel(strcat('Time (s) (', num2str(LNPStats(behavior_index).trigger_count), ' behaviors analyzed)')) % x-axis label
             xlabel(strcat(num2str(LNPStats(behavior_index).trigger_count), ' Events Analyzed')) % x-axis label
 %             ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label
-            axis([-10 10 8 10])
+            axis([-10 10 23 27])
             %axis([-10 2 0 5])
             ax = gca;
             %ax.XTick = ;

@@ -1,34 +1,32 @@
 %% STEP 1: set up parameters
-subsampling = false;
-relevant_track_fields = {'Embeddings','Centerlines','Speed','Velocity','Frames'};
+subsampling = true;
+relevant_track_fields = {'Amps','Spectra'};
 
 %% STEP 2: get the experiment folders
-folders = getfolders();
+%folders = getfoldersGUI();
 
 %% STEP 2: Load the analysis preferences from Excel %%
 parameters = load_parameters();
+edgeEffectTime = round(sqrt(1/parameters.minF)*parameters.samplingFreq);
 
 %% STEP 3: load the tracks into memory
 [allTracks, folder_indecies, track_indecies] = loadtracks(folders, relevant_track_fields);
+
+%% STEP 4: convert tracks to cell format
 L = length(allTracks);
 Spectra = cell(1,L);
 amps = cell(1,L);
 SpectraFrames = cell(1,L);
 SpectraTracks = cell(1,L);
 for track_index = 1:length(allTracks)
-    Spectra{track_index} = allTracks(track_index).Spectra{1};
-    amps{track_index} = allTracks(track_index).Amps{1};
+    Spectra{track_index} = allTracks(track_index).Spectra;
+    amps{track_index} = allTracks(track_index).Amps;
     SpectraFrames{track_index} = 1:size(Spectra{track_index},1);
     SpectraTracks{track_index} = repmat(track_index,1,size(Spectra{track_index},1));
 end
 
-% %% STEP 4: generate spectra
-% Projections = {allTracks.ProjectedEigenValues};
-% % delete the tracks
 clear allTracks
-% 
-% [Spectra, SpectraFrames, SpectraTracks, amps, f] = generate_spectra(Projections, parameters, Prefs);
-% save('Spectra.mat','Spectra', 'amps', '-v7.3')
+
 
 %% STEP 5: Get a set of "training spectra" without edge effects
 TrainingSpectra = cell(1,L);
@@ -36,7 +34,6 @@ TrainingSpectraFrames = cell(1,L);
 TrainingSpectraTracks = cell(1,L);
 TrainingAmps = cell(1,L);
 
-edgeEffectTime = round(sqrt(1/parameters.minF)*parameters.samplingFreq);
 for track_index = 1:L
     TrainingSpectra{track_index} = Spectra{track_index}(edgeEffectTime:end-edgeEffectTime,:);
     TrainingSpectraFrames{track_index} = SpectraFrames{track_index}(edgeEffectTime:end-edgeEffectTime);
@@ -145,8 +142,17 @@ end
 fprintf(1,'Finding t-SNE Embedding for all Data\n');
 % embeddingValues = cell(L,1);
 % i=1;
-data = vertcat(Spectra{:});
 
+[allTracks, folder_indecies, track_indecies] = loadtracks(folders, relevant_track_fields);
+
+L = length(allTracks);
+Spectra = cell(1,L);
+for track_index = 1:length(allTracks)
+    Spectra{track_index} = allTracks(track_index).Spectra;
+end
+
+data = vertcat(Spectra{:});
+clear Spectra
 % phi_dt = data(:,end); %get phase velocity
 % % phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
 % % phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
@@ -165,33 +171,71 @@ data = vertcat(Spectra{:});
 clear data
 
 %% STEP 9: cut the embeddings
-Embeddings = cell(size(Spectra));
+Embeddings = cell(1,length(allTracks));
 % trainingTracks = zeros(length(trainingKey),1);
 % trainingFrames = zeros(length(trainingKey),1);
 start_index = 1;
 training_start_index = 1;
-for track_index = 1:length(Spectra)
-    end_index = start_index + size(Spectra{track_index},1) - 1;
+for track_index = 1:length(allTracks)
+    end_index = start_index + size(allTracks(track_index).Spectra,1) - 1;
     Embeddings{track_index} = embeddingValues(start_index:end_index, :);
     start_index = end_index + 1;
 end
 clear trainingKey
 
-%% STEP 10: Find watershed regions
+%% STEP 10: Find watershed regions and make density plot
 maxVal = max(max(abs(embeddingValues)));
 maxVal = round(maxVal * 1.1);
-% NS = createns(yData);
-% [~,D] = knnsearch(NS,yData,'K',kdNeighbors+1);
-sigma = 4;%median(D(:,kdNeighbors+1));
+
+% sigma = maxVal / 40; %change smoothing factor if necessary
+sigma = 4.3; %median(D(:,kdNeighbors+1)); %change smoothing factor if necessary
+numPoints = 501;
+rangeVals = [-maxVal maxVal];
+
 [xx,density] = findPointDensity(embeddingValues,sigma,501,[-maxVal maxVal]);
-density(density < 10e-6) = 0;
+maxDensity = max(density(:));
+density(density < 10e-6) = 5;
 L = watershed(-density,8);
 [ii,jj] = find(L==0);
 
-%% STEP 11: Make density plots
-% maxVal = max(max(abs(embeddingValues)));
-% maxVal = round(maxVal * 1.1);
-% 
+L(L==1) = max(L(:))+1;
+L = L - 1;
+
+watershed_centroids = regionprops(L, 'centroid');
+watershed_centroids = vertcat(watershed_centroids.Centroid);
+watershed_centroids = round(watershed_centroids);
+
+
+density(density == 5) = 0;
+%modify jet map
+my_colormap = othercolor('OrRd9');
+my_colormap(1,:) = [1 1 1];
+
+figure
+hold on
+imagesc(xx,xx,density)
+caxis([0 maxDensity * .6])
+colormap(my_colormap)
+plot(xx(jj),xx(ii),'k.')
+% for region_index = 1:size(watershed_centroids,1)-1
+%     text(xx(watershed_centroids(region_index,1)), ...
+%         xx(watershed_centroids(region_index,2)), ...
+%         num2str(region_index), 'color', 'k', ...
+%         'fontsize', 12, 'horizontalalignment', 'center', ...
+%         'verticalalignment', 'middle');
+% end
+axis equal tight xy
+hold off
+colorbar
+xlimits=round(get(gca,'xlim'));
+set(gca,'xtick',xlimits);
+ylimits=round(get(gca,'ylim'));
+set(gca,'ytick',ylimits);
+
+
+
+%% STEP 11: Make density plots for different regions
+
 % sigma = maxVal / 40;
 % numPoints = 501;
 % rangeVals = [-maxVal maxVal];

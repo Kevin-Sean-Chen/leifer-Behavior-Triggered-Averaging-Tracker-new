@@ -25,6 +25,9 @@ load('reference_embedding.mat')
 [LNPStats_nondirectional_ret, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret] = FitLNP(allTracks_GWN_ret,folder_indecies_GWN_ret,folders_GWN_ret);
 [LNPStats_directional_ret, meanLEDPower_directional_ret, stdLEDPower_directional_ret] = directional_FitLNP(allTracks_GWN_ret,folder_indecies_GWN_ret,folders_GWN_ret);
 
+PlotBehavioralMappingExperimentGroup(LNPStats_nondirectional_ret, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret, L, density, xx)
+PlotBehavioralMappingExperimentGroup(LNPStats_directional_ret, meanLEDPower_directional_ret, stdLEDPower_directional_ret, L, density, xx)
+
 %% compare behavioral rates for ret and noret GWN conditions
 % behavioral rates
 [behavioral_transition_rates_ret,behavioral_transition_rates_std_ret,behavior_occupation_ratio_ret] = find_behavioral_rates(allTracks_GWN_ret);

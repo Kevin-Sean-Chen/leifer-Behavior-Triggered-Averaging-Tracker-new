@@ -33,6 +33,6 @@ plotconfusion(LNP_significance,tap_difference_significance)
 xlabel('significant for linear kernel')
 ylabel('significant for tap vs control')
 
-behavior_from = 7;
+behavior_from = 6;
 behavior_to = 9;
 [tap_transition_rates, shuffled_tap_transition_rates,h,p,~,~] = average_transition_rate_after_tap(folders_platetap, behavior_from, behavior_to);

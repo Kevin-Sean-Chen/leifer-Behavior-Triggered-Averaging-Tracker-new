@@ -6,7 +6,7 @@ maxVal = max(max(abs(embeddingValues)));
 maxVal = round(maxVal * 1.1);
 
 % sigma = maxVal / 40; %change smoothing factor if necessary
-sigma = 4; %change smoothing factor if necessary
+sigma = 4.3; %change smoothing factor if necessary
 numPoints = 501;
 rangeVals = [-maxVal maxVal];
 
@@ -31,9 +31,9 @@ my_colormap(1,:) = [1 1 1];
 
 figure
 hold on
-% imagesc(xx,xx,density)
-% caxis([0 maxDensity * .6])
-%  colormap(my_colormap)
+imagesc(xx,xx,density)
+caxis([0 maxDensity * .6])
+colormap(my_colormap)
 plot(xx(jj),xx(ii),'k.')
 % for region_index = 1:size(watershed_centroids,1)-1
 %     text(xx(watershed_centroids(region_index,1)), ...
