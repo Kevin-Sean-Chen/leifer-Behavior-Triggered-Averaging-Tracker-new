@@ -10,22 +10,24 @@ frames_before = 1.5*fps-1;
 frames_after = 1.5*fps;
 duration = frames_before+frames_after+1;
 parameters = load_parameters();
-relevant_track_fields = {'BehavioralTransition','Embeddings','Direction','Velocity'};
+load('reference_embedding.mat')
+relevant_track_fields = {'BehavioralTransition','Embeddings','Centerlines'};%'Direction','Velocity';
 
-%  [ allTracks, folder_indecies, track_indecies ] = loadtracks(folders);
-% 
-% if ~exist('Embeddings', 'var')
-%     Embeddings = {allTracks.Embeddings};
-% end
-% embeddingValues = vertcat(Embeddings{:});
-% % track_indecies = folder_indecies_to_track_indecies(folder_indecies);
-% 
-% %% STEP 2: allow user to select the folder to save as
+
+% folders = getfoldersGUI();
+% % allow user to select the folder to save as
 % pathname = uigetdir('', 'Select Save Folder')
 % if isequal(pathname,0)
 %     %cancel
 %    return
 % end
+%% STEP 2: allow user to select the folder to save as
+[allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields );
+if ~exist('Embeddings', 'var')
+    Embeddings = {allTracks.Embeddings};
+end
+embeddingValues = vertcat(Embeddings{:});
+
 
 for watershed_region = 1:max(L(:)-1)
     saveFileName = fullfile(pathname,[num2str(watershed_region), '.mp4']);
@@ -74,7 +76,7 @@ for watershed_region = 1:max(L(:)-1)
     current_index = 1;
     while length(selected_indecies) < N
         current_track_number = possible_tracks(current_index);
-        current_track_length = length(allTracks(current_track_number).Frames);
+        current_track_length = size(allTracks(current_track_number).Embeddings,1);
         current_frame_number = possible_frames(current_index);
         if current_frame_number - frames_before < 1 || current_frame_number + frames_after > current_track_length
             %this point will be cut out at some point, throw it out

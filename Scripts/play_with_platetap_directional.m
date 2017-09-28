@@ -63,6 +63,9 @@ load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\17_02_24_LNPStats_dire
 LNPStats_directional_ret(1).NLratio = [];
 LNPStats_directional_ret(1).NLratioError = [];
 LNPStats_directional_ret(1).N2TapControlRatio = [];
+LNPStats_directional_ret(1).N2TapControlError = [];
+LNPStats_directional_ret(1).N2TapControlSignificance = [];
+
 for LNP_index = 1:length(LNPStats_directional_ret)
     if isempty(LNPStats_directional_ret(LNP_index).filtered_signal_histogram)
         LNPStats_directional_ret(LNP_index).NLratio = [];
@@ -74,9 +77,43 @@ for LNP_index = 1:length(LNPStats_directional_ret)
         [NLMin, NLMin_index] = min(LNPStats_directional_ret(LNP_index).non_linearity);
 
         LNPStats_directional_ret(LNP_index).NLratio = NLMax / NLMin;
-        LNPStats_directional_ret(LNP_index).NLratioError = LNPStats_directional_ret(LNP_index).NLratio .* sqrt(((LNPStats_directional_ret(LNP_index).errors(NLMax)./NLMax).^2)+((LNPStats_directional_ret(LNP_index).errors(NLMin)./NLMin).^2));
+        LNPStats_directional_ret(LNP_index).NLratioError = LNPStats_directional_ret(LNP_index).NLratio .* sqrt(((LNPStats_directional_ret(LNP_index).errors(NLMax_index)./NLMax).^2)+((LNPStats_directional_ret(LNP_index).errors(NLMin_index)./NLMin).^2));
     end
     
+    LNPStats_directional_ret(LNP_index).N2TapControlRatio = tap_control_ratio(LNPStats_directional_ret(LNP_index).Edges(1), LNPStats_directional_ret(LNP_index).Edges(2));
+    LNPStats_directional_ret(LNP_index).N2TapControlError = propagated_errors(LNPStats_directional_ret(LNP_index).Edges(1), LNPStats_directional_ret(LNP_index).Edges(2));
+    LNPStats_directional_ret(LNP_index).N2TapControlSignificance = statistical_significant(LNPStats_directional_ret(LNP_index).Edges(1), LNPStats_directional_ret(LNP_index).Edges(2));
 end
 
-%plot the relationship
+%% plot the relationship
+
+figure
+hold on
+for LNP_index = 1:length(LNPStats_directional_ret)
+    if ~isempty(LNPStats_directional_ret(LNP_index).NLratio) && ~isnan(LNPStats_directional_ret(LNP_index).N2TapControlError)
+        current_fit = LNPStats_directional_ret(LNP_index).non_linearity_fit;
+        LNPStats_directional_ret(LNP_index).NLratio = current_fit(LNPStats_directional_ret(LNP_index).bin_edges(end)) / current_fit(LNPStats_directional_ret(LNP_index).bin_edges(1));
+        if LNPStats_directional_ret(LNP_index).N2TapControlSignificance
+            errorbarxy(LNPStats_directional_ret(LNP_index).NLratio,LNPStats_directional_ret(LNP_index).N2TapControlRatio, ...
+                LNPStats_directional_ret(LNP_index).N2TapControlError, ...
+                LNPStats_directional_ret(LNP_index).NLratioError,{'r*', 'r', 'r'});
+        else
+            errorbarxy(LNPStats_directional_ret(LNP_index).NLratio,LNPStats_directional_ret(LNP_index).N2TapControlRatio, ...
+                LNPStats_directional_ret(LNP_index).N2TapControlError, ...
+                LNPStats_directional_ret(LNP_index).NLratioError,{'bo', 'b', 'b'});
+        end
+        
+        text(LNPStats_directional_ret(LNP_index).NLratio,LNPStats_directional_ret(LNP_index).N2TapControlRatio, ...
+            ['  ' num2str(LNPStats_directional_ret(LNP_index).Edges(1)) '\rightarrow' num2str(LNPStats_directional_ret(LNP_index).Edges(2))], ...
+            'HorizontalAlignment','left')
+    end
+end
+
+% axis([1 axis_count 0 max(tap_control_ratio(:))])
+axis([0 7 0 10])
+% set(gca, 'XTick', 1:axis_count)
+% set(gca,'XTickLabel',xaxis_labels)
+% set(gca,'XTickLabelRotation',90)
+ylabel('Transition Rate Ratio (Tap/Control)')
+xlabel('LNP Non-linearity Ratio (Max/Min)')
+

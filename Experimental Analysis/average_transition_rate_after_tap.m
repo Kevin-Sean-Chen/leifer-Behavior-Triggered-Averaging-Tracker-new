@@ -1,6 +1,7 @@
 function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = average_transition_rate_after_tap(folders_platetap, behavior_from, behavior_to)
-%This function takes in 
-
+% this function looks at the transition rates after a platetap and compares
+% it to the control of the time point in between platetaps. If the
+% behavior_from is 0, it is ignored
     load('reference_embedding.mat')
     %load tracks
     relevant_track_fields = {'BehavioralTransition','Frames'};
@@ -70,7 +71,11 @@ function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = aver
                         end
                     end
                     BehavioralAnnotations = [tracks_on_current_critical_frame.BehavioralAnnotation];
-                    selected_tracks = tracks_within_critical_window(and(selected_indecies,BehavioralAnnotations == behavior_from));
+                    if behavior_from > 0
+                        selected_tracks = tracks_within_critical_window(and(selected_indecies,BehavioralAnnotations == behavior_from));
+                    else
+                        selected_tracks = tracks_within_critical_window(selected_indecies);
+                    end
                     if ~isempty(selected_tracks)
                         for frame_shift = -time_window_before:time_window_after
                             current_frame = current_critical_frame + frame_shift;
@@ -119,7 +124,11 @@ function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = aver
                         end
                     end
                     BehavioralAnnotations = [tracks_on_current_critical_frame.BehavioralAnnotation];
-                    selected_tracks = tracks_within_critical_window(and(selected_indecies,BehavioralAnnotations == behavior_from));
+                    if behavior_from > 0
+                        selected_tracks = tracks_within_critical_window(and(selected_indecies,BehavioralAnnotations == behavior_from));
+                    else
+                        selected_tracks = tracks_within_critical_window(selected_indecies);
+                    end
                     if ~isempty(selected_tracks)
                         for frame_shift = -time_window_before:time_window_after
                             current_frame = current_critical_frame + frame_shift;

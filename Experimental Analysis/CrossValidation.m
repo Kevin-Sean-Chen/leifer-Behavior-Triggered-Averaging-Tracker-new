@@ -46,7 +46,7 @@
         PredictedRate = [validationTracks.PredictedRate];
         
         for behavior_index = 1:number_of_behaviors
-            LNPScore(behavior_index,trial_index) = compare_predicted_and_actual_rates(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
+            LNPScore(behavior_index,trial_index) = compare_predicted_and_actual_rates_MSE(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
         end
         
         
@@ -71,7 +71,7 @@
         PredictedRate = [validationTracks.PredictedRate];
         
         for behavior_index = 1:number_of_behaviors
-            ShuffleScore(behavior_index,trial_index) = compare_predicted_and_actual_rates(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
+            ShuffleScore(behavior_index,trial_index) = compare_predicted_and_actual_rates_MSE(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
         end
     end
     

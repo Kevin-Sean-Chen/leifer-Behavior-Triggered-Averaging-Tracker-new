@@ -1,5 +1,6 @@
 function [BTA, behaviorCounts, BTA_RMSD] = ML_BehaviorTriggeredAverage_whitened_ridge(Xtrain,Xtest,Ytrain,Ytest)
-%This function performs the core BTA caculation
+%This function performs the core BTA caculation using maximum likelihood
+%with whitening and ridge regression
 
 %nThi = size(X,1);
 ntfilt = size(Xtrain,2);
@@ -23,7 +24,8 @@ for behavior_index = 1:number_of_behaviors
     spstest =  Ytest(:,behavior_index);
 
     % Precompute some quantities (X'X and X'*y) for training and test data
-    XXtr = Xtrain'*Xtrain;
+    XXtr = Xtrain'*Xtrain; %can be replaced by precomputed stimulus covariance
+    
     XYtr = Xtrain'*spstrain;  % spike-triggered average, training data
     Imat = eye(ntfilt); % identity matrix of size of filter
     
