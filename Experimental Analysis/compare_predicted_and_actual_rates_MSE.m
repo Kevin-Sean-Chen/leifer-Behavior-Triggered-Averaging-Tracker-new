@@ -7,5 +7,6 @@ function MSE = compare_predicted_and_actual_rates_MSE(predicted_rates, observed_
     rdt = predicted_rates.*dt;
     predicted_probability = rdt; %Bernouli process
     %predicted_probability = rdt.*exp(rdt); %poisson probability for one event (k=1)
-    MSE = mean((predicted_probability-observed_events).^2); %average squared residual
+%     MSE = mean((predicted_probability-observed_events).^2); %average squared residual
+    MSE = mean((predicted_probability.*observed_events)); %average squared residual
 end

@@ -1,6 +1,6 @@
 auto_stimulus_period = true; %stimulus_period is found by autocorrelation if this is true
 stimulus_period = 60*14-1; 
-
+starting_shift = 0;
 relevant_track_fields = {'BehavioralTransition','Frames'};
 
 load('reference_embedding.mat')
@@ -11,7 +11,6 @@ LNPStats = LNPStats_nondirectional_ret;
 %select folders
 %folders = getfoldersGUI();
 
-normalized_stimuli = 1; %delta function
 fps = 14;
 
 number_of_behaviors = max(L(:)-1);
@@ -42,18 +41,27 @@ for folder_index = 1:length(folders)
 
     %cut the powers into chunks with the characteristic period
     if auto_stimulus_period
-        %the stimulus_period is found by autocorrelation
-        stim_autocorr = autocorr(LEDPowers,length(LEDPowers)-1);
-        [~,stimulus_period] = findpeaks(stim_autocorr,'SortStr','descend','NPeaks',1);
-        stimulus_period = stimulus_period-1;
-        %do this only once
+        %get the stimulus_period
+        [stimulus_peak_intensities,stimulus_peaks] = findpeaks(LEDPowers);
+        stimulus_period = mode(diff(stimulus_peaks));
+        
+        %we also need to find the shift needed because we want to center
+        %the stimulus in the middle of our time frame
+        peak_index = 1;
+        while peak_index>0
+            starting_shift = stimulus_peaks(peak_index) - floor(stimulus_period/2);
+            if starting_shift > 0
+                peak_index = 0;
+            end
+        end
+        %do this only once assuming all our experiments are alike
         auto_stimulus_period = false;
     else
         %the stimulus_period is predefined. use that
     end
 
-    number_of_trials = floor(length(LEDPowers)/stimulus_period);
-    LEDPowers_reshaped_by_trial = reshape(LEDPowers(1:stimulus_period*number_of_trials),stimulus_period,number_of_trials);
+    number_of_trials = floor((length(LEDPowers)-starting_shift)/stimulus_period);
+    LEDPowers_reshaped_by_trial = reshape(LEDPowers(starting_shift+1:stimulus_period*number_of_trials+starting_shift),stimulus_period,number_of_trials);
     
     %loop through the peaks and cut up tracks
     for trial_index = 1:number_of_trials
@@ -72,7 +80,7 @@ for folder_index = 1:length(folders)
         %for every time a stimulus is delivered, look at a certain range of
         %frames
         for frame_shift = 1:stimulus_period
-            current_frame = ((trial_index-1)*stimulus_period) + frame_shift;
+            current_frame = ((trial_index-1)*stimulus_period) + frame_shift + starting_shift;
             if current_frame <= length(LEDPowers) && current_frame >= 1
                 %make sure the current frame is in range
                 tracks_on_critical_frame = FilterTracksByTime(current_tracks,current_frame, current_frame);
@@ -83,7 +91,7 @@ for folder_index = 1:length(folders)
             end
         end
         %overwrite the last predicted behavioral response with this one, can replace with some sort of average if we want later
-        predicted_behavior_transitions_for_stim{current_stim_index} = experiment_behavior_predictions(:,((trial_index-1)*stimulus_period)+1:trial_index*stimulus_period);
+        predicted_behavior_transitions_for_stim{current_stim_index} = experiment_behavior_predictions(:,((trial_index-1)*stimulus_period)+starting_shift+1:trial_index*stimulus_period+starting_shift);
     end
 end
 
@@ -92,34 +100,34 @@ end
 %all_behavior_transitions_for_frame = all_behavior_transitions_for_frame(sort_index);
 %all_behavior_annotations_for_frame= all_behavior_annotations_for_frame(sort_index);
 
-umber_of_stimulus_templates = size(stimulus_templates,1);
-% 
-% %% 1 plot the transition rates as a function of time
-% for stimulus_index = 1:number_of_stimulus_templates
-%     % plot the transition rates for each stimulus template
-%     transition_rate_for_frame = zeros(number_of_behaviors,stimulus_period);
-%     transition_std_for_frame = zeros(number_of_behaviors,stimulus_period);
-%     for frame_index = 1:stimulus_period
-%         transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
-%         transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
-%         transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
-%     end
-% 
-%     my_colors = lines(number_of_behaviors);
-%     figure
-%     hold on
-%     for behavior_index = 1:number_of_behaviors
-%         plot(1/fps:1/fps:stimulus_period/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
-%     end
-%     hold off
-%     xlabel('Time (s)') % x-axis label
-%     ylabel('Transition Rate (transitions/min)') % y-axis label
-%     title(['Stimulus Index = ', num2str(stimulus_index)]);
-%     legend('show');
-%     ax = gca;
-%     ax.FontSize = 10;
-% end
-% 
+number_of_stimulus_templates = size(stimulus_templates,1);
+
+%% 1 plot the transition rates as a function of time
+for stimulus_index = 1:number_of_stimulus_templates
+    % plot the transition rates for each stimulus template
+    transition_rate_for_frame = zeros(number_of_behaviors,stimulus_period);
+    transition_std_for_frame = zeros(number_of_behaviors,stimulus_period);
+    for frame_index = 1:stimulus_period
+        transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
+        transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+        transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+    end
+
+    my_colors = lines(number_of_behaviors);
+    figure
+    hold on
+    for behavior_index = 1:number_of_behaviors
+        plot(1/fps:1/fps:stimulus_period/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+    end
+    hold off
+    xlabel('Time (s)') % x-axis label
+    ylabel('Transition Rate (transitions/min)') % y-axis label
+    title(['Stimulus Index = ', num2str(stimulus_index)]);
+    legend('show');
+    ax = gca;
+    ax.FontSize = 10;
+end
+
 % %% 2 plot the behavioral ratios as a function of time
 % behavior_counts_for_frame = zeros(number_of_behaviors,number_of_stimulus_templates,stimulus_period);
 % behavior_ratios_for_frame = zeros(number_of_behaviors,number_of_stimulus_templates,stimulus_period);
@@ -171,24 +179,24 @@ umber_of_stimulus_templates = size(stimulus_templates,1);
 %     ax.FontSize = 10;
 % end
 % 
-% %% plot the predicted transition rates
-% for stimulus_index = 1:number_of_stimulus_templates
-%     my_colors = lines(number_of_behaviors);
-%     figure
-%     hold on
-%     for behavior_index = 1:number_of_behaviors
-%         plot(1/fps:1/fps:stimulus_period/fps, predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
-%     end
-%     hold off
-%     xlabel('Time (s)') % x-axis label
-%     ylabel('LNP Preidcted Transition Rate (transitions/min)') % y-axis label
-%     title(['Stimulus Index = ', num2str(stimulus_index)]);
-% 
-%     legend('show');
-%     ax = gca;
-%     ax.FontSize = 10;
-% end
-% 
+%% plot the predicted transition rates
+for stimulus_index = 1:number_of_stimulus_templates
+    my_colors = lines(number_of_behaviors);
+    figure
+    hold on
+    for behavior_index = 1:number_of_behaviors
+        plot(1/fps:1/fps:stimulus_period/fps, predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+    end
+    hold off
+    xlabel('Time (s)') % x-axis label
+    ylabel('LNP Preidcted Transition Rate (transitions/min)') % y-axis label
+    title(['Stimulus Index = ', num2str(stimulus_index)]);
+
+    legend('show');
+    ax = gca;
+    ax.FontSize = 10;
+end
+
 %% plot the stimlulus templates
 figure
 hold on

@@ -1,4 +1,4 @@
-stimuli_of_interest = [8 9];
+stimuli_of_interest = find([LNPStats.BTA_percentile] == 1);
 avg_power = meanLEDPower;
 max_power = avg_power*2;
 stimuli = vertcat(LNPStats(stimuli_of_interest).BTA);
@@ -12,7 +12,12 @@ for stimulus_index = 1:size(stimuli,1)
 end
 
 stimuli = stimuli+avg_power;
-%plot(stimuli(2,:))
+figure
+hold on
+for stimulus_index = 1:size(stimuli,1)
+    plot(stimuli(stimulus_index,:))
+end
+
 
 [filename, pathname] = uiputfile('*.txt','Save Stimuli As');
 dlmwrite(fullfile(pathname, filename), stimuli,'delimiter','\t');
