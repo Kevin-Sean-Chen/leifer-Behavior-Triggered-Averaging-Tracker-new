@@ -51,9 +51,7 @@
         
         
         %shuffle and refit
-        allTracks = get_behavior_triggers(allTracks,true);
-        fitTracks = allTracks(fit_indecies);
-        validationTracks = allTracks(validation_indecies);
+        fitTracks = get_behavior_triggers(fitTracks,true);
 
         %fit the shuffled LNP
         [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(fitTracks, fit_folder_indecies, folders, true);
@@ -111,6 +109,5 @@
 %     hist(ShuffleScore)
 
 
-
-%     p = CompareTwoHistograms(LNPScore, ShuffleScore, 'LNP Score', 'Shuffled Score')
+    p = CompareTwoHistograms(LNPScore(8,:), ShuffleScore(8,:), 'LNP Score', 'Shuffled Score')
     % end

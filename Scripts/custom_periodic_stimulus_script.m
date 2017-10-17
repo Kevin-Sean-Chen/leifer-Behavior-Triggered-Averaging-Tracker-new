@@ -1,4 +1,5 @@
 auto_stimulus_period = true; %stimulus_period is found by autocorrelation if this is true
+binarize_stimulus = true;
 stimulus_period = 60*14-1; 
 starting_shift = 0;
 relevant_track_fields = {'BehavioralTransition','Frames'};
@@ -9,7 +10,7 @@ load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_
 LNPStats = LNPStats_nondirectional_ret;
 
 %select folders
-%folders = getfoldersGUI();
+folders = getfoldersGUI();
 
 fps = 14;
 
@@ -32,7 +33,16 @@ for folder_index = 1:length(folders)
     
     %convert LEDVoltages to power
     LEDPowers = round(LEDVoltages .* current_param.avgPower500 ./ 5);
-
+    if binarize_stimulus
+        % anything different from the baseline we will treat as a stimulus
+        % delivery
+        baseline_indecies = LEDPowers == mode(LEDPowers);
+        LEDPowers_for_finding_stimulus = ones(length(LEDPowers));
+        LEDPowers_for_finding_stimulus(baseline_indecies) = 0;
+    else
+        LEDPowers_for_finding_stimulus = LEDPowers;
+    end
+    
     experiment_behavior_predictions = zeros(number_of_behaviors,length(LEDPowers));
     %predict the behavioral rates based on the preloaded LNP model
     for behavior_index = 1:number_of_behaviors
@@ -42,7 +52,7 @@ for folder_index = 1:length(folders)
     %cut the powers into chunks with the characteristic period
     if auto_stimulus_period
         %get the stimulus_period
-        [stimulus_peak_intensities,stimulus_peaks] = findpeaks(LEDPowers);
+        [stimulus_peak_intensities,stimulus_peaks] = findpeaks(LEDPowers_for_finding_stimulus);
         stimulus_period = mode(diff(stimulus_peaks));
         
         %we also need to find the shift needed because we want to center
