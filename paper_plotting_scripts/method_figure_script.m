@@ -2,11 +2,11 @@
 relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'Spectra', 'Centerlines', 'LEDVoltage2Power', 'ProjectedEigenValues'};
 
 %select folders
-folders = getfolders();
-[allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
+%folders = getfolders();
+%[allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
 parameters = load_parameters(folders{1});
 
-worm_index = 18;
+worm_index = 16; %of Z:\20170828_AML67_GWN\Data20170828_110923
 
 %% plotting the eigenworms 
 %plot the first 5 principle components
@@ -72,18 +72,19 @@ for i = 1:length(pcaSpectra)
     ax = gca;
     ax.YTick = 1:5:parameters.numPeriods;
     ax.YTickLabel = num2cell(round(f(mod(1:length(f),5) == 1), 1));
-    ylabel({['PCA Mode ', num2str(i)], 'Frequency (Hz)'});
+    %ylabel({['PCA Mode ', num2str(i)], 'Frequency (Hz)'});
     
     xlim([1 length(ProjectedEigenvalues(i,:))]);
     ax.XTick = [0, 10*fps, 20*fps, 30*fps, 40*fps, 50*fps];
     ax.XTickLabel = round(ax.XTick/parameters.samplingFreq);
 end
+%colormap(parula);
 
-% subplot(length(pcaSpectra)+1, 1, length(pcaSpectra)+1)
+subplot(length(pcaSpectra)+1, 1, length(pcaSpectra)+1)
 imagesc(allTracks(worm_index).Spectra(:,end)');
 colormap(flipud(othercolor('Reds3')));
-colorbar
-%caxis([0, max(allTracks(worm_index).Spectra(:,end))]);
+%colorbar
+caxis([min(allTracks(worm_index).Spectra(:,end)), max(allTracks(worm_index).Spectra(:,end))]);
 ax = gca;
 xlim([1 length(ProjectedEigenvalues(i,:))]);
 ax.XTick = [0, 10*fps, 20*fps, 30*fps, 40*fps, 50*fps];
@@ -92,7 +93,7 @@ ax.XTickLabel = round(ax.XTick/parameters.samplingFreq);
 xlabel('Time (s)');
 
 %% Picking points and plotting in embedding
-time_points = [5, 20, 25, 35]; %in sec
+time_points = [10, 18, 21, 40]; %in sec
 frame_indecies = time_points .* fps;
 point_colors = lines(length(time_points));
 selected_embeddings = allTracks(worm_index).Embeddings(frame_indecies,:);

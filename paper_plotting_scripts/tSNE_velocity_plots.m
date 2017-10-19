@@ -1,11 +1,9 @@
 load('reference_embedding.mat')
 
-relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
+relevant_track_fields = {'Frames','Embeddings','Velocity'};
 folders = getfoldersGUI();
 
 [allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
-
-
 
 
 observations = cell(size(L));

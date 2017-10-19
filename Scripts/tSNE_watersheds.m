@@ -32,7 +32,7 @@ my_colormap(1,:) = [1 1 1];
 figure
 hold on
 imagesc(xx,xx,density)
-caxis([0 maxDensity * .6])
+caxis([0 maxDensity])
 colormap(my_colormap)
 plot(xx(jj),xx(ii),'k.')
 % for region_index = 1:size(watershed_centroids,1)-1
