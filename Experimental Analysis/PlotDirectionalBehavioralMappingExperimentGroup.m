@@ -31,7 +31,7 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
         watershed_centroids = watershed_centroids(1:number_of_behaviors,:);
         
         %modify jet map
-        my_colormap = jet;
+        my_colormap = othercolor('OrRd9');
         my_colormap(1,:) = [1 1 1];
     else
         plot_watershed = 0;

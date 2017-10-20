@@ -30,9 +30,10 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         watershed_centroids = vertcat(watershed_centroids.Centroid);
         watershed_centroids = round(watershed_centroids);
         %modify color map
-%         my_colormap = othercolor('OrRd9');
-%         my_colormap(1,:) = [1 1 1];
-        my_colormap = redblue;
+        my_colormap = othercolor('OrRd9');
+        my_colormap(1,:) = [1 1 1];
+        
+%         my_colormap = redblue;
     else
         plot_watershed = 0;
     end
@@ -60,8 +61,8 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             plot(xx(jj),xx(ii),'k.','markersize',10)%,'color',[0 0.5 .5])
 
             axis equal tight off xy
-%             caxis([0 maxDensity])
-            caxis([-maxDensity maxDensity])
+            caxis([0 maxDensity])
+%             caxis([-maxDensity maxDensity])
             colormap(my_colormap)
 %             text(xx(watershed_centroids(behavior_index,1)), ...
 %                 xx(watershed_centroids(behavior_index,2)), ...
