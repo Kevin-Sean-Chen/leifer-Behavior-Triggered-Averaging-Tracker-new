@@ -22,8 +22,12 @@ function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats,meanLEDPower,apply_thres
         end
 
         if real_kernel || ~apply_threshold
-            %mean offset
-            linear_kernel(behavior_index, :) = BTA(behavior_index, :)-meanLEDPower;
+            %mean offset if necessary
+            if BTA_stats.mean_subtracted
+                linear_kernel(behavior_index, :) = BTA(behavior_index, :);
+            else
+                linear_kernel(behavior_index, :) = BTA(behavior_index, :)-meanLEDPower;
+            end
             %the linear kernel is time reversed BTA
             linear_kernel(behavior_index,:) = fliplr(linear_kernel(behavior_index,:));
         end

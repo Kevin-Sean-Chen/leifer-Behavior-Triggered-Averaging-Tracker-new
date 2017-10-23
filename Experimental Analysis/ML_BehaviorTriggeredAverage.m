@@ -91,6 +91,7 @@ function [BTA, behaviorCounts, BTA_RMSD, BTA_stats] = ML_BehaviorTriggeredAverag
         BTA_stats.BTA_norm = BTA_norm;
         BTA_stats.shuffle_norms = shuffle_norms;
         BTA_stats.BTA_percentile = BTA_percentile;
+        BTA_stats.mean_subtracted = true;
     else
         BTA_stats = [];
     end

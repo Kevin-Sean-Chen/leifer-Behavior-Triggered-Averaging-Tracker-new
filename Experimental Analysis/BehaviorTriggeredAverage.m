@@ -46,6 +46,7 @@ function [BTA, behaviorCounts, BTA_std, BTA_stats] = BehaviorTriggeredAverage(Be
         BTA_stats.BTA_norm = BTA_norm;
         BTA_stats.shuffle_norms = shuffle_norms;
         BTA_stats.BTA_percentile = BTA_percentile;
+        BTA_stats.mean_subtracted = false;
     else
         BTA_stats = [];
 

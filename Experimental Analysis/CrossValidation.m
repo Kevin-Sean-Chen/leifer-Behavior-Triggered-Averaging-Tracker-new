@@ -17,6 +17,7 @@
     allTracks = get_behavior_triggers(allTracks,false);
 
     LNPScore = zeros(number_of_behaviors, number_of_trials);
+    ML_LNPScore = zeros(number_of_behaviors, number_of_trials);
     ShuffleScore = zeros(number_of_behaviors, number_of_trials);
 
     for trial_index = 1:number_of_trials
@@ -32,7 +33,6 @@
 
         %fit the LNP
         [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(fitTracks, fit_folder_indecies, folders, true);
-
         validationTracks(1).PredictedRate = []; %preallocate memory
         %calculate the predicted rate for each validation track
         for validation_track_index = 1:length(validationTracks)
@@ -41,12 +41,25 @@
             	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, LNPStats(behavior_index).linear_kernel, LNPStats(behavior_index).non_linearity_fit);
         	end
         end
-        
         Behaviors = [validationTracks.Behaviors];
         PredictedRate = [validationTracks.PredictedRate];
-        
         for behavior_index = 1:number_of_behaviors
-            LNPScore(behavior_index,trial_index) = compare_predicted_and_actual_rates_MSE(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
+            LNPScore(behavior_index,trial_index) = compare_predicted_and_actual_rates(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
+        end
+        
+        %fit the LNP with ridge regression and ML
+        [LNPStats, meanLEDPower, stdLEDPower] = ML_FitLNP(fitTracks, fit_folder_indecies, folders, true);
+        %calculate the predicted rate for each validation track
+        for validation_track_index = 1:length(validationTracks)
+			validationTracks(validation_track_index).PredictedRate = zeros(number_of_behaviors, length(validationTracks(validation_track_index).LEDPower));
+        	for behavior_index = 1:number_of_behaviors
+            	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, LNPStats(behavior_index).linear_kernel, LNPStats(behavior_index).non_linearity_fit);
+        	end
+        end
+        Behaviors = [validationTracks.Behaviors];
+        PredictedRate = [validationTracks.PredictedRate];
+        for behavior_index = 1:number_of_behaviors
+            ML_LNPScore(behavior_index,trial_index) = compare_predicted_and_actual_rates(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
         end
         
         
@@ -55,8 +68,6 @@
 
         %fit the shuffled LNP
         [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(fitTracks, fit_folder_indecies, folders, true);
-
-        validationTracks(1).PredictedRate = []; %preallocate memory
         %calculate the predicted rate for each validation track
         for validation_track_index = 1:length(validationTracks)
 			validationTracks(validation_track_index).PredictedRate = zeros(number_of_behaviors, length(validationTracks(validation_track_index).LEDPower));
@@ -64,12 +75,10 @@
             	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, LNPStats(behavior_index).linear_kernel, LNPStats(behavior_index).non_linearity_fit);
         	end
         end
-        
         Behaviors = [validationTracks.Behaviors];
         PredictedRate = [validationTracks.PredictedRate];
-        
         for behavior_index = 1:number_of_behaviors
-            ShuffleScore(behavior_index,trial_index) = compare_predicted_and_actual_rates_MSE(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
+            ShuffleScore(behavior_index,trial_index) = compare_predicted_and_actual_rates(PredictedRate(behavior_index,:),Behaviors(behavior_index,:));
         end
     end
     
@@ -109,5 +118,5 @@
 %     hist(ShuffleScore)
 
 
-    p = CompareTwoHistograms(LNPScore(8,:), ShuffleScore(8,:), 'LNP Score', 'Shuffled Score')
+    p = CompareTwoHistograms(LNPScore(8,:), ML_LNPScore(8,:), 'LNP Score', 'ML_LNP Score')
     % end

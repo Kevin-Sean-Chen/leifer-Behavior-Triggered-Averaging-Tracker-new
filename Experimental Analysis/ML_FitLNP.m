@@ -50,7 +50,7 @@ function [LNPStats,meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies
         Stim{track_index} = Tracks(track_index).LEDPower - meanLEDPower; %mean offset the stimulus
     end
     
-    [BTA, trigger_count, BTA_RMSD, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, true);
+    [BTA, trigger_count, BTA_RMSD, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, ~cross_valdiation);
 
     clear Behaviors Stim
 
