@@ -48,12 +48,12 @@
         end
         
         %fit the LNP with ridge regression and ML
-        [LNPStats, meanLEDPower, stdLEDPower] = ML_FitLNP(fitTracks, fit_folder_indecies, folders, true);
+        [ML_LNPStats, meanLEDPower, stdLEDPower] = ML_FitLNP(fitTracks, fit_folder_indecies, folders, true);
         %calculate the predicted rate for each validation track
         for validation_track_index = 1:length(validationTracks)
 			validationTracks(validation_track_index).PredictedRate = zeros(number_of_behaviors, length(validationTracks(validation_track_index).LEDPower));
         	for behavior_index = 1:number_of_behaviors
-            	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, LNPStats(behavior_index).linear_kernel, LNPStats(behavior_index).non_linearity_fit);
+            	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, ML_LNPStats(behavior_index).linear_kernel, ML_LNPStats(behavior_index).non_linearity_fit);
         	end
         end
         Behaviors = [validationTracks.Behaviors];
@@ -67,12 +67,12 @@
         fitTracks = get_behavior_triggers(fitTracks,true);
 
         %fit the shuffled LNP
-        [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(fitTracks, fit_folder_indecies, folders, true);
+        [Shuffled_LNPStats, meanLEDPower, stdLEDPower] = FitLNP(fitTracks, fit_folder_indecies, folders, true);
         %calculate the predicted rate for each validation track
         for validation_track_index = 1:length(validationTracks)
 			validationTracks(validation_track_index).PredictedRate = zeros(number_of_behaviors, length(validationTracks(validation_track_index).LEDPower));
         	for behavior_index = 1:number_of_behaviors
-            	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, LNPStats(behavior_index).linear_kernel, LNPStats(behavior_index).non_linearity_fit);
+            	validationTracks(validation_track_index).PredictedRate(behavior_index,:) = PredictLNP(validationTracks(validation_track_index).LEDPower, Shuffled_LNPStats(behavior_index).linear_kernel, Shuffled_LNPStats(behavior_index).non_linearity_fit);
         	end
         end
         Behaviors = [validationTracks.Behaviors];
