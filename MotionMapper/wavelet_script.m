@@ -3,7 +3,7 @@ subsampling = true;
 relevant_track_fields = {'Amps','Spectra'};
 
 %% STEP 2: get the experiment folders
-%folders = getfoldersGUI();
+folders = getfoldersGUI();
 
 %% STEP 2: Load the analysis preferences from Excel %%
 parameters = load_parameters();
@@ -119,7 +119,7 @@ else
 end
 
 %clean memory
-delete('training_input_data.mat')
+%delete('training_input_data.mat')
 clear iteration_data iteration_amps sampled_indecies iterationEmbedding amps
 clear training_input_data training_input_frames training_input_tracks training_input_amps
 
@@ -152,7 +152,7 @@ for track_index = 1:length(allTracks)
 end
 
 data = vertcat(Spectra{:});
-clear Spectra
+clear Spectra allTracks
 % phi_dt = data(:,end); %get phase velocity
 % % phi_dt = phi_dt - min(phi_dt) + eps; % make all values non-zero positive
 % % phi_dt = phi_dt ./ max(phi_dt); %normalize to 1
@@ -169,6 +169,8 @@ clear Spectra
 
 [embeddingValues,outputStatistics] = findEmbeddings(data,trainingSetData,trainingEmbedding,parameters); %[embeddingValues{i},~]
 clear data
+
+[allTracks, folder_indecies, track_indecies] = loadtracks(folders, relevant_track_fields);
 
 %% STEP 9: cut the embeddings
 Embeddings = cell(1,length(allTracks));

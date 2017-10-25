@@ -47,8 +47,8 @@ function [zValues,outputStatistics] = ...
     
 %     if d == numModes*numPeriods
         
-        data = projections;
-        data(:) = bsxfun(@rdivide,data,sum(data,2));
+%         data = projections;
+%         data(:) = bsxfun(@rdivide,data,sum(data,2));
         
         minT = 1 ./ parameters.maxF;
         maxT = 1 ./ parameters.minF;
@@ -65,7 +65,7 @@ function [zValues,outputStatistics] = ...
     
     fprintf(1,'Finding Embeddings\n');
     [zValues,zCosts,zGuesses,inConvHull,meanMax,exitFlags] = ...
-        findTDistributedProjections_fmin(data,trainingData,...
+        findTDistributedProjections_fmin(projections,trainingData,...
                                     trainingEmbedding,parameters);
     
     
