@@ -23,7 +23,7 @@ function [linear_kernel] = BTA_to_kernel(BTA, BTA_stats,meanLEDPower,apply_thres
 
         if real_kernel || ~apply_threshold
             %mean offset if necessary
-            if isfield(BTA_stats.mean_subtracted) && BTA_stats.mean_subtracted
+            if isfield(BTA_stats, 'mean_subtracted') && BTA_stats.mean_subtracted
                 linear_kernel(behavior_index, :) = BTA(behavior_index, :);
             else
                 linear_kernel(behavior_index, :) = BTA(behavior_index, :)-meanLEDPower;
