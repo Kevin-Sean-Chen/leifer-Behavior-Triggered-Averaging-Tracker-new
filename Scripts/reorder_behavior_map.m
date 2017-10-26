@@ -12,3 +12,6 @@ end
 
 L(L==length(reordered_indecies)+1) = 0;
 L(L==length(reordered_indecies)+length(reordered_indecies)+2) = length(reordered_indecies)+1;
+
+behavior_names = {'Forward 1', 'Forward 2', 'Forward 3', 'Forward 4', 'Forward 5', 'Forward 6', ...
+    'Slow Reverse', 'Fast Reverse', 'Turns'};
