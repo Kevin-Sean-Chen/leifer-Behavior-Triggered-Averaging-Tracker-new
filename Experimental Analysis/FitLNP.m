@@ -93,9 +93,11 @@ function [LNPStats, meanLEDPower, stdLEDPower] = FitLNP(Tracks,folder_indecies,f
         end
         
         if isempty(nonzeros(linear_kernel(behavior_index,:)))
-            %special case: flat kernel
+            %special case: flat kernel, the nonlinearity predicts the mean
+            %rate. find the mean rate
             bin_centers = 0:numbins-1;
-            non_linearity = zeros(1,numbins);
+            mean_transition_rate = sum(all_behaviors(behavior_index,:))/size(all_behaviors,2)*fps*60;
+            non_linearity = repmat(mean_transition_rate,1,numbins);
             LNPStats(behavior_index).bin_edges = bin_centers;
             LNPStats(behavior_index).filtered_signal_histogram = [];
             LNPStats(behavior_index).filtered_signal_given_reversal_histogram = [];
