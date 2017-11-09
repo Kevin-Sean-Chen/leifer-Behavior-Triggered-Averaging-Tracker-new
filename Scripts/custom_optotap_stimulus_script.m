@@ -4,7 +4,7 @@ load('reference_embedding.mat')
 relevant_track_fields = {'BehavioralTransition','Frames'};
 
 %select folders
-folders_platetap = getfoldersGUI();
+folders_optotap = getfoldersGUI();
 
 %load stimuli.txt from the first experiment
 num_stimuli = 1;
@@ -20,15 +20,15 @@ all_behavior_transitions_for_frame = {};
 all_behavior_annotations_for_frame = {};
 
 %% behavioral rate compare
-for folder_index = 1:length(folders_platetap)
+for folder_index = 1:length(folders_optotap)
     %load the tracks for this folder
-    [current_tracks, folder_indecies_revstim_ret, track_indecies_revstim_ret] = loadtracks(folders_platetap{folder_index},relevant_track_fields);
+    [current_tracks, folder_indecies_revstim_ret, track_indecies_revstim_ret] = loadtracks(folders_optotap{folder_index},relevant_track_fields);
     current_tracks = BehavioralTransitionToBehavioralAnnotation(current_tracks);
     %generate the Behavior matricies
     current_tracks = get_behavior_triggers(current_tracks);
 
-    current_param = load_parameters(folders_platetap{folder_index});
-    LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt']);
+    current_param = load_parameters(folders_optotap{folder_index});
+    LEDVoltages = load([folders_optotap{folder_index}, filesep, 'LEDVoltages.txt']);
     
     %convert LEDVoltages to power
     LEDPowers = round(LEDVoltages .* current_param.avgPower500 ./ 5);
@@ -74,28 +74,32 @@ all_behavior_annotations_for_frame= all_behavior_annotations_for_frame(sort_inde
 %% 1 plot the transition rates as a function of time
 for stimulus_index = 1:length(stimulus_intensities)
     % plot the transition rates centered on stim delivery
+    transition_counts_for_frame = zeros(number_of_behaviors,total_window_frames);
     transition_rate_for_frame = zeros(number_of_behaviors,total_window_frames);
     transition_std_for_frame = zeros(number_of_behaviors,total_window_frames);
     for frame_index = 1:total_window_frames
         transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
+        transition_counts_for_frame(:,frame_index) = sum(transitions_for_frame,2);
         transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
         transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
     end
 
-    my_colors = lines(number_of_behaviors);
+    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+    my_colors = behavior_colors;
     figure
     hold on
     for behavior_index = 1:number_of_behaviors
-    %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-        plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+        transition_n = sum(transition_counts_for_frame(behavior_index,:));
+        plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',[behavior_names{behavior_index}, ' (', num2str(transition_n),' transitions)']);
     end
     hold off
     xlabel('Time (s)') % x-axis label
     ylabel('Transition Rate (transitions/min)') % y-axis label
-    title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index))]);
+    title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index)), ' (n = ', num2str(track_n), ' tracks)']);
     legend('show');
     ax = gca;
     ax.FontSize = 10;
+    axis([-10 10 0 35])
 end
 %% 2 plot the behavioral ratios as a function of time
 behavior_counts_for_frame = zeros(number_of_behaviors,length(stimulus_intensities),total_window_frames);
@@ -106,24 +110,24 @@ for stimulus_index = 1:length(stimulus_intensities)
     total_counts_for_frame = zeros(1,total_window_frames);
     for frame_index = 1:total_window_frames
         for behavior_index = 1:number_of_behaviors
-            behavior_counts_for_frame(behavior_index,stimulus_index,frame_index) = sum(find(all_behavior_annotations_for_frame{stimulus_index}{frame_index}==behavior_index));
+            behavior_counts_for_frame(behavior_index,stimulus_index,frame_index) = sum(all_behavior_annotations_for_frame{stimulus_index}{frame_index}==behavior_index);
         end
         behavior_ratios_for_frame(:,stimulus_index,frame_index) = behavior_counts_for_frame(:,stimulus_index,frame_index)./sum(behavior_counts_for_frame(:,stimulus_index,frame_index)); %get ratio
     end
 end
 
 for stimulus_index = 1:length(stimulus_intensities)
-    my_colors = lines(number_of_behaviors);
+    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+    my_colors = behavior_colors;
     figure
     hold on
     for behavior_index = 1:number_of_behaviors
-    %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',behavior_names{behavior_index});
     end
     hold off
     xlabel('Time (s)') % x-axis label
     ylabel('Behavioral Ratio') % y-axis label
-    title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index))]);
+    title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index)), ' (n = ', num2str(track_n), ' tracks)']);
 
     legend('show');
     ax = gca;
@@ -136,15 +140,41 @@ for behavior_index = 1:number_of_behaviors
     figure
     hold on
     for stimulus_index = 1:length(stimulus_intensities)
-    %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 1,'DisplayName',[num2str(stimulus_intensities(stimulus_index)), 'uW/mm2']);
+        track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',[num2str(stimulus_intensities(stimulus_index)), 'uW/mm2 (n = ', num2str(track_n),' tracks)']);
     end
     hold off
     xlabel('Time (s)') % x-axis label
     ylabel('Behavioral Ratio') % y-axis label
-    title(['Behavior = ', num2str(behavior_index)]);
+    title(behavior_names{behavior_index});
 
     legend('show');
     ax = gca;
     ax.FontSize = 10;
 end
+
+%% plot how we picked the GWN range
+%optotap_behavioral_ratio_percent_changes = percent_change_above_baseline(squeeze(behavior_ratios_for_frame(:,4,:)));
+behavior_index = 8;
+[behavior_percent_change, behavior_baselines, behavior_max, behavior_min] = percent_change_above_baseline(squeeze(behavior_ratios_for_frame(behavior_index,:,:)));
+
+x = stimulus_intensities;
+y = behavior_max';
+
+figure('Position',[100,100,800,600])
+hold on
+rectangle('Position',[0,0,50,0.6],'FaceColor',[1 0.5 0.5])
+plot(x, y, 'bo-', 'LineWidth',2,'Markersize',10)
+
+for stimulus_index = 1:length(stimulus_intensities)
+    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+    text(x(stimulus_index), y(stimulus_index), ['   n=', num2str(track_n)]);
+end
+
+ax = gca;
+ax.XTick = stimulus_intensities;
+ax.YTick = [0 0.3 0.6];
+ax.FontSize = 20;
+
+xlabel('Stimulus Intensity (uW/mm2)') % x-axis label
+ylabel('Fast Reverse Behavioral Ratio') % y-axis label

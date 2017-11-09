@@ -81,7 +81,7 @@ function [LNPStats,meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies
         LNPStats(behavior_index).linear_kernel = linear_kernel(behavior_index,:);
         LNPStats(behavior_index).trigger_count = trigger_count(behavior_index);
         
-        if isempty(BTA_stats)
+        if isempty(BTA_stats) || ~isfield(BTA_stats, 'BTA_norm')
             LNPStats(behavior_index).BTA_norm = [];
             LNPStats(behavior_index).shuffle_norms = [];
             LNPStats(behavior_index).BTA_percentile = [];

@@ -23,7 +23,7 @@ behavior_group{2} = [7];
 behavior_group{3} = [8,9];
 
 
-L = encapsulate_watershed_matrix(L);
+%L = encapsulate_watershed_matrix(L);
 
 
 all_behavior_annotations = behavioral_space_to_behavior(all_embeddings, L, xx);
@@ -83,3 +83,4 @@ for watershed_region = 1:size(watershed_centroids,1)-1
 end
 hold off
 colorbar
+

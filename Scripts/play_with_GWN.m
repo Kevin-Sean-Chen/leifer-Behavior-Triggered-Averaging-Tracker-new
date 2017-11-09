@@ -3,18 +3,18 @@ relevant_track_fields = {'BehavioralTransition','Frames','LEDPower','LEDVoltage2
 
 %select folders
 folders_GWN_ret = getfoldersGUI();
-% folders_GWN_noret = getfoldersGUI();
+folders_GWN_noret = getfoldersGUI();
 % folders_tri_ret = getfoldersGUI();
 
 %ret
 [allTracks_GWN_ret, folder_indecies_GWN_ret, track_indecies_GWN_ret] = loadtracks(folders_GWN_ret,relevant_track_fields);
 %noret
-% [allTracks_GWN_noret, folder_indecies_GWN_noret, track_indecies_GWN_noret] = loadtracks(folders_GWN_noret,relevant_track_fields);
+[allTracks_GWN_noret, folder_indecies_GWN_noret, track_indecies_GWN_noret] = loadtracks(folders_GWN_noret,relevant_track_fields);
 % %triangleret
 % [allTracks_tri_ret, folder_indecies_tri_ret, track_indecies_tri_ret] = loadtracks(folders_tri_ret,relevant_track_fields);
 
 load('reference_embedding.mat')
-
+number_of_behaviors = max(L(:))-1;
 % allTracks = [allTracks_GWN_ret, allTracks_GWN_noret];
 % folders = [folders_GWN_ret, folders_GWN_noret];
 % folder_indecies = [folder_indecies_GWN_ret, folder_indecies_GWN_noret+folder_indecies_GWN_ret(end)];

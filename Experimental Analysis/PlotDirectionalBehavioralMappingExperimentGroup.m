@@ -87,7 +87,7 @@ function [] = PlotDirectionalBehavioralMappingExperimentGroup (LNPStats, meanLED
             plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r', 'Linewidth', 3)
             hold off
 %             xlabel(strcat('Time (s) (', num2str(LNPStats(behavior_index).trigger_count), ' behaviors analyzed)')) % x-axis label
-            xlabel(strcat(num2str(LNPStats(behavior_index).trigger_count), ' Events Analyzed')) % x-axis label
+            xlabel(['n=',num2str(LNPStats(behavior_index).trigger_count]) % x-axis label
 %             ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label
             axis([-10 10 23 27])
             %axis([-10 2 0 5])

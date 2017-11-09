@@ -44,6 +44,7 @@ peak_thresh = 0.99.*max(xcorr_ledvoltages_stimulus); %the peak threshold is 99% 
 [~, critical_frames] = findpeaks(xcorr_ledvoltages_stimulus, 'MinPeakHeight', peak_thresh,'MinPeakDistance',14);
 
 %% 1 plot the transition rates as a function of time
+behavior_transitions_for_frame = cell(1,time_window_before+time_window_after+1);
 behaviors_for_frame = cell(1,time_window_before+time_window_after+1);
 
 for critical_frame_index = 1:length(critical_frames)
@@ -54,46 +55,7 @@ for critical_frame_index = 1:length(critical_frames)
         if current_frame <= length(LEDVoltages) && current_frame >= 1
             %make sure the current frame is in range
             tracks_on_critical_frame = FilterTracksByTime(allTracks,current_frame, current_frame);
-            behaviors_for_frame{frame_shift+time_window_before+1} = [behaviors_for_frame{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
-        end
-    end
-    
-end
-
-% plot the transition rates centered on stim delivery
-transition_rate_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
-transition_std_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
-for frame_index = 1:length(behaviors_for_frame)
-    transitions_for_frame = behaviors_for_frame{frame_index};%horzcat(behaviors_for_frame{frame_index}.Behaviors);
-    transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
-    transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
-end
-
-my_colors = lines(number_of_behaviors);
-figure
-hold on
-for behavior_index = 1:number_of_behaviors
-%     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-    plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
-end
-hold off
-xlabel('Time (s)') % x-axis label
-ylabel('Transition Rate (transitions/min)') % y-axis label
-legend('show');
-ax = gca;
-ax.FontSize = 10;
-
-%% 2 plot the behavioral ratios as a function of time
-behaviors_for_frame = cell(1,time_window_before+time_window_after+1);
-
-for critical_frame_index = 1:length(critical_frames)
-    %for every time a stimulus is delivered, look at a certain range of
-    %frames
-    for frame_shift = -time_window_before:time_window_after
-        current_frame = critical_frames(critical_frame_index) + frame_shift;
-        if current_frame <= length(LEDVoltages) && current_frame >= 1
-            %make sure the current frame is in range
-            tracks_on_critical_frame = FilterTracksByTime(allTracks,current_frame, current_frame);
+            behavior_transitions_for_frame{frame_shift+time_window_before+1} = [behavior_transitions_for_frame{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
             behaviors_for_frame{frame_shift+time_window_before+1} = [behaviors_for_frame{frame_shift+time_window_before+1}, tracks_on_critical_frame.BehavioralAnnotation];
         end
     end
@@ -101,32 +63,76 @@ for critical_frame_index = 1:length(critical_frames)
 end
 
 % plot the transition rates centered on stim delivery
+transition_counts_for_frame = zeros(number_of_behaviors,length(behavior_transitions_for_frame));
+transition_rate_for_frame = zeros(number_of_behaviors,length(behavior_transitions_for_frame));
+transition_std_for_frame = zeros(number_of_behaviors,length(behavior_transitions_for_frame));
+for frame_index = 1:length(behavior_transitions_for_frame)
+    transitions_for_frame = behavior_transitions_for_frame{frame_index};%horzcat(behaviors_for_frame{frame_index}.Behaviors);
+    transition_counts_for_frame(:,frame_index) = sum(transitions_for_frame,2);
+    transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+    transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+end
+
+track_n = round(mean(arrayfun(@(x) size(x{1},2), behavior_transitions_for_frame)));
+my_colors = behavior_colors;
+figure
+hold on
+for behavior_index = 1:number_of_behaviors
+    transition_n = sum(transition_counts_for_frame(behavior_index,:));
+    plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',[behavior_names{behavior_index}, ' (', num2str(transition_n),' transitions)']);
+end
+hold off
+title(['(n = ', num2str(track_n), ' tracks)']);
+xlabel('Time (s)') % x-axis label
+ylabel('Transition Rate (transitions/min)') % y-axis label
+legend('show');
+ax = gca;
+ax.FontSize = 10;
+
+%% 2 plot the behavioral ratios as a function of time
+% plot the transition rates centered on stim delivery
 behavior_counts_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
 behavior_ratios_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
 
 total_counts_for_frame = zeros(1,length(behaviors_for_frame));
 for frame_index = 1:length(behaviors_for_frame)
     for behavior_index = 1:number_of_behaviors
-        behavior_counts_for_frame(behavior_index,frame_index) = sum(find(behaviors_for_frame{frame_index}==behavior_index));
+        behavior_counts_for_frame(behavior_index,frame_index) = sum(behaviors_for_frame{frame_index}==behavior_index);
     end
     behavior_ratios_for_frame(:,frame_index) = behavior_counts_for_frame(:,frame_index)./sum(behavior_counts_for_frame(:,frame_index)); %get ratio
 end
 
 
-
-my_colors = lines(number_of_behaviors);
+track_n = round(mean(arrayfun(@(x) size(x{1},2), behaviors_for_frame)));
+my_colors = behavior_colors;
 figure
 hold on
 for behavior_index = 1:number_of_behaviors
-%     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-    plot(-time_window_before/fps:1/fps:time_window_after/fps, behavior_ratios_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+    plot(-time_window_before/fps:1/fps:time_window_after/fps, behavior_ratios_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',behavior_names{behavior_index});
 end
 hold off
+title(['(n = ', num2str(track_n), ' tracks)']);
 xlabel('Time (s)') % x-axis label
 ylabel('Behavioral Ratio') % y-axis label
 legend('show');
 ax = gca;
 ax.FontSize = 10;
+
+%% get the percent change above baseline for behavioral ratios
+tap_behavioral_ratio_percent_changes = percent_change_above_baseline(behavior_ratios_for_frame);
+
+%optotap_behavioral_ratio_percent_changes = [-54.7906394353574 83.1340905929878 15.2321768129009 -18.4336895345706 -47.1191535144282 -41.8393080973100 74.3198149368540 1178.71667868585 296.327653243460]
+hold on
+tap_vs_optotap_percent_change = [tap_behavioral_ratio_percent_changes, optotap_behavioral_ratio_percent_changes];
+bar(tap_vs_optotap_percent_change);
+
+for i = 1:length(tap_vs_optotap_percent_change);
+    text(1:length(tap_vs_optotap_percent_change), max(tap_vs_optotap_percent_change,[],2)', num2str(round(tap_vs_optotap_percent_change)), 'VerticalAlignment', 'top','HorizontalAlignment','center')
+end
+legend({'Tap','Optotap'});
+set(gca, 'XTickLabel', [{[]}, behavior_names])
+ylabel('Maximum Percent Change from Baseline') % y-axis label
+
 
 % %% 3 plot the transition rates as a function of time given the worm is a particular behavior at time 0
 % behaviors_for_frame = cell(1,time_window_before+time_window_after+1);
@@ -167,8 +173,8 @@ ax.FontSize = 10;
 % figure
 % hold on
 % for behavior_index = 1:number_of_behaviors
-% %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-%     plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+% %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',['Behavior ', num2str(behavior_index)]});
+%     plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',['Behavior ', num2str(behavior_index)]);
 % end
 % hold off
 % xlabel('Time (s)') % x-axis label
@@ -220,8 +226,8 @@ ax.FontSize = 10;
 % figure
 % hold on
 % for behavior_index = 1:number_of_behaviors
-% %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-%     plot(-time_window_before/fps:1/fps:time_window_after/fps, behavior_ratios_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+% %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',['Behavior ', num2str(behavior_index)]});
+%     plot(-time_window_before/fps:1/fps:time_window_after/fps, behavior_ratios_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',['Behavior ', num2str(behavior_index)]);
 % end
 % hold off
 % xlabel('Time (s)') % x-axis label
@@ -280,8 +286,8 @@ ax.FontSize = 10;
 % figure
 % hold on
 % for behavior_index = 1:number_of_behaviors
-% %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-%     plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+% %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',['Behavior ', num2str(behavior_index)]});
+%     plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',['Behavior ', num2str(behavior_index)]);
 % end
 % hold off
 % xlabel('Time (s)') % x-axis label
@@ -343,8 +349,8 @@ ax.FontSize = 10;
 % figure
 % hold on
 % for behavior_index = 1:number_of_behaviors
-% %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]});
-%     plot(-time_window_before/fps:1/fps:time_window_after/fps, behavior_ratios_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 1,'DisplayName',['Behavior ', num2str(behavior_index)]);
+% %     shadedErrorBar(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), transition_std_for_frame(behavior_index,:), {'-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',['Behavior ', num2str(behavior_index)]});
+%     plot(-time_window_before/fps:1/fps:time_window_after/fps, behavior_ratios_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',['Behavior ', num2str(behavior_index)]);
 % end 
 % hold off
 % xlabel('Time (s)') % x-axis label

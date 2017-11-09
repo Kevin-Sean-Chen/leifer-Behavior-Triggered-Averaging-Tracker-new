@@ -7,7 +7,7 @@ function Tracks = BehavioralTransitionToBehavioralAnnotation(Tracks)
                Tracks(track_index).BehavioralTransition(transtion_index,3)) = ...
                Tracks(track_index).BehavioralTransition(transtion_index,1);
        end
-       Tracks(track_index).BehavioralAnnotation = behavioral_annotaiton;
+       Tracks(track_index).BehavioralAnnotation = behavioral_annotaiton(1:length(Tracks(track_index).Frames));
     end
 end
 

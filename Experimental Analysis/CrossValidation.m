@@ -118,5 +118,5 @@
 %     hist(ShuffleScore)
 
 
-    p = CompareTwoHistograms(LNPScore(8,:), ML_LNPScore(8,:), 'LNP Score', 'ML_LNP Score')
+    p = CompareTwoHistograms(LNPScore(1,:), ML_LNPScore(1,:), 'LNP Score', 'MLLNP Score')
     % end

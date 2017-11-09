@@ -9,15 +9,33 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
     rows_per_page = 3;
     NumTicks = 3;
 
-    figure
+    load('reference_embedding.mat')
+    number_of_behaviors = max(L(:))-1;
+    
+    plot_only_significant = 1;
+
     plot_watershed = 1;
     plot_BTA = 1;
-    plot_linear_filter = 1;
+    plot_linear_filter = 0;
     plot_filtered_signal_histogram = 0;
     plot_filtered_signal_given_reversal_histogram = 0;
-    plot_non_linearity = 1;
-    
+    plot_non_linearity = 0;
+    plot_kernel_significance = 0;
+    figure
 
+        
+    if plot_only_significant
+        indecies_to_remove = find([LNPStats.BTA_percentile] < 1);
+        LNPStats(indecies_to_remove) = [];
+        behavior_colors(indecies_to_remove,:) = [];
+        behavior_names(indecies_to_remove) = [];
+        for removal_index = length(indecies_to_remove):-1:1
+            L(L==removal_index)=max(L(:));
+            L(L>removal_index)=L(L>removal_index)-1;
+        end
+    end
+    
+    
     if nargin > 4
         watershed_borders_binary = L==0;
     %     [ii,jj] = find(watershed_borders_binary);
@@ -43,7 +61,8 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
     filtered_signal_histogram_plot_number = linear_filter_plot_number+plot_filtered_signal_histogram;
     filtered_signal_given_reversal_histogram_plot_number = filtered_signal_histogram_plot_number+plot_filtered_signal_given_reversal_histogram;
     non_linearity_plot_number = filtered_signal_given_reversal_histogram_plot_number+plot_non_linearity;
-    watershed_plot_number = non_linearity_plot_number+plot_watershed;
+    kernel_significance_plot_number = non_linearity_plot_number+plot_kernel_significance;
+    watershed_plot_number = kernel_significance_plot_number+plot_watershed;
     plots_per_experiment = watershed_plot_number;
     
     
@@ -58,9 +77,9 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             watershed_region_border = and(watershed_borders_binary, enlarged_watershed_region_binary);
             [ii,jj] = find(watershed_region_border);
 %             plot(xx(white_space_jj), xx(white_space_ii), 'w.');
-            plot(xx(jj),xx(ii),'k.','markersize',10)%,'color',[0 0.5 .5])
+            plot(xx(jj),xx(ii),'k.','markersize',10,'color',behavior_colors(behavior_index,:))
 
-            axis equal tight off xy
+            axis equal tight xy
             caxis([0 maxDensity])
 %             caxis([-maxDensity maxDensity])
             colormap(my_colormap)
@@ -70,6 +89,14 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
 %                 'fontsize', 12, 'horizontalalignment', 'center', ...
 %                 'verticalalignment', 'middle');
             hold off
+            
+            xlabel(behavior_names{behavior_index}) % x-axis label
+            xlabh = get(gca,'XLabel');
+            set(xlabh,'Position',get(xlabh,'Position') + [0 25 0])
+            set(gca, 'XTickLabels', {})
+            set(gca, 'YTickLabels', {})
+            ax = gca;
+            ax.FontSize = 18;            
         end
         
         %plot BTA
@@ -83,9 +110,9 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             meanLEDVoltageY(:) = meanLEDPower;
             plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r', 'Linewidth', 3)
             hold off
-%             xlabel(strcat('Time (s) (', num2str(LNPStats(behavior_index).trigger_count), ' behaviors analyzed)')) % x-axis label
-            xlabel(strcat('n = ', num2str(LNPStats(behavior_index).trigger_count))) % x-axis label
-%             ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label 
+%             xlabel(['Time (s) (n=', num2str(LNPStats(behavior_index).trigger_count),')']) % x-axis label
+            xlabel(['n = ', num2str(LNPStats(behavior_index).trigger_count),'']) % x-axis label
+            ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label 
             axis([-10 10 23 27])
             %axis([-10 2 0 5])
             ax = gca;
@@ -93,7 +120,8 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
 %             ax.YTick = linspace(0.64,0.84,5);
             ax.FontSize = 18;
             xlabh = get(gca,'XLabel');
-            set(xlabh,'Position',get(xlabh,'Position') + [0 5.5 0])
+            set(xlabh,'Position',get(xlabh,'Position') + [0 2.5 0])
+
             limits = get(gca,'XLim');
             set(gca,'XTick',linspace(limits(1),limits(2),NumTicks))
             limits = get(gca,'YLim');
@@ -161,15 +189,37 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             set(gca,'XTick',linspace(limits(1),limits(2),NumTicks))
             limits = get(gca,'YLim');
             set(gca,'YTick',linspace(limits(1),limits(2),NumTicks))
-            xlabel('') % x-axis label
-            ylabel('') % y-axis label
-%             xlabel('Filtered Signal (a.u.)') % x-axis label
-%             ylabel('Behavioral Rate (Behaviors/Min)') % y-axis label
+%             xlabel('') % x-axis label
+%             ylabel('') % y-axis label
+            xlabel('Filtered Signal (a.u.)') % x-axis label
+            ylabel('Behavioral Rate (Behaviors/Min)') % y-axis label
             legend('off')
             set(fig,'DefaultLineMarkerSize',prev_line_marker_size);
             set(fig,'DefaultLineLineWidth',prev_line_width)
         end
+    
+        if plot_kernel_significance
+            scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(behavior_index-1) + kernel_significance_plot_number);
+            shuffle_std = std(LNPStats(behavior_index).shuffle_norms);
+            shuffle_mean = mean(LNPStats(behavior_index).shuffle_norms);
+            hold on
+            barwitherr([shuffle_std; 0], [shuffle_mean; LNPStats(behavior_index).BTA_norm])
+            if ~all(LNPStats(behavior_index).linear_kernel == 0)
+                sigstar({[1,2]},0.05);
+            end
+            ax = gca;
+            ax.FontSize = 18;
+
+            set(gca,'XTick',[1 2])
+            set(gca, 'XTickLabels', {'Shuffle', 'BTA'})
+            limits = get(gca,'YLim');
+            set(gca,'YTick',linspace(floor(limits(1)),ceil(limits(2)),NumTicks))
+            axis([0, 3, limits])
+            xlabel('') % x-axis label
+            ylabel('Kernel Magnitude') % y-axis label
+        end
     end
+    
     
     if isfield(LNPStats, 'shuffle_norms') && ~isempty(LNPStats(1).shuffle_norms)
         figure
@@ -184,6 +234,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         xlabel('Behavior Index') % x-axis label
         ylabel('Filter Magnitude') % y-axis label
         legend('Shuffled Magnitutde (99% confidence)', 'BTA Magnitutde')
+        
     end
 end
 
