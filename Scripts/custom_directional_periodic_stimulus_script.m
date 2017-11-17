@@ -5,12 +5,12 @@ starting_shift = 0;
 relevant_track_fields = {'BehavioralTransition','Frames'};
 
 load('reference_embedding.mat')
-load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit.mat')
+load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_allNLPredictions_20171113.mat')
 
 LNPStats = LNPStats_directional_ret;
 
 %select folders
-folders = getfoldersGUI();
+%folders = getfoldersGUI();
 
 fps = 14;
 

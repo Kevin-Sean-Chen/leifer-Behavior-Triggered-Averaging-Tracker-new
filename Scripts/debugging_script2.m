@@ -1,87 +1,75 @@
+%% compare base rate and the peak predicted transition rate
+if BTA_playback
+    baseline_start = 1;
+    baseline_end = 20*fps;
+    peak_window = 2*fps;
+    peak_predicted_rate_location = 40 * fps;
 
-%% play with transition plots
-cut_off_ratio = 0.8;
-fold_cut_off = 0.7;
-%top_behavior_transitions_to_display = 0.25;
-% %get transition graph
-% ret_transition_graph = BehavioralTransitionGraph(allTracks_GWN_ret, number_of_behaviors, true, cut_off_ratio);
-% noret_transition_graph = BehavioralTransitionGraph(allTracks_GWN_noret, number_of_behaviors, true, cut_off_ratio);
+    
+    transition_rate_changes = zeros(1,number_of_stimulus_templates);
+    transition_rate_propagated_errors = zeros(1,number_of_stimulus_templates);
+    transition_rate_change_significance = false(1,number_of_stimulus_templates);
+    predicted_rate_changes = zeros(1,number_of_stimulus_templates);
+    my_colors = behavior_colors;
+    
+    for stimulus_index = 1:number_of_stimulus_templates
+        transition_rate_for_frame = zeros(number_of_behaviors,stimulus_period);
+        transition_std_for_frame = zeros(number_of_behaviors,stimulus_period);
+        for frame_index = 1:stimulus_period
+            transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
+            transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+            %transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+        end
 
-[~, ret_normalized_adj_matrix, ~, ~, ret_behavioral_ratios] = BehavioralTransitionGraph(allTracks_GWN_ret, number_of_behaviors, true, 1);
-[~, noret_normalized_adj_matrix, ~, ~, noret_behavioral_ratios] = BehavioralTransitionGraph(allTracks_GWN_noret, number_of_behaviors, true, 1);
-diag_removed_noret_normalized_adj_matrix = noret_normalized_adj_matrix + eye(length(noret_normalized_adj_matrix));
-%compare the two graphs for changes in transition rates
-ret_to_noret_transition_ratio = ret_normalized_adj_matrix  ./ diag_removed_noret_normalized_adj_matrix;
-ret_to_noret_transition_percent_change = (ret_normalized_adj_matrix - noret_normalized_adj_matrix) ./ diag_removed_noret_normalized_adj_matrix .* 100;
+        track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
 
-nozero_ret_to_noret_change = ret_to_noret_transition_ratio+eye(length(noret_normalized_adj_matrix));
-abs_ret_to_noret_fold_change = abs(log2(nozero_ret_to_noret_change));
+        %find the peak predicted rate in the experimental window
+        behavior_index = stimulus_to_behavior_key(stimulus_index);
+        predicted_rate = predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,:);
+%         [~, peak_predicted_rate_location] = max(predicted_rate);
+        exp_start = peak_predicted_rate_location - (peak_window/2);
+        exp_end = peak_predicted_rate_location + (peak_window/2);
+        [~, baseline_mean, ~, ~, baseline_std, exp_mean, exp_std, p] = percent_change_above_baseline(transition_rate_for_frame(behavior_index,:),baseline_start,baseline_end,exp_start,exp_end);
+        
+        %find the change
+        predicted_rate_baseline = mean(predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,baseline_start:baseline_end));
+        predicted_rate_exp = mean(predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,exp_start:exp_end));
+        predicted_rate_changes(stimulus_index) = (predicted_rate_exp - predicted_rate_baseline) ./ predicted_rate_baseline;
+        
+        transition_rate_changes(stimulus_index) = (exp_mean - baseline_mean) ./ baseline_mean;
+        transition_rate_propagated_errors(stimulus_index) = abs(transition_rate_changes(stimulus_index)) * sqrt(((exp_std./exp_mean).^2)+((baseline_std./baseline_mean).^2));
+        transition_rate_change_significance(stimulus_index) = p < 0.05;
+    end
+    
+    figure('pos',[0,0,600,400])
+    hold on
+    
+%     h = barwitherr(transition_rate_propagated_errors, transition_rate_changes, 'linewidth',1);
+    %set(h(1), 'FaceColor',behavior_colors(stimulus_to_behavior_key(stimulus_index),:));
+    
+    for stimulus_index = 1:number_of_stimulus_templates
+        bar(stimulus_index-0.2,transition_rate_changes(stimulus_index),0.4,'FaceColor',behavior_colors(stimulus_to_behavior_key(stimulus_index),:));
+        bar(stimulus_index+0.2,predicted_rate_changes(stimulus_index),0.4,'FaceColor',behavior_colors(stimulus_to_behavior_key(stimulus_index),:),'facealpha', 0.5);
+    end
+    errorbar((1:stimulus_index)-0.2,transition_rate_changes,transition_rate_propagated_errors, 'k', 'linestyle', 'none', 'marker', 'none')
 
-%rank the largest changes, and only use the top hits
-ret_to_noret_transition_percent_change(abs_ret_to_noret_fold_change<fold_cut_off) = 0;
-ret_to_noret_transition_positive_change = ret_to_noret_transition_percent_change;
-ret_to_noret_transition_positive_change(ret_to_noret_transition_positive_change<0) = 0;
-positive_transition_graph = digraph(ret_to_noret_transition_positive_change);
-ret_to_noret_transition_negative_change = ret_to_noret_transition_percent_change;
-ret_to_noret_transition_negative_change(ret_to_noret_transition_negative_change>0) = 0;
-negative_transition_graph = digraph(abs(ret_to_noret_transition_negative_change));
+    for stimulus_index = 1:number_of_stimulus_templates
+        if transition_rate_change_significance(stimulus_index)
+             text(stimulus_index-0.2, 0.3, '*', 'Fontsize', 20, 'HorizontalAlignment','center')
+%             sigstar({[stimulus_index-0.2, stimulus_index+0.2]},0.05)
+        end
+    end
+    
+    ax = gca;
+    ax.FontSize = 8;
 
-%compare the two graphs for changes in behavioral ratios 
-ret_to_noret_behavioral_percent_change = (ret_behavioral_ratios - noret_behavioral_ratios) ./ ret_behavioral_ratios .* 100;
-
-
-%plot it
-load('reference_embedding.mat')
-maxDensity = max(density(:));
-[ii,jj] = find(L==0);
-watershed_centroids = regionprops(L, 'centroid');
-watershed_centroids = vertcat(watershed_centroids.Centroid);
-watershed_centroids = round(watershed_centroids);
-watershed_centroids = watershed_centroids(1:end-1,:);
-
-%special case
-watershed_centroids(2,2) = watershed_centroids(2,2) + 15;
-
-%modify jet map
-my_colormap = othercolor('OrRd9');
-my_colormap(1,:) = [1 1 1];
-
-figure
-hold on
-
-plot_triangle(xx(watershed_centroids(:,1)),xx(watershed_centroids(:,2)), ...
-round(abs(ret_to_noret_behavioral_percent_change)*4), behavior_colors,(ret_to_noret_behavioral_percent_change < 0));
-
-for region_index = 1:size(watershed_centroids,1)
-text(xx(watershed_centroids(region_index,1)), ...
-    xx(watershed_centroids(region_index,2)), ...
-    [behavior_names{region_index}, newline, num2str(round(ret_to_noret_behavioral_percent_change(region_index))), '%'], 'color', 'k', ...
-    'fontsize', 16, 'horizontalalignment', 'center', ...
-    'verticalalignment', 'middle');
+    set(gca,'XTick',1:number_of_stimulus_templates)
+    set(gca, 'XTickLabels', behavior_names(stimulus_to_behavior_key))
+    axis([0, number_of_stimulus_templates+1, -0.1, 0.4])
+    limits = get(gca,'YLim');
+    set(gca,'YTick',linspace(limits(1),limits(2),3))
+    xlabel('') % x-axis label
+    ylabel('Fraction Change') % y-axis label
+%     title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' (n = ', num2str(track_n), ')']);
+%     legend(prediction_plot)
 end
-plot(xx(jj),xx(ii),'k.')
-axis equal tight off xy
-
-LWidths = 10*positive_transition_graph.Edges.Weight/max(abs(ret_to_noret_transition_percent_change(:)));
-edge_weights = positive_transition_graph.Edges.Weight;
-graph_edge_label = cell(1,length(edge_weights));
-for edge_index = 1:length(edge_weights)
-    graph_edge_label{edge_index} = [num2str(round(edge_weights(edge_index))), '%'];
-end
-plot(positive_transition_graph,'EdgeLabel',graph_edge_label,'LineWidth',LWidths, ...
-'ArrowSize', 25, 'EdgeColor', 'g', 'EdgeAlpha', 0.5, 'NodeColor', 'none', ...
-'NodeLabel', {}, ...
-'XData',xx(watershed_centroids(:,1))','YData',xx(watershed_centroids(:,2))');
-
-
-LWidths = 10*negative_transition_graph.Edges.Weight/max(abs(ret_to_noret_transition_percent_change(:)));
-edge_weights = negative_transition_graph.Edges.Weight;
-graph_edge_label = cell(1,length(edge_weights));
-for edge_index = 1:length(edge_weights)
-    graph_edge_label{edge_index} = ['-',num2str(round(edge_weights(edge_index))), '%'];
-end
-plot(negative_transition_graph,'EdgeLabel',graph_edge_label,'LineWidth',LWidths, ...
-'ArrowSize', 25, 'EdgeColor', 'r', 'EdgeAlpha', 0.5, 'NodeColor', 'none', ...
-'NodeLabel', {}, ...
-'XData',xx(watershed_centroids(:,1))','YData',xx(watershed_centroids(:,2))');
-

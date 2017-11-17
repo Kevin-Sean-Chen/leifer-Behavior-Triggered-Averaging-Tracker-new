@@ -30,8 +30,8 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         behavior_colors(indecies_to_remove,:) = [];
         behavior_names(indecies_to_remove) = [];
         for removal_index = length(indecies_to_remove):-1:1
-            L(L==removal_index)=max(L(:));
-            L(L>removal_index)=L(L>removal_index)-1;
+            L(L==indecies_to_remove(removal_index))=max(L(:));
+            L(L>indecies_to_remove(removal_index))=L(L>indecies_to_remove(removal_index))-1;
         end
     end
     

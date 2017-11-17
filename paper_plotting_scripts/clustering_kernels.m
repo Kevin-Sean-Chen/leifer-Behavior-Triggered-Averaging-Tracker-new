@@ -32,14 +32,14 @@ figure
 subplot(1,2,1)
 kernel_distances = squareform(pdist(significant_linear_kernels));
 kernel_linkage_tree = linkage(kernel_distances);
-dendrogram(kernel_linkage_tree,'Labels',behavior_names,'Orientation','left','Reorder',[5,6,1,2,3,4]);
+dendrogram(kernel_linkage_tree,'Labels',behavior_names,'Orientation','left','Reorder',[1,2,3,4,5,6]);
 xlabel('Kernel Distance (a.u.)')
 title('Scaled Kernel L2 Norm as Distance')
 %
 subplot(1,2,2)
 embedding_distances = squareform(pdist(watershed_centroids));
 embedding_linkage_tree = linkage(embedding_distances);
-dendrogram(embedding_linkage_tree,'Labels',behavior_names,'Orientation','right','Reorder',[5,6,1,2,3,4]);
+dendrogram(embedding_linkage_tree,'Labels',behavior_names,'Orientation','right','Reorder',[1,2,3,4,5,6]);
 xlabel('Behavioral Map Distance (a.u.)')
 title('Behavioral Map Euclidean Distance for Watershed Centroids')
 set(gca,'YTickLabel',[]);
