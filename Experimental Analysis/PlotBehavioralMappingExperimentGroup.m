@@ -8,11 +8,11 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
 %     kernel_seconds_before = BTA_seconds_before;
     rows_per_page = 3;
     NumTicks = 3;
+    plot_only_significant = 0;
 
     load('reference_embedding.mat')
     number_of_behaviors = max(L(:))-1;
     
-    plot_only_significant = 1;
 
     plot_watershed = 1;
     plot_BTA = 1;

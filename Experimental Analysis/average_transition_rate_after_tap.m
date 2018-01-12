@@ -1,4 +1,4 @@
-function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = average_transition_rate_after_tap(folders_platetap, behavior_from, behavior_to)
+function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats,tap_observed_transitions_count,control_observed_transitions_count] = average_transition_rate_after_tap(folders_platetap, behavior_from, behavior_to)
 % this function looks at the transition rates after a platetap and compares
 % it to the control of the time point in between platetaps. If the
 % behavior_from is 0, it is ignored
@@ -9,11 +9,17 @@ function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = aver
     %load stimuli.txt from the first experiment
     normalized_stimuli = 1; %delta function
     time_window_before = 0;
-    time_window_after = 14; %transition rate average for 1 seconds after tap
+%     time_window_after = 14; %transition rate average for 1 seconds after tap
+    time_window_after = 28; %transition rate average for 2 seconds after tap
     fps = 14;
 
     number_of_behaviors = max(L(:)-1);
 
+    tap_observed_transitions_counts = [];
+%     tap_total_observation_counts = [];
+    control_observed_transitions_counts = [];
+%     control_total_observation_counts = [];
+    
     tap_transition_rates = [];
     control_tap_transition_rates = [];
 
@@ -88,17 +94,23 @@ function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = aver
         end
         if ~isempty(behaviors_for_frame{1})
             transition_rate_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
+            transition_count_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
             transition_std_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
             for frame_index = 1:length(behaviors_for_frame)
                 transitions_for_frame = behaviors_for_frame{frame_index};%horzcat(behaviors_for_frame{frame_index}.Behaviors);
+                transition_count_for_frame(:,frame_index) = sum(transitions_for_frame,2);
                 transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
                 transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
             end
             % this is the average rate of transition for this particular pair
-            mean_transition_rate_of_interest = mean(transition_rate_for_frame(behavior_to,:),2);
+            mean_transition_rate_of_interest = mean(transition_rate_for_frame(behavior_to,:),2); %convert to /min
             tap_transition_rates = [tap_transition_rates,mean_transition_rate_of_interest];
+            tap_observed_transitions_counts = [tap_observed_transitions_counts,sum(transition_count_for_frame(behavior_to,:),2)];
+%             tap_total_observation_counts = [tap_total_observation_counts,size(transitions_for_frame,2)];
         else
             tap_transition_rates = [tap_transition_rates,0];
+            tap_observed_transitions_counts = [tap_observed_transitions_counts,0];
+%             tap_total_observation_counts = [tap_total_observation_counts,0];
         end
         
         %get the transitions rates for control condition
@@ -141,17 +153,23 @@ function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = aver
         end
         if ~isempty(behaviors_for_frame{1})
             transition_rate_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
+            transition_count_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
             transition_std_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
             for frame_index = 1:length(behaviors_for_frame)
                 transitions_for_frame = behaviors_for_frame{frame_index};%horzcat(behaviors_for_frame{frame_index}.Behaviors);
+                transition_count_for_frame(:,frame_index) = sum(transitions_for_frame,2);
                 transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
                 transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
             end
             % this is the average rate of transition for this particular pair
             mean_transition_rate_of_interest = mean(transition_rate_for_frame(behavior_to,:),2);
             control_tap_transition_rates = [control_tap_transition_rates,mean_transition_rate_of_interest];
+            control_observed_transitions_counts = [control_observed_transitions_counts,sum(transition_count_for_frame(behavior_to,:),2)];
+%             control_total_observation_counts = [control_total_observation_counts,size(transitions_for_frame,2)];
         else
             control_tap_transition_rates = [control_tap_transition_rates,0];
+            control_observed_transitions_counts = [control_observed_transitions_counts,0];
+%             control_total_observation_counts = [control_total_observation_counts,0];
         end
     end
 
@@ -160,6 +178,12 @@ function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = aver
         h = false;
         p = 0;
     end
+    
+    tap_observed_transitions_count = sum(tap_observed_transitions_counts);
+%     tap_total_observation_count = sum(tap_total_observation_counts);
+    control_observed_transitions_count = sum(control_observed_transitions_counts);
+%     control_total_observation_count = sum(control_total_observation_counts);
+    
 %     %% plot the differences
 %     %calculate the mean and std of the measured transition rates
 %     mean_tap_transition_rates = mean(tap_transition_rates);
@@ -174,9 +198,9 @@ function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats] = aver
 %         sigstar({[1,2]},[p]);
 %     end
 %     
-%     axis([0 3 0 40])
+%     axis([0 3 0 60])
 %     set(gca,'XTickLabel',{'','Control','Tap',''})
 %     ylabel('Transition Rate (transitions/worm/min)')
-% 
+%     title(['n = ',num2str(length(tap_transition_rates)), ' Experiments'])
 end
 

@@ -30,7 +30,7 @@ function [] = PlotWatershed(embeddingValues)
     %special case
     watershed_centroids(2,2) = watershed_centroids(2,2) + 15;
         
-    %modify col0r map
+    %modify color map
     %my_colormap = parula;
     my_colormap = othercolor('OrRd9');
     my_colormap(1,:) = [1 1 1];

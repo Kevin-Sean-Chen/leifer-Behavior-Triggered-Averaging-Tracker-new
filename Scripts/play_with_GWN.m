@@ -9,7 +9,7 @@ folders_GWN_noret = getfoldersGUI();
 %ret
 [allTracks_GWN_ret, folder_indecies_GWN_ret, track_indecies_GWN_ret] = loadtracks(folders_GWN_ret,relevant_track_fields);
 %noret
-[allTracks_GWN_noret, folder_indecies_GWN_noret, track_indecies_GWN_noret] = loadtracks(folders_GWN_noret,relevant_track_fields);
+%[allTracks_GWN_noret, folder_indecies_GWN_noret, track_indecies_GWN_noret] = loadtracks(folders_GWN_noret,relevant_track_fields);
 % %triangleret
 % [allTracks_tri_ret, folder_indecies_tri_ret, track_indecies_tri_ret] = loadtracks(folders_tri_ret,relevant_track_fields);
 
@@ -22,10 +22,10 @@ number_of_behaviors = max(L(:))-1;
 
 
 %get LNPs
-[LNPStats_nondirectional_ret, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret] = FitLNP(allTracks_GWN_ret,folder_indecies_GWN_ret,folders_GWN_ret);
+%[LNPStats_nondirectional_ret, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret] = FitLNP(allTracks_GWN_ret,folder_indecies_GWN_ret,folders_GWN_ret);
 [LNPStats_directional_ret, meanLEDPower_directional_ret, stdLEDPower_directional_ret] = directional_FitLNP(allTracks_GWN_ret,folder_indecies_GWN_ret,folders_GWN_ret);
 
-PlotBehavioralMappingExperimentGroup(LNPStats_nondirectional_ret, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret, L, density, xx)
+%PlotBehavioralMappingExperimentGroup(LNPStats_nondirectional_ret, meanLEDPower_nondirectional_ret, stdLEDPower_nondirectional_ret, L, density, xx)
 PlotDirectionalBehavioralMappingExperimentGroup(LNPStats_directional_ret, meanLEDPower_directional_ret, stdLEDPower_directional_ret, L, density, xx)
 
 %% compare behavioral rates for ret and noret GWN conditions

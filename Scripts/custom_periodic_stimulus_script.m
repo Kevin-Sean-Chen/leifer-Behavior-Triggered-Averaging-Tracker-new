@@ -5,7 +5,7 @@ starting_shift = 0;
 relevant_track_fields = {'BehavioralTransition','Frames'};
 
 load('reference_embedding.mat')
-load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_allNLPredictions_20171113.mat')
+load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_reordered_20171030.mat')
 
 LNPStats = LNPStats_nondirectional_ret;
 
@@ -227,154 +227,104 @@ end
 %     ax.FontSize = 10;
 % end
 % 
-%% plot the predicted transition rates
-for stimulus_index = 1:number_of_stimulus_templates
-    my_colors = behavior_colors;
-    figure
-    hold on
-    for behavior_index = 1:number_of_behaviors
-        plot(1/fps:1/fps:stimulus_period/fps, predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',behavior_names{behavior_index});
-    end
-    hold off
-    xlabel('Time (s)') % x-axis label
-    ylabel('LNP Preidcted Transition Rate (transitions/min)') % y-axis label
-    if BTA_playback
-        title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' Kernel']);
-    else
-        title(['Stimulus Index = ', num2str(stimulus_index)]);
-    end
-    legend('show');
-    ax = gca;
-    ax.FontSize = 10;
-end
+% %% plot the predicted transition rates
+% for stimulus_index = 1:number_of_stimulus_templates
+%     my_colors = behavior_colors;
+%     figure
+%     hold on
+%     for behavior_index = 1:number_of_behaviors
+%         plot(1/fps:1/fps:stimulus_period/fps, predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',behavior_names{behavior_index});
+%     end
+%     hold off
+%     xlabel('Time (s)') % x-axis label
+%     ylabel('LNP Preidcted Transition Rate (transitions/min)') % y-axis label
+%     if BTA_playback
+%         title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' Kernel']);
+%     else
+%         title(['Stimulus Index = ', num2str(stimulus_index)]);
+%     end
+%     legend('show');
+%     ax = gca;
+%     ax.FontSize = 10;
+% end
+% 
+% %% plot the stimlulus templates
+% figure
+% hold on
+% if BTA_playback
+%     my_colors = behavior_colors(stimulus_to_behavior_key,:);
+%     for stimulus_index = 1:number_of_stimulus_templates
+%         plot(1/fps:1/fps:stimulus_period/fps, stimulus_templates(stimulus_index,:), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',[behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' Kernel']);
+%     end
+% else
+%     my_colors = lines(number_of_stimulus_templates);
+%     for stimulus_index = 1:number_of_stimulus_templates
+%         plot(1/fps:1/fps:stimulus_period/fps, stimulus_templates(stimulus_index,:), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',['Stimulus ', num2str(stimulus_index)]);
+%     end
+% end
+% hold off
+% xlabel('Time (s)') % x-axis label
+% ylabel('Stimulus Power (uW/mm2)') % y-axis label
+% 
+% legend('show');
+% ax = gca;
+% ax.FontSize = 10;
+% %% plot the predicted and actual behavior rates in the same graph
+% if BTA_playback
+%     %set plotting boundaries if we are doing the playback experiments
+%     plotting_start = 30*fps+1;
+%     plotting_end = 50*fps;
+% else
+%     plotting_start = 1;
+%     plotting_end = stimulus_period;
+% end
+% plotting_period = plotting_end - plotting_start;
+% 
+% for stimulus_index = 1:number_of_stimulus_templates
+%     figure
+%    
+%    %plot the stimulus
+%     subplot(number_of_behaviors+3,1,1:3)
+%     my_colors = behavior_colors(stimulus_to_behavior_key,:);
+%     plot(0:1/fps:plotting_period/fps, stimulus_templates(stimulus_index,plotting_start:plotting_end), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3);
+%     axis([0 20 0 50]);
+%     set(gca, 'XTickLabels', {})
+%     limits = get(gca,'YLim');
+%     set(gca,'YTick',linspace(floor(limits(1)),ceil(limits(2)),3))
+%     xlabel('') % x-axis label
+%     
+%     %plot the predicted and actual behavior rates in the same graph
+%     subplot(number_of_behaviors+3,1,4:number_of_behaviors+1)
+%     transition_rate_for_frame = zeros(number_of_behaviors,stimulus_period);
+%     transition_std_for_frame = zeros(number_of_behaviors,stimulus_period);
+%     for frame_index = 1:stimulus_period
+%         transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
+%         transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+%         transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+%     end
+%     
+%     track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+%     my_colors = behavior_colors;
+%     hold on
+%     for behavior_index = 1:number_of_behaviors
+%         plot(0:1/fps:plotting_period/fps, transition_rate_for_frame(behavior_index,plotting_start:plotting_end) - mean(transition_rate_for_frame(behavior_index,plotting_start:plotting_end)) + double(behavior_index), '-', 'color', [my_colors(behavior_index,:), 0.5],'Linewidth', 2,'DisplayName',[behavior_names{behavior_index}, ' actual']);
+%         plot(0:1/fps:plotting_period/fps, predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,plotting_start:plotting_end) - mean(predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,plotting_start:plotting_end)) + double(behavior_index), '-', 'color', my_colors(behavior_index,:),'Linewidth', 2,'DisplayName',[behavior_names{behavior_index}, ' predicted']);
+%     end
+%     hold off
+%     xlabel('Time (s)') % x-axis label
+%     ylabel('Transition Rate (transitions/min)') % y-axis label
+%     if BTA_playback
+%         title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' Kernel']);       
+%     else
+%         title(['Stimulus Index = ', num2str(stimulus_index), ' (n = ', num2str(track_n), ')']);
+%     end
+%     axis([0 20 0 10]);
+%     %legend('show');
+%     ax = gca;
+%     ax.FontSize = 10;
+% end
+% 
 
-%% plot the stimlulus templates
-figure
-hold on
-if BTA_playback
-    my_colors = behavior_colors(stimulus_to_behavior_key,:);
-    for stimulus_index = 1:number_of_stimulus_templates
-        plot(1/fps:1/fps:stimulus_period/fps, stimulus_templates(stimulus_index,:), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',[behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' Kernel']);
-    end
-else
-    my_colors = lines(number_of_stimulus_templates);
-    for stimulus_index = 1:number_of_stimulus_templates
-        plot(1/fps:1/fps:stimulus_period/fps, stimulus_templates(stimulus_index,:), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',['Stimulus ', num2str(stimulus_index)]);
-    end
-end
-hold off
-xlabel('Time (s)') % x-axis label
-ylabel('Stimulus Power (uW/mm2)') % y-axis label
-
-legend('show');
-ax = gca;
-ax.FontSize = 10;
-
-%% plot the predicted and actual behavior rates in the same graph
-if BTA_playback
-    %set plotting boundaries if we are doing the playback experiments
-    plotting_start = 20*fps+1;
-    plotting_end = 50*fps;
-else
-    plotting_start = 1;
-    plotting_end = stimulus_period;
-end
-plotting_period = plotting_end - plotting_start;
-
-for stimulus_index = 1:number_of_stimulus_templates
-    figure
-    %plot the stimulus
-    subplot(number_of_behaviors+1,1,1)
-    my_colors = behavior_colors(stimulus_to_behavior_key,:);
-    plot(0:1/fps:plotting_period/fps, stimulus_templates(stimulus_index,plotting_start:plotting_end), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3);
-    axis([0 30 0 51]);
-    
-    
-    %plot the predicted and actual behavior rates in the same graph
-    subplot(number_of_behaviors+1,1,2:number_of_behaviors+1)
-    transition_rate_for_frame = zeros(number_of_behaviors,stimulus_period);
-    transition_std_for_frame = zeros(number_of_behaviors,stimulus_period);
-    for frame_index = 1:stimulus_period
-        transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
-        transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
-        transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
-    end
-    
-    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
-    my_colors = behavior_colors;
-    hold on
-    for behavior_index = 1:number_of_behaviors
-        plot(0:1/fps:plotting_period/fps, transition_rate_for_frame(behavior_index,plotting_start:plotting_end) - mean(transition_rate_for_frame(behavior_index,plotting_start:plotting_end)) + double(behavior_index), '-', 'color', [my_colors(behavior_index,:), 0.5],'Linewidth', 3,'DisplayName',[behavior_names{behavior_index}, ' actual']);
-        plot(0:1/fps:plotting_period/fps, predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,plotting_start:plotting_end) - mean(predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,plotting_start:plotting_end)) + double(behavior_index), '-', 'color', my_colors(behavior_index,:),'Linewidth', 2,'DisplayName',[behavior_names{behavior_index}, ' predicted']);
-    end
-    hold off
-    xlabel('Time (s)') % x-axis label
-    ylabel('LNP Preidcted Transition Rate (transitions/min)') % y-axis label
-    if BTA_playback
-        title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' Kernel']);       
-    else
-        title(['Stimulus Index = ', num2str(stimulus_index), ' (n = ', num2str(track_n), ')']);
-    end
-    axis([0 30 0 10]);
-    legend('show');
-    ax = gca;
-    ax.FontSize = 10;
-end
-
-%% compare base rate and the peak predicted transition rate
-if BTA_playback
-    baseline_start = 1;
-    baseline_end = 20*fps;
-    peak_window = 3*fps;
-    
-    for stimulus_index = 1:number_of_stimulus_templates
-        transition_rate_for_frame = zeros(number_of_behaviors,stimulus_period);
-        transition_std_for_frame = zeros(number_of_behaviors,stimulus_period);
-        for frame_index = 1:stimulus_period
-            transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
-            transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
-            %transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
-        end
-
-        track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
-        my_colors = behavior_colors;
-
-        %find the peak predicted rate in the experimental window
-        behavior_index = stimulus_to_behavior_key(stimulus_index);
-        predicted_rate = predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,:);
-        [~, peak_predicted_rate_location] = max(predicted_rate);
-        exp_start = peak_predicted_rate_location - (peak_window/2);
-        exp_end = peak_predicted_rate_location + (peak_window/2);
-        [~, baseline_mean, ~, ~, baseline_std, exp_mean, exp_std, p] = percent_change_above_baseline(transition_rate_for_frame(behavior_index,:),baseline_start,baseline_end,exp_start,exp_end);
-        
-        %find the predicted baseline and experimental rates
-        predicted_rate_baseline = mean(predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,baseline_start:baseline_end));
-        predicted_rate_exp = mean(predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,exp_start:exp_end));
-        
-        
-        figure('pos',[0,0,300,200])
-        hold on
-        h = barwitherr([baseline_std; exp_std], [baseline_mean; exp_mean], 'linewidth',1);
-        set(h(1), 'FaceColor',behavior_colors(stimulus_to_behavior_key(stimulus_index),:));
-        prediction_plot = plot([1, 2], [predicted_rate_baseline, predicted_rate_exp], 'r.', 'MarkerSize', 40,'linewidth',5, 'DisplayName', 'Predicted');
-        
-        if p < 0.05
-            sigstar({[1,2]},0.05);
-        end
-        ax = gca;
-        ax.FontSize = 10;
-
-        set(gca,'XTick',[1 2])
-        set(gca, 'XTickLabels', {'Baseline', 'LNP Peak'})
-        limits = get(gca,'YLim');
-        set(gca,'YTick',linspace(floor(limits(1)),ceil(limits(2)),3))
-        axis([0, 3, limits])
-        xlabel('') % x-axis label
-        ylabel('Transition Rate') % y-axis label
-        title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' (n = ', num2str(track_n), ')']);
-        legend(prediction_plot)
-    end
-end
 
 % %% compare base ratio and exp ratio
 % if BTA_playback
@@ -417,3 +367,214 @@ end
 %     end
 % end
 % 
+
+%% non-directional playback or triangle wave to plot predicted vs actual transition rates timeseries and bars for time 0
+spacing = 2; %in transitions/min
+if BTA_playback
+    plotting_start = 30*fps+1;
+    plotting_end = 50*fps;
+    baseline_start = 5*fps+1;
+    baseline_end = 25*fps;
+    peak_window = 2*fps;
+    peak_predicted_rate_location = 40 * fps;
+else
+    plotting_start = 1;
+    plotting_end = stimulus_period;
+    baseline_start = 1;
+    baseline_end = stimulus_period;
+    peak_window = 10*fps;
+    peak_predicted_rate_location = 15 * fps + 1;
+end
+plotting_period = plotting_end - plotting_start;
+exp_start = peak_predicted_rate_location - (peak_window/2);
+exp_end = peak_predicted_rate_location + (peak_window/2);
+
+number_of_behaviors = double(max(L(:))-1);
+
+for stimulus_index = 1:number_of_stimulus_templates
+    figure('position', [0,0, 300 1000])
+    
+    transition_rate_for_frame = zeros(number_of_behaviors,stimulus_period);
+    transition_counts_for_frame = zeros(number_of_behaviors,stimulus_period);
+    transition_std_for_frame = zeros(number_of_behaviors,stimulus_period);
+    for frame_index = 1:stimulus_period
+        transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
+        transition_counts_for_frame(:,frame_index) = sum(transitions_for_frame,2);
+        transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+        transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+    end
+    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+   
+   %plot the stimulus
+    subplot(number_of_behaviors+4,1,1:2)
+    my_colors = behavior_colors(stimulus_to_behavior_key,:);
+    hold on
+    rectangle('Position', [(exp_start-plotting_start+1)/fps 0 peak_window/fps 50.1], 'FaceColor',[0.75 .75 .75]);
+    plot(0:1/fps:plotting_period/fps, stimulus_templates(stimulus_index,plotting_start:plotting_end), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3);
+    hold off
+    axis([0 20 0 50.1]);
+    set(gca, 'XTickLabels', {})
+    limits = get(gca,'YLim');
+    set(gca,'YTick',linspace(floor(limits(1)),floor(limits(2)),3))
+    xlabel(['trackn=', num2str(track_n)]) % x-axis label
+    
+    %plot the predicted and actual behavior rates timeseries
+    subplot(number_of_behaviors+4,1,3:number_of_behaviors+1)
+    my_colors = behavior_colors;
+
+    %compute observed baseline rate
+    observed_baseline_transition_rate = mean(transition_rate_for_frame(:,baseline_start:baseline_end),2);
+    %compute predicted baseline rate
+    predicted_baseline_transition_rate = mean(predicted_behavior_transitions_for_stim{stimulus_index}(:,baseline_start:baseline_end),2);
+    %compute moving average observed rate
+    observed_moving_average_transition_rate = movingmean(transition_rate_for_frame, peak_window, 2);
+    %compute the baseline subtracted transition rate within the peak window
+    observed_baseline_substrated_mean_peak_rate = observed_moving_average_transition_rate(:,peak_predicted_rate_location) - observed_baseline_transition_rate;
+    %compute std within the window of peak
+    observed_peak_transition_rate_sem = std(transition_rate_for_frame(:,exp_start:exp_end),[],2) ./ sqrt(peak_window);
+    %compute the significance
+    transition_rate_change_significance = false(1,number_of_behaviors);
+    for behavior_index = 1:number_of_behaviors
+        transition_rate_change_significance(behavior_index) = ttest(transition_rate_for_frame(behavior_index,exp_start:exp_end)-observed_baseline_transition_rate(behavior_index));
+    end
+    %compute moving average prediction rate (not used)
+    predicted_moving_average_transition_rate = movingmean(predicted_behavior_transitions_for_stim{stimulus_index}, peak_window, 2);
+    
+    hold on
+    for behavior_index = 1:number_of_behaviors
+        %get the offset
+        offset = -double(spacing*behavior_index);
+        
+        %plot the raw transition rate in grey
+        plot(0:1/fps:plotting_period/fps, transition_rate_for_frame(behavior_index,plotting_start:plotting_end) - observed_baseline_transition_rate(behavior_index) + offset, '-', 'color', [my_colors(behavior_index,:) 0.25],'Linewidth', 2,'DisplayName',[behavior_names{behavior_index}, ' actual']);
+        %plot the moving average transition rate in behavior color solid line
+        plot(0:1/fps:plotting_period/fps, observed_moving_average_transition_rate(behavior_index,plotting_start:plotting_end) - observed_baseline_transition_rate(behavior_index) + offset, '-', 'color', my_colors(behavior_index,:) ,'Linewidth', 4,'DisplayName',[behavior_names{behavior_index}, ' moving average']);
+        %plot the predicted transition rate in dashed black line
+        plot(0:1/fps:plotting_period/fps, predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,plotting_start:plotting_end) - predicted_baseline_transition_rate(behavior_index) + offset, ':', 'color', 'k', 'Linewidth', 2,'DisplayName',[behavior_names{behavior_index}, ' predicted']);
+        %plot the zero line in dashed grey line
+        plot(0:1/fps:plotting_period/fps, repmat(offset,1,plotting_period+1), '--', 'color', [0.4 0.4 0.4], 'Linewidth', 2,'DisplayName',[behavior_names{behavior_index}, ' zero']);
+        %add the n
+        text(0,offset-(spacing*0.5),['n=',num2str(sum(transition_counts_for_frame(behavior_index,plotting_start:plotting_end)))]);
+    end
+    hold off
+    xlabel('Time (s)') % x-axis label
+    ylabel('Transition Rate (transitions/min)') % y-axis label
+    if BTA_playback
+        title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' Kernel']);       
+    else
+        title(['Stimulus Index = ', num2str(stimulus_index), ' (n = ', num2str(track_n), ')']);
+    end
+    axis([0, 20, -(spacing*number_of_behaviors+1), floor(spacing-1)]);
+    %legend('show');
+    ax = gca;
+    ax.FontSize = 10;
+    
+    %plot the predicted and actual behavior rates bar plot 
+    subplot(number_of_behaviors+4,1,number_of_behaviors+2:number_of_behaviors+4)
+    hold on
+    bar_labels = behavior_names;
+    for behavior_index = 1:number_of_behaviors
+        bar(behavior_index-0.2,observed_baseline_substrated_mean_peak_rate(behavior_index),0.4,'FaceColor',behavior_colors(behavior_index,:));
+        bar(behavior_index+0.2, predicted_behavior_transitions_for_stim{stimulus_index}(behavior_index,peak_predicted_rate_location) - predicted_baseline_transition_rate(behavior_index),0.4,'FaceColor',[0 0 0]);
+        errorbar(behavior_index-0.2,observed_baseline_substrated_mean_peak_rate(behavior_index),observed_peak_transition_rate_sem(behavior_index), 'k', 'linestyle', 'none', 'marker', 'none')
+        if transition_rate_change_significance(behavior_index)
+            if observed_baseline_substrated_mean_peak_rate(behavior_index) > 0
+                text(behavior_index-0.2, observed_baseline_substrated_mean_peak_rate(behavior_index) + observed_peak_transition_rate_sem(behavior_index) + 0.03, '*', 'Fontsize', 20, 'HorizontalAlignment','center', 'VerticalAlignment','middle')
+            else
+                text(behavior_index-0.2, observed_baseline_substrated_mean_peak_rate(behavior_index) - observed_peak_transition_rate_sem(behavior_index) - 0.06, '*', 'Fontsize', 20, 'HorizontalAlignment','center', 'VerticalAlignment','middle')
+            end   
+        end
+        %get the counts for each bar
+        bar_labels{behavior_index} = [bar_labels{behavior_index}, ' n=', num2str(sum(transition_counts_for_frame(behavior_index,exp_start:exp_end)))];
+    end
+    
+    ax = gca;
+    ax.FontSize = 8;
+
+    set(gca,'XTick',1:number_of_behaviors)
+    set(gca, 'XTickLabels', bar_labels)
+    axis([0, number_of_behaviors+1, -0.5, 0.5])
+    limits = get(gca,'YLim');
+    set(gca,'YTick',linspace(limits(1),limits(2),3))
+    xlabel('') % x-axis label
+    ylabel('Transition Rate Change (transitions/min)') % y-axis label
+end
+
+%% compare base rate and the peak predicted transition rate
+if BTA_playback
+    baseline_start = 5*fps+1;
+    baseline_end = 25*fps;
+    peak_window = 2*fps;
+    peak_predicted_rate_location = 40 * fps;
+    
+    transition_rate_changes = zeros(1,number_of_stimulus_templates);
+    transition_rate_propagated_errors = zeros(1,number_of_stimulus_templates);
+    transition_rate_change_significance = false(1,number_of_stimulus_templates);
+    predicted_rate_changes = zeros(1,number_of_stimulus_templates);
+    my_colors = behavior_colors;
+    
+    for stimulus_index = 1:number_of_stimulus_templates
+        transition_rate_for_frame = zeros(number_of_behaviors,stimulus_period);
+        transition_counts_for_frame = zeros(number_of_behaviors,stimulus_period);
+        transition_std_for_frame = zeros(number_of_behaviors,stimulus_period);
+        for frame_index = 1:stimulus_period
+            transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
+            transition_counts_for_frame(:,frame_index) = sum(transitions_for_frame,2);
+            transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+            transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+        end
+        track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+
+        %compute observed baseline rate
+        observed_baseline_transition_rate = mean(transition_rate_for_frame(:,baseline_start:baseline_end),2);
+        %compute predicted baseline rate
+        predicted_baseline_transition_rate = mean(predicted_behavior_transitions_for_stim{stimulus_index}(:,baseline_start:baseline_end),2);
+        %compute moving average observed rate
+        observed_moving_average_transition_rate = movingmean(transition_rate_for_frame, peak_window, 2);
+        %compute the baseline subtracted transition rate within the peak window
+        observed_baseline_substrated_mean_peak_rate = observed_moving_average_transition_rate(:,peak_predicted_rate_location) - observed_baseline_transition_rate;
+        %compute std within the window of peak
+        observed_peak_transition_rate_sem = std(transition_rate_for_frame(:,exp_start:exp_end),[],2) ./ sqrt(peak_window);
+        %compute the significance
+        transition_rate_change_significance_all_behaviors = false(1,number_of_behaviors);
+        for behavior_index = 1:number_of_behaviors
+            transition_rate_change_significance_all_behaviors(behavior_index) = ttest(transition_rate_for_frame(behavior_index,exp_start:exp_end)-observed_baseline_transition_rate(behavior_index));
+        end
+        %compute moving average prediction rate (not used)
+        predicted_moving_average_transition_rate = movingmean(predicted_behavior_transitions_for_stim{stimulus_index}, peak_window, 2);
+        
+        transition_rate_changes(stimulus_index) = observed_baseline_substrated_mean_peak_rate(stimulus_to_behavior_key(stimulus_index));
+        predicted_rate_changes(stimulus_index) = predicted_behavior_transitions_for_stim{stimulus_index}(stimulus_to_behavior_key(stimulus_index),peak_predicted_rate_location) - predicted_baseline_transition_rate(stimulus_to_behavior_key(stimulus_index));
+        transition_rate_propagated_errors(stimulus_index) = observed_peak_transition_rate_sem(stimulus_to_behavior_key(stimulus_index));
+        transition_rate_change_significance(stimulus_index) = transition_rate_change_significance_all_behaviors(stimulus_to_behavior_key(stimulus_index));
+    end
+    
+    figure('pos',[0,0,600,400])
+    hold on
+      
+    for stimulus_index = 1:number_of_stimulus_templates
+        bar(stimulus_index-0.2,transition_rate_changes(stimulus_index),0.4,'FaceColor',behavior_colors(stimulus_to_behavior_key(stimulus_index),:));
+        bar(stimulus_index+0.2,predicted_rate_changes(stimulus_index),0.4,'FaceColor','k');
+    end
+    errorbar((1:stimulus_index)-0.2,transition_rate_changes,transition_rate_propagated_errors, 'k', 'linestyle', 'none', 'marker', 'none')
+
+    for stimulus_index = 1:number_of_stimulus_templates
+        if transition_rate_change_significance(stimulus_index)
+             text(stimulus_index-0.2, transition_rate_changes(stimulus_index) + transition_rate_propagated_errors(stimulus_index) + 0.01, '*', 'Fontsize', 20, 'HorizontalAlignment','center')
+%             sigstar({[stimulus_index-0.2, stimulus_index+0.2]},0.05)
+        end
+    end
+    
+    ax = gca;
+    ax.FontSize = 8;
+
+    set(gca,'XTick',1:number_of_stimulus_templates)
+    set(gca, 'XTickLabels', behavior_names(stimulus_to_behavior_key))
+    axis([0, number_of_stimulus_templates+1, -0.5, 0.5])
+    limits = get(gca,'YLim');
+    set(gca,'YTick',linspace(limits(1),limits(2),3))
+    xlabel('') % x-axis label
+    ylabel('Transition Rate (transitions/min)') % y-axis label
+%     title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' (n = ', num2str(track_n), ')']);
+%     legend(prediction_plot)
+end

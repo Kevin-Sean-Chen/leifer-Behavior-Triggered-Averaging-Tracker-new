@@ -1,5 +1,16 @@
 load('reference_embedding.mat')
-number_of_behaviors = max(L(:)-1);
+load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_reordered_20171030.mat')
+
+LNPStats = LNPStats_directional_ret;
+meanLEDPower = meanLEDPower_directional_ret;
+fps = 14;
+number_of_behaviors = max(L(:))-1;
+BTA_seconds_before_and_after = 10;
+BTA_seconds_before = BTA_seconds_before_and_after;
+BTA_seconds_after = BTA_seconds_before_and_after;
+NumTicks = 3;
+
+%%
 
 %folders_platetap = getfoldersGUI();
 
@@ -117,3 +128,118 @@ axis([0 7 0 10])
 ylabel('Transition Rate Ratio (Tap/Control)')
 xlabel('LNP Non-linearity Ratio (Max/Min)')
 
+%% animals ignore mechanosensory stimulus while turning? make the figure to find out
+behavior_from = 3;
+
+all_edge_pairs = get_edge_pairs(number_of_behaviors);
+
+mean_tap_transition_rates = zeros(1, number_of_behaviors);
+std_tap_transition_rates =  zeros(1, number_of_behaviors);
+tap_observed_transitions_counts = zeros(1, number_of_behaviors);
+mean_shuffled_tap_transition_rates = zeros(1, number_of_behaviors);
+std_shuffled_tap_transition_rates =  zeros(1, number_of_behaviors);
+shuffled_tap_observed_transitions_counts = zeros(1, number_of_behaviors);
+tap_difference_significant = false(1, number_of_behaviors);
+
+
+for behavior_to = 1:number_of_behaviors
+    if behavior_from ~= behavior_to
+        [tap_transition_rates,control_tap_transition_rates,h,~,~,~,tap_observed_transitions_count,control_observed_transitions_count] = average_transition_rate_after_tap(folders_platetap, behavior_from, behavior_to);
+        mean_tap_transition_rates(behavior_to) = mean(tap_transition_rates);
+        std_tap_transition_rates(behavior_to) = std(tap_transition_rates);
+        mean_shuffled_tap_transition_rates(behavior_to) = mean(control_tap_transition_rates);
+        std_shuffled_tap_transition_rates(behavior_to) = std(control_tap_transition_rates);
+        tap_difference_significant(behavior_to) = h;
+        tap_observed_transitions_counts(behavior_to) = tap_observed_transitions_count;
+        shuffled_tap_observed_transitions_counts(behavior_to) = control_observed_transitions_count;
+    end
+end
+
+mean_optotap_transition_rates = zeros(1, number_of_behaviors);
+std_optotap_transition_rates =  zeros(1, number_of_behaviors);
+optotap_observed_transitions_counts = zeros(1, number_of_behaviors);
+mean_shuffled_optotap_transition_rates = zeros(1, number_of_behaviors);
+std_shuffled_optotap_transition_rates =  zeros(1, number_of_behaviors);
+shuffled_optotap_observed_transitions_counts = zeros(1, number_of_behaviors);
+optotap_difference_significant = false(1, number_of_behaviors);
+for behavior_to = 1:number_of_behaviors
+    if behavior_from ~= behavior_to
+        [tap_transition_rates,control_tap_transition_rates,h,~,~,~,tap_observed_transitions_count,control_observed_transitions_count] = average_transition_rate_after_tap(folders_optotap, behavior_from, behavior_to);
+        mean_optotap_transition_rates(behavior_to) = mean(tap_transition_rates);
+        std_optotap_transition_rates(behavior_to) = std(tap_transition_rates);
+        mean_shuffled_optotap_transition_rates(behavior_to) = mean(control_tap_transition_rates);
+        std_shuffled_optotap_transition_rates(behavior_to) = std(control_tap_transition_rates);
+        optotap_difference_significant(behavior_to) = h;
+        optotap_observed_transitions_counts(behavior_to) = tap_observed_transitions_count;
+        shuffled_optotap_observed_transitions_counts(behavior_to) = control_observed_transitions_count;
+    end
+end
+
+figure 
+% first row is kernels
+for behavior_to = 1:number_of_behaviors
+    if behavior_from ~= behavior_to
+        subplot(double(3),double(number_of_behaviors),double(behavior_to))
+        [~, LNP_index] = ismember([behavior_from, behavior_to],all_edge_pairs,'rows');
+        behavior_color = behavior_colors(behavior_to,:);
+        
+        hold on
+        if LNPStats(LNP_index).BTA_percentile > 0.99
+            plot(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(LNP_index).BTA, '-', 'color',behavior_color, 'Linewidth', 3);
+        else
+            plot(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(LNP_index).BTA, '-', 'color',[0.9, 0.9, 0.9], 'Linewidth', 3);
+        end
+        hold off
+        xlabel(['n=',num2str(LNPStats(LNP_index).trigger_count)]) % x-axis label
+        axis([-10 10 23 27])
+        %axis([-10 2 0 5])
+        ax = gca;
+        ax.FontSize = 10;
+        xlabh = get(gca,'XLabel');
+        %set(xlabh,'Position',get(xlabh,'Position') + [0 1.6 0])
+        set(gca,'XTick','')
+        set(gca,'YTick','')
+    end
+end
+
+% second row is optotap responses
+for behavior_to = 1:number_of_behaviors
+    if behavior_from ~= behavior_to
+        subplot(double(3),double(number_of_behaviors),double(number_of_behaviors+behavior_to))
+        
+        barwitherr([std_shuffled_optotap_transition_rates(behavior_to); std_optotap_transition_rates(behavior_to)], [mean_shuffled_optotap_transition_rates(behavior_to); mean_optotap_transition_rates(behavior_to)],'FaceColor',behavior_colors(behavior_to,:))
+        axis([0 3 0 40])
+        if optotap_difference_significant(behavior_to)
+            sigstar({[1,2]},0.05,0,30);
+        else
+            sigstar({[1,2]},nan,0,30);           
+        end
+%         set(gca,'XTickLabel',{['n=',num2str(shuffled_optotap_observed_transitions_counts(behavior_to))],['n=',num2str(optotap_observed_transitions_counts(behavior_to))]})
+        set(gca,'XTickLabel',{['n=',num2str(shuffled_optotap_observed_transitions_counts(behavior_to)),', ',num2str(optotap_observed_transitions_counts(behavior_to))],''})
+        if behavior_to == 1
+            ylabel('OptoTap Transition Rate (transitions/min)')
+        else
+            set(gca,'YTick','')
+        end
+    end
+end
+% third row is tap responses
+for behavior_to = 1:number_of_behaviors
+    if behavior_from ~= behavior_to
+        subplot(double(3),double(number_of_behaviors),double(2*number_of_behaviors+behavior_to))
+        
+        barwitherr([std_shuffled_tap_transition_rates(behavior_to); std_tap_transition_rates(behavior_to)], [mean_shuffled_tap_transition_rates(behavior_to); mean_tap_transition_rates(behavior_to)],'FaceColor',behavior_colors(behavior_to,:))
+        axis([0 3 0 40])
+        if tap_difference_significant(behavior_to)
+            sigstar({[1,2]},0.05,0,30);
+        else
+            sigstar({[1,2]},nan,0,30);           
+        end
+        set(gca,'XTickLabel',{['n=',num2str(shuffled_tap_observed_transitions_counts(behavior_to)),', ',num2str(tap_observed_transitions_counts(behavior_to))],''})
+        if behavior_to == 1
+            ylabel('Tap Transition Rate (transitions/min)')
+        else
+            set(gca,'YTick','')
+        end
+    end
+end

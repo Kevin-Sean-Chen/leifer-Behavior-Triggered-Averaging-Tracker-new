@@ -1,4 +1,4 @@
-function varargout=sigstar(groups,stats,nosort)
+function varargout=sigstar(groups,stats,nosort,Yloc)
     % sigstar - Add significance stars to bar charts, boxplots, line charts, etc,
     %
     % H = sigstar(groups,stats,nsort)
@@ -87,7 +87,9 @@ function varargout=sigstar(groups,stats,nosort)
     if nargin<3
         nosort=0;
     end
-
+    if nargin<4
+        Yloc=[];
+    end
 
 
 
@@ -181,7 +183,11 @@ function varargout=sigstar(groups,stats,nosort)
     yd=myRange(y)*0.05; %separate sig bars vertically by 5% 
 
     for ii=1:length(groups)
-        thisY=findMinY(xlocs(ii,:))+yd;
+        if ~isempty(Yloc)
+            thisY=Yloc;
+        else
+            thisY=findMinY(xlocs(ii,:))+yd; % modify here to 
+        end
         H(ii,:)=makeSignificanceBar(xlocs(ii,:),thisY,stats(ii));
     end
     %-----------------------------------------------------
@@ -247,21 +253,31 @@ function H=makeSignificanceBar(x,y,p)
     x=repmat(x,2,1);
     y=repmat(y,4,1);
 
-    H(1)=plot(x(:),y,'-k','LineWidth',1.5,'Tag','sigstar_bar');
-
     %Increase offset between line and text if we will print "n.s."
-    %instead of a star. 
-    if ~isnan(p)
-        offset=0.005;
-    else
-        offset=0.02;
-    end
+    %instead of a star. Make it black instead of red
 
-    starY=mean(y)+myRange(ylim)*offset;
-    H(2)=text(mean(x(:)),starY,stars,...
+    if ~isnan(p)
+        offset=0.1;
+%         starY=mean(y)+myRange(ylim)*offset;
+        starY=mean(y)+mean(y)*offset;
+        H(1)=plot(x(:),y,'-r','LineWidth',2,'Tag','sigstar_bar');
+        H(2)=text(mean(x(:)),starY,stars,'Color','r','FontSize',20,...
         'HorizontalAlignment','Center',...
         'BackGroundColor','none',...
         'Tag','sigstar_stars');
+        
+    else
+        offset=0.2;
+%         starY=mean(y)+myRange(ylim)*offset;
+        starY=mean(y)+mean(y)*offset;
+        H(1)=plot(x(:),y,'-k','LineWidth',2,'Tag','sigstar_bar');
+        H(2)=text(mean(x(:)),starY,stars,'Color','k','FontSize',12,...
+        'HorizontalAlignment','Center',...
+        'BackGroundColor','none',...
+        'Tag','sigstar_stars');
+
+    end
+
 
     Y=ylim;
     if Y(2)<starY

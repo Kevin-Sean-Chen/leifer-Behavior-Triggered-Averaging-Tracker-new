@@ -1,5 +1,5 @@
 load('reference_embedding.mat')
-load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_allNLPredictions_20171113.mat')
+load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_reordered_20171030.mat')
 behavior_colors = [[255,238,238]; [255,189,189]; [255,123,123]; [255,74,74]; [255,16,16]; [255,0,0]; [230,230,255]; [65,65,255]; [255,0,255]] ./ 255; %based on centroid velocity
 fps = 14;
 BTA_seconds_before_and_after = 10;
