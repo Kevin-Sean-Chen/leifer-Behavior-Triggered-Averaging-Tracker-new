@@ -19,7 +19,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
     plot_linear_filter = 0;
     plot_filtered_signal_histogram = 0;
     plot_filtered_signal_given_reversal_histogram = 0;
-    plot_non_linearity = 0;
+    plot_non_linearity = 1;
     plot_kernel_significance = 0;
     figure
 
@@ -103,16 +103,24 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
         if plot_BTA
             scrollsubplot(rows_per_page, plots_per_experiment, plots_per_experiment*(behavior_index-1) + BTA_plot_number);
             hold on
+            if all(LNPStats(behavior_index).linear_kernel == 0)
+                %kernel not significant
+                plot(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(behavior_index).BTA, '-', 'color',[0.9, 0.9, 0.9], 'Linewidth', 3);
+            else
+                plot(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(behavior_index).BTA, '-', 'color', behavior_colors(behavior_index,:), 'Linewidth', 3);
+            end
+
             %shaded error bar represents the mean of the angular error
-            shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(behavior_index).BTA, 2*stdLEDPower*sqrt(2/LNPStats(behavior_index).trigger_count)*ones(1,length(LNPStats(behavior_index).BTA)), {'-k', 'Linewidth', 3});
+%             shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(behavior_index).BTA, 2*stdLEDPower*sqrt(2/LNPStats(behavior_index).trigger_count)*ones(1,length(LNPStats(behavior_index).BTA)), {'-k', 'Linewidth', 3});
 %             shadedErrorBar(-BTA_seconds_before:1/fps:BTA_seconds_after, LNPStats(behavior_index).BTA, LNPStats(behavior_index).BTA_RMSD.*0, {'-k', 'Linewidth', 3});
             meanLEDVoltageY = zeros(1,length(LNPStats(behavior_index).BTA));
             meanLEDVoltageY(:) = meanLEDPower;
-            plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, 'r', 'Linewidth', 3)
+            plot(-BTA_seconds_before:1/fps:BTA_seconds_after, meanLEDVoltageY, '--', 'color', [0.4 0.4 0.4], 'Linewidth', 2)
+            
             hold off
 %             xlabel(['Time (s) (n=', num2str(LNPStats(behavior_index).trigger_count),')']) % x-axis label
             xlabel(['n = ', num2str(LNPStats(behavior_index).trigger_count),'']) % x-axis label
-            ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label 
+            %ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label 
             axis([-10 10 23 27])
             %axis([-10 2 0 5])
             ax = gca;
@@ -138,7 +146,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             hold off
             xlabel(strcat('Time (s) (', num2str(LNPStats(behavior_index).trigger_count), ' behaviors analyzed)')) % x-axis label
 %             xlabel(strcat(num2str(LNPStats(behavior_index).trigger_count), ' behaviors analyzed')) % x-axis label
-            ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label
+            %ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label
             ax = gca;
             ax.FontSize = 10;
         end
@@ -182,17 +190,17 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             %ax.YTick = linspace(0.64,0.84,5);
             ax.FontSize = 18;
             old_ylim = ylim;
-            ylim([0 old_ylim(2)]);
-%             ylim([0 4]);
+%            ylim([0 old_ylim(2)]);
+            ylim([0 4]);
             
             limits = get(gca,'XLim');
             set(gca,'XTick',linspace(limits(1),limits(2),NumTicks))
             limits = get(gca,'YLim');
             set(gca,'YTick',linspace(limits(1),limits(2),NumTicks))
-%             xlabel('') % x-axis label
-%             ylabel('') % y-axis label
-            xlabel('Filtered Signal (a.u.)') % x-axis label
-            ylabel('Behavioral Rate (Behaviors/Min)') % y-axis label
+            xlabel('') % x-axis label
+            ylabel('') % y-axis label
+%             xlabel('Filtered Signal (a.u.)') % x-axis label
+            %ylabel('Behavioral Rate (Behaviors/Min)') % y-axis label
             legend('off')
             set(fig,'DefaultLineMarkerSize',prev_line_marker_size);
             set(fig,'DefaultLineLineWidth',prev_line_width)
