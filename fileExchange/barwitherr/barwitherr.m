@@ -131,6 +131,7 @@ if nRows > 1
         % errorbars will now be centred on each bar; these are in ascending
         % order so use xOrder to ensure y values and errors are too:
         hErrorbar(col) = errorbar(mean(x,1), values(xOrder,col), lowerErrors(xOrder,col), upperErrors(xOrder, col), '.k', 'linewidth',2, 'CapSize', 15);
+%         hErrorbar(col) = errorbar(mean(x,1), values(xOrder,col), lowerErrors(xOrder,col), upperErrors(xOrder, col), '.k', 'linewidth',2);
         set(hErrorbar(col), 'marker', 'none')
     end
 else

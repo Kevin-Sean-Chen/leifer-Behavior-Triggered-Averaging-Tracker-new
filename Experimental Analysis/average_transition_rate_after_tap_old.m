@@ -1,4 +1,4 @@
-function [tap_transition_rate_of_interest,control_transition_rate_of_interest,tap_transition_rate_of_interest_std,control_transition_rate_of_interest_std,h,p,tap_transition_total_count,control_transition_total_count,tap_observation_total_count,control_observation_total_count] = average_transition_rate_after_tap(folders_platetap, behavior_from, behavior_to)
+function [tap_transition_rates,control_tap_transition_rates,h,p,ci,stats,tap_observed_transitions_count,control_observed_transitions_count] = average_transition_rate_after_tap(folders_platetap, behavior_from, behavior_to)
 % this function looks at the transition rates after a platetap and compares
 % it to the control of the time point in between platetaps. If the
 % behavior_from is 0, it is ignored
@@ -14,11 +14,14 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
     fps = 14;
 
     number_of_behaviors = max(L(:)-1);
-   
-    tap_behaviors_for_frame = cell(1,time_window_before+time_window_after+1);
-    control_behaviors_for_frame = cell(1,time_window_before+time_window_after+1);
-    tap_observation_total_count = 0;
-    control_observation_total_count = 0;  
+
+    tap_observed_transitions_counts = [];
+%     tap_total_observation_counts = [];
+    control_observed_transitions_counts = [];
+%     control_total_observation_counts = [];
+    
+    tap_transition_rates = [];
+    control_tap_transition_rates = [];
 
     %% behavioral rate compare
     for folder_index = 1:length(folders_platetap)
@@ -52,6 +55,7 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
         end
 
         %get the transitions rates for tap condition
+        behaviors_for_frame = cell(1,time_window_before+time_window_after+1);
         for critical_frame_index = 1:length(tap_frames)
             %for every time a stimulus is delivered, look at a certain range of
             %frames only if the track fits certain criteria
@@ -73,7 +77,6 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
                         end
                     end
                     BehavioralAnnotations = [tracks_on_current_critical_frame.BehavioralAnnotation];
-                    control_observation_total_count = control_observation_total_count + size(BehavioralAnnotations,2); % keep track of how many observations we take
                     if behavior_from > 0
                         selected_tracks = tracks_within_critical_window(and(selected_indecies,BehavioralAnnotations == behavior_from));
                     else
@@ -83,14 +86,35 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
                         for frame_shift = -time_window_before:time_window_after
                             current_frame = current_critical_frame + frame_shift;
                             tracks_on_critical_frame = FilterTracksByTime(selected_tracks,current_frame, current_frame);
-                            tap_behaviors_for_frame{frame_shift+time_window_before+1} = [tap_behaviors_for_frame{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
+                            behaviors_for_frame{frame_shift+time_window_before+1} = [behaviors_for_frame{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
                         end
                     end
                 end
             end
         end
+        if ~isempty(behaviors_for_frame{1})
+            transition_rate_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
+            transition_count_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
+            transition_std_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
+            for frame_index = 1:length(behaviors_for_frame)
+                transitions_for_frame = behaviors_for_frame{frame_index};%horzcat(behaviors_for_frame{frame_index}.Behaviors);
+                transition_count_for_frame(:,frame_index) = sum(transitions_for_frame,2);
+                transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+                transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+            end
+            % this is the average rate of transition for this particular pair
+            mean_transition_rate_of_interest = mean(transition_rate_for_frame(behavior_to,:),2); %convert to /min
+            tap_transition_rates = [tap_transition_rates,mean_transition_rate_of_interest];
+            tap_observed_transitions_counts = [tap_observed_transitions_counts,sum(transition_count_for_frame(behavior_to,:),2)];
+%             tap_total_observation_counts = [tap_total_observation_counts,size(transitions_for_frame,2)];
+        else
+            tap_transition_rates = [tap_transition_rates,0];
+            tap_observed_transitions_counts = [tap_observed_transitions_counts,0];
+%             tap_total_observation_counts = [tap_total_observation_counts,0];
+        end
         
         %get the transitions rates for control condition
+        behaviors_for_frame = cell(1,time_window_before+time_window_after+1);
         for critical_frame_index = 1:length(control_frames)
             %for every time a stimulus is delivered, look at a certain range of
             %frames only if the track fits certain criteria
@@ -112,7 +136,6 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
                         end
                     end
                     BehavioralAnnotations = [tracks_on_current_critical_frame.BehavioralAnnotation];
-                    tap_observation_total_count = tap_observation_total_count + size(BehavioralAnnotations,2); % keep track of how many observations we take
                     if behavior_from > 0
                         selected_tracks = tracks_within_critical_window(and(selected_indecies,BehavioralAnnotations == behavior_from));
                     else
@@ -122,65 +145,62 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
                         for frame_shift = -time_window_before:time_window_after
                             current_frame = current_critical_frame + frame_shift;
                             tracks_on_critical_frame = FilterTracksByTime(selected_tracks,current_frame, current_frame);
-                            control_behaviors_for_frame{frame_shift+time_window_before+1} = [control_behaviors_for_frame{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
+                            behaviors_for_frame{frame_shift+time_window_before+1} = [behaviors_for_frame{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
                         end
                     end
                 end
             end
         end
+        if ~isempty(behaviors_for_frame{1})
+            transition_rate_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
+            transition_count_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
+            transition_std_for_frame = zeros(number_of_behaviors,length(behaviors_for_frame));
+            for frame_index = 1:length(behaviors_for_frame)
+                transitions_for_frame = behaviors_for_frame{frame_index};%horzcat(behaviors_for_frame{frame_index}.Behaviors);
+                transition_count_for_frame(:,frame_index) = sum(transitions_for_frame,2);
+                transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+                transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+            end
+            % this is the average rate of transition for this particular pair
+            mean_transition_rate_of_interest = mean(transition_rate_for_frame(behavior_to,:),2);
+            control_tap_transition_rates = [control_tap_transition_rates,mean_transition_rate_of_interest];
+            control_observed_transitions_counts = [control_observed_transitions_counts,sum(transition_count_for_frame(behavior_to,:),2)];
+%             control_total_observation_counts = [control_total_observation_counts,size(transitions_for_frame,2)];
+        else
+            control_tap_transition_rates = [control_tap_transition_rates,0];
+            control_observed_transitions_counts = [control_observed_transitions_counts,0];
+%             control_total_observation_counts = [control_total_observation_counts,0];
+        end
     end
-    
-    %get the transition rate for the tap condition
-    tap_transition_counts = [];  
-    for frame_index = 1:length(tap_behaviors_for_frame)
-        %loop through all the frames and grab the behavioral counts and
-        %total observations
-        transitions_for_frame = tap_behaviors_for_frame{frame_index};
-        tap_transition_counts = [tap_transition_counts, sum(transitions_for_frame,2)];
-    end
-    if isempty(tap_transition_counts)
-        tap_transition_total_count = 0;
-    else
-        tap_transition_total_count = sum(tap_transition_counts(behavior_to,:),2);
-    end
-    tap_transition_rate_of_interest = tap_transition_total_count./tap_observation_total_count.*fps.*60; %convert to /min
-    tap_transition_rate_of_interest_std = sqrt(tap_transition_total_count)./tap_observation_total_count.*fps.*60;
-    
-    %get the transition rate for the control condition
-    control_transition_counts = [];
-    for frame_index = 1:length(control_behaviors_for_frame)
-        %loop through all the frames and grab the behavioral counts and
-        %total observations
-        transitions_for_frame = control_behaviors_for_frame{frame_index};
-        control_transition_counts = [control_transition_counts, sum(transitions_for_frame,2)];
-    end  
-    if isempty(control_transition_counts)
-        control_transition_total_count = 0;
-    else
-        control_transition_total_count = sum(control_transition_counts(behavior_to,:),2);
-    end
-    control_transition_rate_of_interest = control_transition_total_count./control_observation_total_count.*fps.*60; %convert to /min
-    control_transition_rate_of_interest_std = sqrt(tap_transition_total_count)./tap_observation_total_count.*fps.*60;
-    
-    p = testPoissonSignificance(tap_transition_total_count,control_transition_total_count,tap_observation_total_count,control_observation_total_count,0,2);
-    if p > 0.05
+
+    [h,p,ci,stats] = ttest2(tap_transition_rates, control_tap_transition_rates);
+    if isnan(h)
         h = false;
-    else
-        h = true;
+        p = 0;
     end
-   
+    
+    tap_observed_transitions_count = sum(tap_observed_transitions_counts);
+%     tap_total_observation_count = sum(tap_total_observation_counts);
+    control_observed_transitions_count = sum(control_observed_transitions_counts);
+%     control_total_observation_count = sum(control_total_observation_counts);
+    
 %     %% plot the differences
 %     %calculate the mean and std of the measured transition rates
+%     mean_tap_transition_rates = mean(tap_transition_rates);
+%     std_tap_transition_rates = std(tap_transition_rates);
+%     mean_shuffled_tap_transition_rates = mean(control_tap_transition_rates);
+%     std_shuffled_tap_transition_rates = std(control_tap_transition_rates);
+% 
 %     figure('Position', [0, 0, 200, 200]);
 %     hold on
-%     barwitherr([control_transition_rate_of_interest_std; tap_transition_rate_of_interest_std], [control_transition_rate_of_interest; tap_transition_rate_of_interest])
+%     barwitherr([std_shuffled_tap_transition_rates; std_tap_transition_rates], [mean_shuffled_tap_transition_rates; mean_tap_transition_rates])
 %     if h
-%         sigstar({[1,2]},p);
+%         sigstar({[1,2]},[p]);
 %     end
 %     
 %     axis([0 3 0 60])
 %     set(gca,'XTickLabel',{'','Control','Tap',''})
 %     ylabel('Transition Rate (transitions/worm/min)')
-% %     title(['n = ',num2str(length(tap_transition_rates)), ' Experiments'])
+%     title(['n = ',num2str(length(tap_transition_rates)), ' Experiments'])
 end
 

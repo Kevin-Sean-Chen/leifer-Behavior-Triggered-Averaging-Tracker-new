@@ -57,6 +57,11 @@ function pvalue=testPoissonSignificance(k1,k2,n1,n2,d,iside)
 
     assert(iside==1|| iside==2);
 
+    if (k1 == 0) && (k2 == 0)
+        %special case of no observations
+        pvalue=1;
+        return
+    end
 
 	elhatk = (k1+k2)/(n1+n2)-d*n1/(n1+n2);
 	
