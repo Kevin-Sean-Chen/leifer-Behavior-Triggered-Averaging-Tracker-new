@@ -1,8 +1,8 @@
 % analysis options
-tracking = 0;
+tracking = 1;
 finding_centerline = 0;
 resolving_problems = 0;
-plotting = -2;
+plotting = 1;
 calculate_behavior = 0;
 backup = 0;
 parameters = load_parameters(); %load default parameters
@@ -15,15 +15,15 @@ parameters = load_parameters(); %load default parameters
 if tracking
     'Tracking...'
     %Get a rough estimate of how much work needs to be done
-    total_image_files = 0;
-    for folder_index = 1:folder_count
-        folder_name = folders{folder_index};
-        image_files=dir([folder_name, filesep, '*.jpg']); %get all the jpg files (maybe named tif)
-        if isempty(image_files)
-            image_files = dir([folder_name, filesep, '*.tif']); 
-        end
-        total_image_files = total_image_files + length(image_files);
-    end
+%     total_image_files = 0;
+%     for folder_index = 1:folder_count
+%         folder_name = folders{folder_index};
+%         image_files=dir([folder_name, filesep, '*.jpg']); %get all the jpg files (maybe named tif)
+%         if isempty(image_files)
+%             image_files = dir([folder_name, filesep, '*.tif']); 
+%         end
+%         total_image_files = total_image_files + length(image_files);
+%     end
     
     if folder_count > 1
         %use parfor
