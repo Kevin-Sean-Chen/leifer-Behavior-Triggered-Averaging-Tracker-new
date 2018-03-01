@@ -11,6 +11,7 @@ BTA_seconds_after = BTA_seconds_before_and_after;
 NumTicks = 3;
 folders_platetap = getfoldersGUI();
 folders_optotap = getfoldersGUI();
+rows_per_page = 3;
 
 
 %% plot the forward locomotion series
@@ -109,7 +110,7 @@ control_tap_transitions_counts = zeros(number_of_behaviors, number_of_behaviors)
 control_tap_observation_counts = zeros(number_of_behaviors, number_of_behaviors);
 
 tap_difference_significant = false(number_of_behaviors, number_of_behaviors);
-tap_pvalue = zeros(number_of_behaviors, number_of_behaviors);
+tap_pvalue = eye(number_of_behaviors);
 tap_hypothesis_counts = 0;
 for behavior_from = 1:number_of_behaviors
     for behavior_to = 1:number_of_behaviors
@@ -137,37 +138,50 @@ figure
 for behavior_from = 1:number_of_behaviors
     for behavior_to = 1:number_of_behaviors
         if behavior_from ~= behavior_to
-            subplot(double(number_of_behaviors),double(number_of_behaviors),double((behavior_from-1)*number_of_behaviors+behavior_to))
-            barwitherr([std_control_tap_transition_rates(behavior_from,behavior_to); std_tap_transition_rates(behavior_from,behavior_to)], [mean_control_tap_transition_rates(behavior_from,behavior_to); mean_tap_transition_rates(behavior_from,behavior_to)],'FaceColor',behavior_colors(behavior_to,:))
-            ax = gca;
-            if tap_difference_significant(behavior_from,behavior_to)
-                sigstar({[1,2]},0.05);
-%                 ax.XColor = 'red';
-%                 ax.YColor = 'red';
-%                 title({['n=', num2str(control_tap_transitions_counts(behavior_from,behavior_to)),', ',num2str(tap_transitions_counts(behavior_from,behavior_to))],['p=',num2str(round(tap_pvalue(behavior_from,behavior_to),2,'significant'))]},'Color', 'r')
-%             else
-%                 title({['n=', num2str(control_tap_transitions_counts(behavior_from,behavior_to)),', ',num2str(tap_transitions_counts(behavior_from,behavior_to))],['p=',num2str(round(tap_pvalue(behavior_from,behavior_to),2,'significant'))]},'Color', 'k')
-%                 sigstar({[1,2]},nan,0,30);           
-            end
-%             if behavior_from == 2 && behavior_to == 1
-%                 ylabel('Platetap Transition Rate (transitions/min)')
-% %                 set(gca,'XTickLabel',{'-','+'})
-% %             else
-% %                 set(gca,'YTick','')
-%             end
+            if control_tap_transitions_counts(behavior_from,behavior_to) == 0 && tap_transitions_counts(behavior_from,behavior_to) == 0
+            else
+                scrollsubplot(rows_per_page,double(number_of_behaviors),double((behavior_from-1)*number_of_behaviors+behavior_to))
+                barwitherr([std_control_tap_transition_rates(behavior_from,behavior_to); std_tap_transition_rates(behavior_from,behavior_to)], [mean_control_tap_transition_rates(behavior_from,behavior_to); mean_tap_transition_rates(behavior_from,behavior_to)],'FaceColor',behavior_colors(behavior_to,:))
+                ax = gca;
+                if tap_difference_significant(behavior_from,behavior_to)
+                    sigstar({[1,2]},0.05);
+    %                 ax.XColor = 'red';
+    %                 ax.YColor = 'red';
+    %                 title({['n=', num2str(control_tap_transitions_counts(behavior_from,behavior_to)),', ',num2str(tap_transitions_counts(behavior_from,behavior_to))],['p=',num2str(round(tap_pvalue(behavior_from,behavior_to),2,'significant'))]},'Color', 'r')
+    %             else
+    %                 title({['n=', num2str(control_tap_transitions_counts(behavior_from,behavior_to)),', ',num2str(tap_transitions_counts(behavior_from,behavior_to))],['p=',num2str(round(tap_pvalue(behavior_from,behavior_to),2,'significant'))]},'Color', 'k')
+    %                 sigstar({[1,2]},nan,0,30);           
+                end
+    %             if behavior_from == 2 && behavior_to == 1
+    %                 ylabel('Platetap Transition Rate (transitions/min)')
+    % %                 set(gca,'XTickLabel',{'-','+'})
+    % %             else
+    % %                 set(gca,'YTick','')
+    %             end
 
-            box('off')
-%             title(['n=', num2str(control_tap_transitions_counts(behavior_from,behavior_to)),', ',num2str(tap_transitions_counts(behavior_from,behavior_to))],'Color', 'k', 'FontWeight', 'normal', 'Fontsize', 14)
-            title({['n=', num2str(control_tap_transitions_counts(behavior_from,behavior_to)),', ',num2str(tap_transitions_counts(behavior_from,behavior_to))],['p=',num2str(round(tap_pvalue(behavior_from,behavior_to),2,'significant'))]},'Color', 'k')
-            set(gca,'XTick','')
-            set(gca,'fontsize',14)
-            y_limits = ylim;             %get y lim
-            axis([0 3 0 ceil(y_limits(2))]);
-            ax.YTick = linspace(0,ceil(y_limits(2)),2);
+                title(['n=', num2str(control_tap_transitions_counts(behavior_from,behavior_to)),', ',num2str(tap_transitions_counts(behavior_from,behavior_to))],'Color', 'k', 'FontWeight', 'normal', 'Fontsize', 14)
+                %title({['n=', num2str(control_tap_transitions_counts(behavior_from,behavior_to)),', ',num2str(tap_transitions_counts(behavior_from,behavior_to))],['p=',num2str(round(tap_pvalue(behavior_from,behavior_to),2,'significant'))]},'Color', 'k')
+                box('off')
+                set(gca,'XTick','')
+                set(gca,'fontsize',14)
+                y_limits = ylim;             %get y lim
+                new_ylim = y_limits(2);
+%                new_ylim = 2;
+                if new_ylim > 1
+                    new_ylim = ceil(y_limits(2));
+                else
+                    new_ylim = 1;
+                end
+                axis([0 3 0 new_ylim]);
+                if (behavior_from == 9 && behavior_to == 1) || new_ylim > 1
+                    ax.YTick = linspace(0,new_ylim,2);
+                else
+                    set(gca,'YTick','')
+                end
+            end
         end
     end
 end
-
 
 %% all 72 context dependent transitions differences for optotap experiments in a grid
 all_edge_pairs = get_edge_pairs(number_of_behaviors);
@@ -183,7 +197,7 @@ control_optotap_transitions_counts = zeros(number_of_behaviors, number_of_behavi
 control_optotap_observation_counts = zeros(number_of_behaviors, number_of_behaviors);
 
 optotap_difference_significant = false(number_of_behaviors, number_of_behaviors);
-optotap_pvalue = zeros(number_of_behaviors, number_of_behaviors);
+optotap_pvalue = eye(number_of_behaviors);
 control_hypothesis_counts = 0;
 for behavior_from = 1:number_of_behaviors
     for behavior_to = 1:number_of_behaviors
@@ -214,7 +228,7 @@ for behavior_from = 1:number_of_behaviors
         if behavior_from ~= behavior_to
             if control_optotap_transitions_counts(behavior_from,behavior_to) == 0 && optotap_transitions_counts(behavior_from,behavior_to) == 0
             else
-                subplot(double(number_of_behaviors),double(number_of_behaviors),double((behavior_from-1)*number_of_behaviors+behavior_to))
+                scrollsubplot(rows_per_page,double(number_of_behaviors),double((behavior_from-1)*number_of_behaviors+behavior_to))
                 barwitherr([std_control_optotap_transition_rates(behavior_from,behavior_to); std_optotap_transition_rates(behavior_from,behavior_to)], [mean_control_optotap_transition_rates(behavior_from,behavior_to); mean_optotap_transition_rates(behavior_from,behavior_to)],'FaceColor',behavior_colors(behavior_to,:))
                 ax = gca;
                 if optotap_difference_significant(behavior_from,behavior_to)
@@ -238,9 +252,98 @@ for behavior_from = 1:number_of_behaviors
                 set(gca,'XTick','')
                 set(gca,'fontsize',14)
                 y_limits = ylim;             %get y lim
-                axis([0 3 0 ceil(y_limits(2))]);
-                ax.YTick = linspace(0,ceil(y_limits(2)),2);
+                new_ylim = y_limits(2);
+%                new_ylim = 2;
+                if new_ylim > 1
+                    new_ylim = ceil(y_limits(2));
+                else
+                    new_ylim = 1;
+                end
+                axis([0 3 0 new_ylim]);
+                if (behavior_from == 9 && behavior_to == 1) || new_ylim > 1
+                    ax.YTick = linspace(0,new_ylim,2);
+                else
+                    set(gca,'YTick','')
+                end
             end
         end
     end
 end
+%%  plot the 72 BTA significance a heatmap
+all_edge_pairs = get_edge_pairs(number_of_behaviors);
+BTA_percentiles = zeros(number_of_behaviors);
+for behavior_from = 1:number_of_behaviors
+    for behavior_to = 1:number_of_behaviors
+        if behavior_from ~= behavior_to
+            %find the behavior index
+            [~, LNP_index] = ismember([behavior_from, behavior_to],all_edge_pairs,'rows');
+            BTA_percentiles(behavior_from, behavior_to) = LNPStats_directional_ret(LNP_index).BTA_percentile;
+        end
+    end
+end
+
+figure
+imagesc(BTA_percentiles)
+colormap(gray)
+caxis([0, 0.99])
+colorbar
+box('off')
+set(gca,'XTick','')
+set(gca,'YTick','')
+
+%make the colormap of parula to begin with black
+figure
+my_colormap = parula;
+my_colormap(1,:) = [0,0,0];
+imagesc(BTA_percentiles) 
+colormap(my_colormap)
+caxis([0.989, 1])
+colorbar
+box('off')
+set(gca,'XTick','')
+set(gca,'YTick','')
+
+
+%%  plot the 72 p-values in a heatmap for platetap
+figure
+imagesc(tap_pvalue)
+colormap(flipud(gray))
+caxis([0.05/72, 1])
+colorbar
+box('off')
+set(gca,'XTick','')
+set(gca,'YTick','')
+
+%make the colormap of parula to begin with black
+figure
+my_colormap = flipud(parula);
+my_colormap(end,:) = [0,0,0];
+imagesc(tap_pvalue) 
+colormap(my_colormap)
+caxis([0, 0.05/72])
+colorbar
+box('off')
+set(gca,'XTick','')
+set(gca,'YTick','')
+
+%%  plot the 72 p-values in a heatmap for optotap
+figure
+imagesc(optotap_pvalue)
+colormap(flipud(gray))
+caxis([0.05/72, 1])
+colorbar
+box('off')
+set(gca,'XTick','')
+set(gca,'YTick','')
+
+%make the colormap of parula to begin with black
+figure
+my_colormap = flipud(parula);                                
+my_colormap(end,:) = [0,0,0];
+imagesc(optotap_pvalue) 
+colormap(my_colormap)
+caxis([0, 0.05/72])
+colorbar
+box('off')
+set(gca,'XTick','')
+set(gca,'YTick','')

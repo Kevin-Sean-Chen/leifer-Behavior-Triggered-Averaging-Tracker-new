@@ -61,6 +61,7 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
                 tracks_within_critical_window = FilterTracksByTime(current_tracks,current_critical_frame - time_window_before, current_critical_frame + time_window_after, true);
                 if ~isempty(tracks_within_critical_window)
                     tracks_on_current_critical_frame = FilterTracksByTime(tracks_within_critical_window,current_critical_frame, current_critical_frame);
+                    tap_observation_total_count = tap_observation_total_count + size([tracks_within_critical_window.Frames],2); % keep track of how many observations we take
 
                     %select the tracks that have the next behavior being behavior to
                     selected_indecies = false(1,length(tracks_within_critical_window));
@@ -73,7 +74,6 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
                         end
                     end
                     BehavioralAnnotations = [tracks_on_current_critical_frame.BehavioralAnnotation];
-                    control_observation_total_count = control_observation_total_count + size(BehavioralAnnotations,2); % keep track of how many observations we take
                     if behavior_from > 0
                         selected_tracks = tracks_within_critical_window(and(selected_indecies,BehavioralAnnotations == behavior_from));
                     else
@@ -100,6 +100,7 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
                 tracks_within_critical_window = FilterTracksByTime(current_tracks,current_critical_frame - time_window_before, current_critical_frame + time_window_after, true);
                 if ~isempty(tracks_within_critical_window)
                     tracks_on_current_critical_frame = FilterTracksByTime(tracks_within_critical_window,current_critical_frame, current_critical_frame);
+                    control_observation_total_count = control_observation_total_count + size([tracks_within_critical_window(:).Frames],2); % keep track of how many observations we take
 
                     %select the tracks that have the next behavior being behavior to
                     selected_indecies = false(1,length(tracks_within_critical_window));
@@ -112,7 +113,6 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
                         end
                     end
                     BehavioralAnnotations = [tracks_on_current_critical_frame.BehavioralAnnotation];
-                    tap_observation_total_count = tap_observation_total_count + size(BehavioralAnnotations,2); % keep track of how many observations we take
                     if behavior_from > 0
                         selected_tracks = tracks_within_critical_window(and(selected_indecies,BehavioralAnnotations == behavior_from));
                     else
