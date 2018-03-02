@@ -1,5 +1,5 @@
 function [] = delete_extra_individual_worm_images(folder_name, endIndex)
-% delete files that are no longer relevant
+% delete individual worm image files that are no longer relevant
     individual_worms = dir([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', '*.mat']); 
     for image_stack_index = 1:length(individual_worms)
         current_file_name = individual_worms(image_stack_index).name;

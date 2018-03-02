@@ -1,6 +1,6 @@
 function [BTA, behaviorCounts, BTA_RMSD] = ML_BehaviorTriggeredAverage_whitened_ridge(Xtrain,Xtest,Ytrain,Ytest)
 %This function performs the core BTA caculation using maximum likelihood
-%with whitening and ridge regression
+%with whitening and ridge regression; not used in paper
 
 %nThi = size(X,1);
 ntfilt = size(Xtrain,2);

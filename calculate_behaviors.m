@@ -1,5 +1,6 @@
 function success = calculate_behaviors(folder_name)
-% use behavioral mapping to analyze a group of experiments
+% given tracks that has embeddings, classify every time point into a
+% behavior
     addpath(genpath(pwd))
     %set up parameters
     parameters = load_parameters(folder_name);

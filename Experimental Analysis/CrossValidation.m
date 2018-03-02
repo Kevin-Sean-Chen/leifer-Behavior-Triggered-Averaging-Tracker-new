@@ -1,5 +1,6 @@
 % function [K_LNP, K_Shuffle] = CrossValidation()
-%CrossValidation compares the predicted reversal rate with a null model
+%CrossValidation compares the predicted reversal rate with a null model;
+%not used in paper
 % %   Detailed explanation goes here
     fps = 14;
     number_of_trials = 100;

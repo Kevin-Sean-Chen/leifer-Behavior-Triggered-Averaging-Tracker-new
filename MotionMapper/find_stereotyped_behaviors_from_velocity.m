@@ -1,4 +1,5 @@
 function [Tracks, number_of_behaviors] = find_stereotyped_behaviors_from_velocity(Tracks)
+    % not used in paper
     number_of_behaviors = 5;
     fps = 14;
 

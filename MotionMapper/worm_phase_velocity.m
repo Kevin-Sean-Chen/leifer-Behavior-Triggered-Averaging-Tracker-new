@@ -1,5 +1,6 @@
 function phi_dt = worm_phase_velocity(ProjectedEigenValues, parameters)
-%This function outputs the phase velocity time series given the PCA time series
+%This function outputs the phase velocity time series given the PCA time series% not used in paper
+
     phase_determining_PCs = [2, 3]; %which PCs are the sine and cosine of worm locomotion
     phase_determining_eigen_values = ProjectedEigenValues(phase_determining_PCs, :);
     

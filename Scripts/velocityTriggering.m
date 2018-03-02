@@ -1,3 +1,5 @@
+%not used in paper
+
 %calculate the triggers for LNP fitting based on velocity ranges
 
 number_of_behaviors = 5;

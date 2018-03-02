@@ -1,3 +1,5 @@
+% not used in paper
+
 %% STEP 1: set up parameters
 parameters.numProcessors = 15;
 parameters.numProjections = 19;

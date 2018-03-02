@@ -1,5 +1,7 @@
 function [ currentTrack ] = CutTrackByFrame(currentTrack, startFrame, endFrame)
 %Takes a list of tracks and filters them based on start and end frames.
+% the start and end frames are defined in relation to the first frame of
+% the experiment
 %   Detailed explanation goes here
 
     filteredIndecies = find(currentTrack.Frames >= startFrame & currentTrack.Frames <= endFrame);

@@ -1,3 +1,5 @@
+%not used in paper
+
 fps = 14;
 rows_per_page = 2;
 column_number = 3;

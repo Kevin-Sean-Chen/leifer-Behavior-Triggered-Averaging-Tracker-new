@@ -1,3 +1,5 @@
+%not used in paper
+
 [folders, ~] = getfoldersGUI();
 
 for folder_index = 1:length(folders)

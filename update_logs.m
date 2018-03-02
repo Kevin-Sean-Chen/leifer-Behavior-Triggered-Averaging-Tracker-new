@@ -1,5 +1,6 @@
 function log_entry = update_logs(folder_name, script_name, status, job_ID, comment)
 % update the logs on cluster
+
     try
         master_log_name = '/tigress/LEIFER/Mochi/logs/masterlog.csv';
         error_log_name = '/tigress/LEIFER/Mochi/logs/errorlog.csv';

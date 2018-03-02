@@ -1,5 +1,6 @@
 function success = calculate_spectra(folder_name)
-% use behavioral mapping to analyze a group of experiments
+% Take the PCA projections and get the spectrogram and directionality
+
     addpath(genpath(pwd))
     %set up parameters
     parameters = load_parameters(folder_name);

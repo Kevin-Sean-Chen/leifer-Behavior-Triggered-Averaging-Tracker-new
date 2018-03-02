@@ -1,5 +1,7 @@
 function success = call_function(input_string)
-% calls the function with argument in the format function;argument
+% calls the function in this folder with argument in the format function;argument
+% and update the appropriate logs
+
     try
         inputs = strsplit(input_string,';');
         script_name = inputs{1};

@@ -1,3 +1,5 @@
+%not used in paper
+
 iterations = 10000000;
 par_for_iterations = 100;
 for_iterations = iterations/par_for_iterations;

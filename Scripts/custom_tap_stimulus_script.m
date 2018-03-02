@@ -1,3 +1,5 @@
+%not used in paper
+
 load('reference_embedding.mat')
 %load tracks
 % relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};

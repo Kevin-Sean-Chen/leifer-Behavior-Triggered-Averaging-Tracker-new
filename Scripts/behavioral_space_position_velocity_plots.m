@@ -1,3 +1,4 @@
+%not used in paper
 %get the position vs time in behavioral space for given track
 track_index = 5;
 fps = 14;

@@ -37,14 +37,6 @@ function [amplitudes,f] = findWavelets(projections,numModes,parameters)
     end
     
     
-%     if matlabpool('size') ~= parameters.numProcessors;
-%         matlabpool close force
-%         if parameters.numProcessors > 1
-%             matlabpool(parameters.numProcessors);
-%         end
-%     end
-    
-    
     omega0 = parameters.omega0;
     numPeriods = parameters.numPeriods;
     dt = 1 ./ parameters.samplingFreq;
@@ -61,13 +53,4 @@ function [amplitudes,f] = findWavelets(projections,numModes,parameters)
             fastWavelet_morlet_convolution_parallel(...
             projections(:,i),f,omega0,dt)';
     end
-    
-    
-%     if parameters.numProcessors > 1 && parameters.closeMatPool
-%         matlabpool close
-%     end
-    
-    
-    
-    
     

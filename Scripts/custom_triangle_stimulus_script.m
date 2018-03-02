@@ -1,3 +1,5 @@
+%not used in paper
+
 load('reference_embedding.mat')
 
 time_window_before = 69;

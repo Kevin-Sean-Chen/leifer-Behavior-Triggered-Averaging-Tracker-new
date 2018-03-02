@@ -1,5 +1,5 @@
 function [] = savetracks(Tracks, folder_name, overwrite, fields_to_save)
-%save the tracks given folders as individual variables
+%save the tracks as individual variables given folders
     savePath = [folder_name, filesep, 'analysis'];
     
     if nargin < 3

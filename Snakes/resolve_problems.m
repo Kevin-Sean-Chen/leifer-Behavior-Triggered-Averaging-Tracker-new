@@ -1,5 +1,6 @@
 function [newTracks] = resolve_problems(folder_name, parameters)
-% displays a GUI to help user decide how to resolve centerline problems
+% displays a GUI to help user decide how to resolve centerline problems, not used in paper
+
     min_track_length = parameters.MinTrackLength;
 %     plotting_index = 1;
     

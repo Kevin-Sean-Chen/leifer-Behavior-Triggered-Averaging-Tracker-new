@@ -1,7 +1,7 @@
 function [BTA, behaviorCounts, BTA_RMSD, BTA_stats] = ML_BehaviorTriggeredAverage(Behaviors, Stim, bootstrap)
     %finds the behavior triggered average, optionally determine the
     %significance of the BTA by shuffling transitions randomly and finding
-    %the BTA
+    %the BTA; not used in paper
     fps = 14;
     BTA_seconds_before_and_after = 10;
     number_of_random_shuffles = 10;

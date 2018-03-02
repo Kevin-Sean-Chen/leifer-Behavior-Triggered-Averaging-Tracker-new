@@ -21,47 +21,22 @@ function [zValues,outputStatistics] = ...
 % (C) Gordon J. Berman, 2014
 %     Princeton University
 
-%     addpath(genpath('./utilities/'));
-%     addpath(genpath('./t_sne/'));
     
     
     if nargin < 4
         parameters = [];
     end
     parameters = setRunParameters(parameters);
-    
-    
-    
-%     if matlabpool('size') ~= parameters.numProcessors;
-%         matlabpool close force
-%         if parameters.numProcessors > 1
-%             matlabpool(parameters.numProcessors);
-%         end
-%     end
-    
-    
-    
+
     d = length(trainingData(1,:));
     numModes = parameters.pcaModes;
     numPeriods = parameters.numPeriods;
     
-%     if d == numModes*numPeriods
+    minT = 1 ./ parameters.maxF;
+    maxT = 1 ./ parameters.minF;
+    Ts = minT.*2.^((0:numPeriods-1).*log(maxT/minT)/(log(2)*(numPeriods-1)));
+    f = fliplr(1./Ts);
         
-%         data = projections;
-%         data(:) = bsxfun(@rdivide,data,sum(data,2));
-        
-        minT = 1 ./ parameters.maxF;
-        maxT = 1 ./ parameters.minF;
-        Ts = minT.*2.^((0:numPeriods-1).*log(maxT/minT)/(log(2)*(numPeriods-1)));
-        f = fliplr(1./Ts);
-        
-%     else
-%         
-%         fprintf(1,'Finding Wavelets\n');
-%         [data,f] = findWavelets(projections,numModes,parameters);
-%         data(:) = bsxfun(@rdivide,data,sum(data,2));
-%         
-%     end
     
     fprintf(1,'Finding Embeddings\n');
     [zValues,zCosts,zGuesses,inConvHull,meanMax,exitFlags] = ...
@@ -79,9 +54,4 @@ function [zValues,outputStatistics] = ...
     outputStatistics.exitFlags = exitFlags;
     
     
-                                
-                                
-    
-%     if parameters.numProcessors > 1  && parameters.closeMatPool
-%         matlabpool close
-%     end
+                   

@@ -1,7 +1,8 @@
 function success = tap_preprocessing(folder_name)
 %This function does pre-processing for tap experiments, getting rid of
 %motion blurred frames so we don't lose track during taps
-    shift = 1;
+
+    shift = 1; % how many frames does it take to see the tap blur after the HIGH voltage
     
     image_files=dir([folder_name, filesep, '*.jpg']); %get all the jpg files (maybe named tif)
     if isempty(image_files)

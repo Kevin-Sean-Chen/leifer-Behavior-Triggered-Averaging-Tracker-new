@@ -1,5 +1,5 @@
 function [predicted_behavior_rate] = PredictLNP(LEDPower, linear_kernel, modeled_fit, bin_size)
-%Predicts the behavioral rate based on LNP model parameters
+%Predicts the behavioral rate based on LNP model parameters; not used in paper
 
     if nargin < 4
         %no bin size specified

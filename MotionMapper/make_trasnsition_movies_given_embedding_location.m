@@ -1,6 +1,6 @@
 %This script allows the user to pick a watershed region in a t-SNE map and
 %finds when the animal transitions into that region and plots their
-%behavior
+%behavior, not used in paper
 
 %% STEP 1: establish plotting constants 
 N_rows = 4;

@@ -1,3 +1,5 @@
+%not used in paper
+
 % load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\17_02_24_LNPStats_directional_and_nondirectional.mat')
 % folders_platetap = getfoldersGUI();
 

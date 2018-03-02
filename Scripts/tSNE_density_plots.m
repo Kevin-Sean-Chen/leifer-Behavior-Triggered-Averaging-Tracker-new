@@ -1,3 +1,5 @@
+%not used in paper
+
 observations = zeros(size(data,1),1);
 image_size = [70, 70];
 data_index = 1;

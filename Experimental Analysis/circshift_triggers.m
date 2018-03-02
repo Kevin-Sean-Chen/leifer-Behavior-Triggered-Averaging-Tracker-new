@@ -1,6 +1,6 @@
 function [ Behaviors ] = circshift_triggers(Behaviors, BTA_seconds_before_and_after, randomize, remove_edge)
 % Shifts the triggers for each track randomly and removes any behavior
-% transistions that are too close to the edge
+% transistions that are too close to the edge if the options call for its
     if nargin<3
         randomize = false;
     end

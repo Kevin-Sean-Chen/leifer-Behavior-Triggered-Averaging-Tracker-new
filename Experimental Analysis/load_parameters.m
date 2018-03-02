@@ -1,6 +1,7 @@
 function parameters = load_parameters(folder_name)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+%loads the parameter structure based on the tags in the experimental folder
+%and parameters.csv settings file
+
     SaveIndividualImages = 1;
     
     if nargin < 1

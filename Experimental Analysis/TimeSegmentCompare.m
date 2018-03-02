@@ -1,6 +1,7 @@
 function Experiments = TimeSegmentCompare()
 %TimeSegmentCompare compares the LNP fits from different parts of
-%experiments
+%experiments, not used in paper
+
 %   Detailed explanation goes here
     fps = 14;
     EarlyStartFrame = 1;

@@ -1,3 +1,5 @@
+%not used in paper
+
 % this script corrects the numbering of watershedding based on the names we
 % came up with
 load('reference_embedding.mat')

@@ -1,3 +1,5 @@
+%not used in paper
+
 percentile_threshold = 0.99;
 fps = 14;
 kernel_lengths = zeros(1,length(LNPStats));

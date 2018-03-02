@@ -1,5 +1,6 @@
 function [ index_found ] = is_approximate_member(search_for,search_in,min_difference)
 %finds if there exists an approximate row in "search_in" for the row "search_for"
+%used to see if a stimulus shape appears similar to another stimulus shape
     if nargin < 3
         min_difference = 0.05;
     end

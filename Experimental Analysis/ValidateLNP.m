@@ -1,5 +1,6 @@
 function [TestLNPStats] = ValidateLNP(Tracks, folder_indecies, folders, LNPStats)
-%Predicts the behavioral rate based on LNP model parameters
+%Predicts the behavioral rate based on LNP model parameters, not used in paper
+
 %   Detailed explanation goes here
     numbins = 10;
 

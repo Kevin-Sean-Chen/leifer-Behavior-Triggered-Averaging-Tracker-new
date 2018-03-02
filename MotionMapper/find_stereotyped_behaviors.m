@@ -1,5 +1,7 @@
 function Tracks = find_stereotyped_behaviors(Tracks, L, xx)
-
+    %enforces the constraint that stereotyped behaviors have stay in a
+    %watershed region for more than 0.5 seconds in order for it to count
+    
     fps = 14;
     % velocity_cutoff = 27; %% need to load in value
     velocity_cutoff = 10^6; % no velocity cutoff used

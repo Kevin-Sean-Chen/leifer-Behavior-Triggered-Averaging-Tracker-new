@@ -1,5 +1,5 @@
 function [LNPStats,meanLEDPower, stdLEDPower] = ML_FitLNP(Tracks,folder_indecies,folders,cross_valdiation)
-% FitLNP takes in tracks and outputs the parameters of the LNP
+% FitLNP takes in tracks and outputs the parameters of the LNP; not used in paper
     
     if nargin<4
         cross_valdiation = false;

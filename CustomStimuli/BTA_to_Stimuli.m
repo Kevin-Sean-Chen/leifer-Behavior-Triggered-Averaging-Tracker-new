@@ -1,4 +1,6 @@
-stimuli_of_interest = find([LNPStats.BTA_percentile] == 1);
+
+
+stimuli_of_interest = find([LNPStats.BTA_percentile] > 0.99);
 avg_power = meanLEDPower;
 max_power = avg_power*2;
 stimuli = vertcat(LNPStats(stimuli_of_interest).BTA);

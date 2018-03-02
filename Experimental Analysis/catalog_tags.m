@@ -1,5 +1,7 @@
 function [folders, folder_tags, folder_count] = catalog_tags(folder_name)
-%get the experimental folders recursively
+% Look through experimental folders recursively and sort out what the 
+% experimental tags are
+
     folders = {};
     folder_count = 0;
     folder_tags = cell(0,0);
@@ -25,6 +27,7 @@ function [folders, folder_tags, folder_count] = catalog_tags(folder_name)
             folder_tags(1,1) = {[my_tags; date_folder]};
         end
     else
+        %this is a parent folder
         allFiles = dir(folder_name); %get all the subfolders
         for file_index = 1:length(allFiles)
             if allFiles(file_index).isdir && ~strcmp(allFiles(file_index).name, '.') && ~strcmp(allFiles(file_index).name, '..')

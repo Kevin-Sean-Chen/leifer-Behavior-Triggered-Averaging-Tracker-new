@@ -1,5 +1,6 @@
 function success = track_image_directory(folder_name, analysis_mode)
 % tracks and saves individual worms for all the images in a directory
+
     addpath(genpath(pwd))
     parameters = load_parameters(folder_name); %load experiment parameters
     

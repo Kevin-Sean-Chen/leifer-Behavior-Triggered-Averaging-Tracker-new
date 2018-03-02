@@ -1,4 +1,6 @@
 function success = find_centerlines(folder_name)
+% gets the centerlines given tracks and their associated individual worm
+% images
     addpath(genpath(pwd))
     
     parameters = load_parameters(folder_name); %load experiment parameters
@@ -49,15 +51,13 @@ function success = find_centerlines(folder_name)
     %% Extract Centerlines and eigenworms
     parfor track_index = 1:track_count
     %for track_index = 1:track_count
+        % loop through all the tracks to get centerlines
         try
             % if anything goes wrong in centerline finding, make a note to
             % remove the track
             loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index), '.mat']);
             worm_images = loaded_file.worm_images;
-            Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), parameters, track_index);
-
-            %smoothing?
-
+            Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), parameters, track_index); %get the centerlines
             [angles, Tracks(track_index).MeanAngle] = centerlines_to_angles(Tracks(track_index).Centerlines); %get the angles
             Tracks(track_index).Angles = angles - (diag(parameters.MeanAngles)*ones(size(angles))); %mean center
             Tracks(track_index).ProjectedEigenValues = parameters.EigenVectors\Tracks(track_index).Angles; %project into PCA space

@@ -1,5 +1,5 @@
 %This script allows the user to pick a watershed region in a t-SNE map and
-%finds when the animal stays in that region and plots their behaivor
+%finds when the animal stays in that region and plots their behaivor, not used in paper
 
 %% STEP 1: establish plotting constants 
 N_rows = 4;

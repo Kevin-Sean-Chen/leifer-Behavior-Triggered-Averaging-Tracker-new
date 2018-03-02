@@ -1,4 +1,5 @@
-fps = 14;
+% used for calibration; not in paper
+
 curDir = uigetdir
 cd(curDir) %open the directory of image sequence
 image_files=dir('*.tif'); %get all the tif files
@@ -31,9 +32,7 @@ find(LEDVoltages == max(LEDVoltages))
 
 figure
 hold on;
-plot(1/fps:1/fps:size(LEDVoltages,2)/fps, LEDVoltages, 'color', 'r', 'DisplayName', 'input voltage')
-plot(1/fps:1/fps:size(intensity,2)/fps, intensity, 'color', 'b', 'DisplayName', 'image intensity')
+plot(1:size(LEDVoltages,2), LEDVoltages, 'color', 'r', 'DisplayName', 'input voltage')
+plot(1:size(intensity,2), intensity, 'color', 'b', 'DisplayName', 'image intensity')
 hold off;
 legend('show');
-xlabel('Time(s)')
-ylabel('Relative intensity')

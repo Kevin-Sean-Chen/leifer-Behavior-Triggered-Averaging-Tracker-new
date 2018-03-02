@@ -1,5 +1,5 @@
 function [density_diff] = PlotWatershedDifference(embeddingValues1,embeddingValues2)
-%Plots the density map along with the watershed
+%Plots the density map along with the watershed; not used in paper
     maxVal = max(max(abs([embeddingValues1;embeddingValues2])));
     maxVal = round(maxVal * 1.1);
     load('reference_embedding.mat')

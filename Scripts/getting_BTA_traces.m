@@ -1,3 +1,5 @@
+%not used in paper
+
 LEDPower = allTracks_GWN_noret(16).LEDPower;
 for iteration = 1:1
     beginning_index = unidrnd(length(LEDPower)-281);

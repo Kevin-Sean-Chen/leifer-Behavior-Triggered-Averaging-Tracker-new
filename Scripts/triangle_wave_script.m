@@ -1,3 +1,5 @@
+%not used in paper
+
 folders_tri_ret = getfoldersGUI();
 load('reference_embedding.mat')
 relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};

@@ -1,5 +1,5 @@
 function S= makeStimRows(Stim, n)
-%  S = makeStimRows(Stim, n, flag);
+%  S = makeStimRows(Stim, n, flag); not used in paper
 %
 %  Converts raw stimulus to a matrix where each row is loaded with the full
 %  space-time stimulus at a particular moment in time.  The resulting

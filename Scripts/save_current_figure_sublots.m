@@ -1,3 +1,5 @@
+%not used in paper
+
 save_folder = uigetdir();
 myfigure = gcf;
 subplots=get(myfigure,'children');

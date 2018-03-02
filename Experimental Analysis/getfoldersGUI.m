@@ -1,4 +1,7 @@
 function [folders, folder_count] = getfoldersGUI()
+%lets ute user select a master parent folder, recrusively map all
+%experiments inside by the tags, and allows the user to select a subgroup
+%of experimental folders
     [folders, folder_tags, ~] = catalog_tags();
 
     while true

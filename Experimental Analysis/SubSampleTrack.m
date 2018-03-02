@@ -1,4 +1,6 @@
 function subsample_coord = SubSampleTrack(coord, time, fps, interpolate)
+% not used in paper
+
     subsample_coord = zeros(floor(max(time)*fps),2);
     time_index = 2;
     for i = 1:length(subsample_coord)

@@ -1,5 +1,6 @@
 function success = plot_image_directory(folder_name)
 % plots the individual worm videos and all the track videos
+
     addpath(genpath(pwd))
 
     %% STEP 1: initialize %%
@@ -62,14 +63,6 @@ function success = plot_image_directory(folder_name)
     % Setup figure for plotting tracker results
     % -----------------------------------------
     WTFigH = findobj('Tag', 'WTFIG');
-%     preprocessedFigH = findobj('Tag', 'preprocessedFig');
-%     if isempty(preprocessedFigH)
-%         preprocessedFigH = figure('Name', 'Raw Video', ...
-%             'NumberTitle', 'off', ...
-%             'Tag', 'preprocessedFig');
-%     else
-%         figure(preprocessedFigH);
-%     end
     if isempty(WTFigH)
         WTFigH = figure('Name', 'Tracking Results', ...
             'NumberTitle', 'off', ...
@@ -114,12 +107,8 @@ function success = plot_image_directory(folder_name)
         set(WTFigH, 'Name', FigureName);
         writeVideo(outputVideo, getframe(WTFigH));
         
-%         figure(preprocessedFigH)
-%         imshow(curImage);
-%         writeVideo(rawOutputVideo, getframe(preprocessedFigH));
     end
     close(outputVideo) 
-%     close(rawOutputVideo)
     close(WTFigH)
     success = true;
 end

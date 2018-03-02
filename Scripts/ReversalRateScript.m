@@ -1,3 +1,5 @@
+%not used in paper
+
 fps = 14;
 
 folder_name = uigetdir

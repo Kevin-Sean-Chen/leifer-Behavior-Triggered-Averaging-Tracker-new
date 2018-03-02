@@ -1,5 +1,5 @@
 function [total_score, image_score, displacement_score, centerline_pixels_out_of_body] = score_centerline_whole_image(K, Old_K, BW, dilation_size, l0)
-    % the score is the dot product of the image and a generaged image from
+    % the score is the dot product of the image and a generated image from
     % the centerline minus the displacement score
 
     %%%find the image score, which the fraction of intensities covered by

@@ -1,5 +1,5 @@
 function [folders, folder_count] = getfolders()
-%get the experimental folders
+%get the experimental folders one by one as the user selects them
     folders = {};
     folder_count = 0;
     start_path = '';

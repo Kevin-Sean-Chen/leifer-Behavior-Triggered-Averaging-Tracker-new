@@ -1,5 +1,5 @@
 function [] = PlotValidateBehavioralMappingExperimentGroup (TestLNPStats, LNPStats, meanLEDPower, stdLEDPower, L, density, xx)
-%Takes in structure LNPStats and plots them depending on the settings
+%Takes in structure LNPStats and plots them depending on the settings; not used in paper
 %   Detailed explanation goes here
     fps = 14;
     BTA_seconds_before_and_after = 10;

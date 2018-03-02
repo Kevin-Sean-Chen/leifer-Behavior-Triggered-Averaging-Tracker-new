@@ -1,3 +1,4 @@
+%not used in paper
 frames_to_trace = 0;
 folders = getfolders();
 allTracks = loadtracks(folders);

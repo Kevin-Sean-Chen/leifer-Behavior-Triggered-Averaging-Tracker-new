@@ -1,6 +1,7 @@
 function [LNPStats, meanLEDPower, stdLEDPower] = directional_FitLNP(Tracks,folder_indecies,folders)
 %directional_FitLNP takes in tracks and outputs the parameters of the LNP
-%based on which behaviors transition into which other one
+%based on which behaviors transition into which other one (i.e. context
+%dependnt)
     load('reference_embedding.mat')
     %get the number of behaviors
     number_of_behaviors = max(L(:))-1;

@@ -1,3 +1,5 @@
+%not used in paper
+
 fps = 14;
 % strains = {'N2', 'GC6 Extrachromosomal', 'GC6 Integrated'};
 % strains = {'N2 Agar Plate', 'GCaMP6 Agar Plate', 'GCaMP6 Whole-Brain'};

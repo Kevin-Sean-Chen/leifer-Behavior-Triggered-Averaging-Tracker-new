@@ -1,3 +1,4 @@
+% not used in paper
 tracksByVoltage = struct('voltage', {0}, 'reversalCount', {0}, 'totalCount', {0});
 
 for track = 1:length(allTracks)

@@ -1,3 +1,5 @@
+%not used in paper
+
 parameters = load_parameters();
 
 fastWavelet_morlet_convolution_parallel([],parameters.minF,parameters.omega0,1/14);

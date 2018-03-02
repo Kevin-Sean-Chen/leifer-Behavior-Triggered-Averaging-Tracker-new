@@ -1,5 +1,5 @@
 % analyzes a group of experiments and saves the properties
-% they will be saved inside the first folder
+% they will be saved inside the first folder; not used in paper
 %function Experiments = CreateExperimentGroup()
     %clear all;
     fps = 14;

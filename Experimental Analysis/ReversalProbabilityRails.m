@@ -1,3 +1,5 @@
+% not used in paper
+
 %folder_name = uigetdir
 cd(folder_name) %open the directory of image sequence
 allFiles = dir(); %get all the tif files

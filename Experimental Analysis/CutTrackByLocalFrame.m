@@ -1,5 +1,7 @@
 function [ currentTrack ] = CutTrackByLocalFrame(currentTrack, startFrame, endFrame)
-%Takes a list of tracks and filters them based on start and end frames.
+% Takes a list of tracks and filters them based on start and end frames.
+% the start and end frames are defined in relation to the first frame of
+% the track
 %   Detailed explanation goes here
 
     my_frames = 1:length(currentTrack.Frames);

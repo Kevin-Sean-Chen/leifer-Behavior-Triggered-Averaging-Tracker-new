@@ -1,6 +1,5 @@
 function Track = initial_sweep(image_stack, Track, parameters, plot_index)
-    % given a sequence of worm images, this function finds the centerlines,
-    % before smoothing
+    % given a sequence of worm images, this function finds the centerlines
     
     %% STEP 1: define parameters %%
 
