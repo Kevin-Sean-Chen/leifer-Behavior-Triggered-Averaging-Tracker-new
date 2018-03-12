@@ -575,6 +575,6 @@ if BTA_playback
     set(gca,'YTick',linspace(limits(1),limits(2),3))
     xlabel('') % x-axis label
     ylabel('Transition Rate (transitions/min)') % y-axis label
-    title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' (n = ', num2str(track_n), ')']);
+%    title([behavior_names{stimulus_to_behavior_key(stimulus_index)}, ' (n = ', num2str(track_n), ')']);
 %     legend(prediction_plot)
 end

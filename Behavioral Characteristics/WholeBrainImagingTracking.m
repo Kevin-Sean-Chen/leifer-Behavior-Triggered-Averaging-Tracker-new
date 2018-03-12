@@ -44,7 +44,6 @@
 % Prefs.PauseSpeedThresh = N(20);
 % Prefs.MinPauseDuration = N(21);    
 % % Set Matlab's current directory
-% Prefs.DefaultPath = T{16,2};
 
 
 TN = 4;

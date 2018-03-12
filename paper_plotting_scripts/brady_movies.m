@@ -1,5 +1,7 @@
 %% make all 9 movies into the same video. Requires user to select where the 9 movies are coming from
 
+number_of_loops = 20;
+
 fps = 14;
 folder_name = uigetdir();
 load('reference_embedding.mat');
@@ -9,25 +11,34 @@ video_readers = cell(1, number_of_behaviors);
 outputVideo = VideoWriter(fullfile([folder_name, filesep, 'brady']),'Motion JPEG AVI');
 outputVideo.FrameRate = fps;
 open(outputVideo)
-
-for reader_index = 1:number_of_behaviors
-    video_readers{reader_index} = VideoReader(fullfile([folder_name, filesep, num2str(reader_index), '.mp4']));
-end
-
 figure('pos',[10 10 900 900]);
 
-while hasFrame(video_readers{1})
-    
-    for behavior_index = 1:number_of_behaviors
-        subplot(3,3,behavior_index);
-        image = readFrame(video_readers{behavior_index});
-        imshow(image,'InitialMagnification', 300, 'Border','tight');
-        text(size(image,1)/2,size(image,2)/2, behavior_names{behavior_index}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'color', behavior_colors(behavior_index,:));
+for loop_index = 1:number_of_loops
+    for reader_index = 1:number_of_behaviors
+        video_readers{reader_index} = VideoReader(fullfile([folder_name, filesep, num2str(reader_index), '.mp4']));
     end
-    %pause
-    writeVideo(outputVideo, getframe(gcf));
+    relative_frame_index = -1.5*fps;
+    while hasFrame(video_readers{1})
+        time_text = [datestr(abs(relative_frame_index)/24/3600/fps,'SS.FFF'), ' s'];
+        if relative_frame_index < 0
+            time_text = ['-', time_text];
+        else
+            time_text = [' ', time_text];
+        end
+        for behavior_index = 1:number_of_behaviors
+            subplot_tight(3,3,behavior_index);
+            image = readFrame(video_readers{behavior_index});
+            imshow(image,'InitialMagnification', 300, 'Border','tight');
+            text(size(image,1)/2,size(image,2)/2, behavior_names{behavior_index}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'color', behavior_colors(behavior_index,:), 'fontsize', 20);
+            if behavior_index == 8
+                text(size(image,1)/2,size(image,2)*.9,time_text,'color','red','fontsize',20,'VerticalAlignment','top','HorizontalAlignment','center')
+            end
+        end
+        %pause
+        writeVideo(outputVideo, getframe(gcf));
+        relative_frame_index = relative_frame_index + 1;
+    end
 end
-
 close(outputVideo) 
 %% make a side by side plot of a worm freely behaving, and its corresponding 
 
