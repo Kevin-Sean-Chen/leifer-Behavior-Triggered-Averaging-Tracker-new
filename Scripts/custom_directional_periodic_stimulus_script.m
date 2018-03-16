@@ -1,5 +1,5 @@
 auto_stimulus_period = true; %stimulus_period is found by autocorrelation if this is true
-BTA_playback = true;
+BTA_playback = false;
 stimulus_period = 60*14-1; 
 starting_shift = 0;
 relevant_track_fields = {'BehavioralTransition','Frames'};
@@ -10,7 +10,7 @@ load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_
 LNPStats = LNPStats_directional_ret;
 
 %select folders
-%folders = getfoldersGUI();
+folders = getfoldersGUI();
 
 fps = 14;
 
@@ -530,10 +530,13 @@ for stimulus_index = 1:number_of_stimulus_templates
     observed_peak_transition_rate_sem = std(transition_rate_for_frame(:,exp_start:exp_end),[],2) ./ sqrt(peak_window);
     %compute the significance
     transition_rate_change_significance = false(1,number_of_edges);
+    transition_rate_change_significance_all_behaviors_pvalue = ones(1, number_of_edges);
+
     for edge_index = 1:number_of_edges
         h = ttest(transition_rate_for_frame(edge_index,exp_start:exp_end)-observed_baseline_transition_rate(edge_index));
         if ~isnan(h)
-            transition_rate_change_significance(edge_index) = ttest(transition_rate_for_frame(edge_index,exp_start:exp_end)-observed_baseline_transition_rate(edge_index));
+            %if there is even data to test
+            [transition_rate_change_significance(edge_index),transition_rate_change_significance_all_behaviors_pvalue(edge_index)] = ttest(transition_rate_for_frame(edge_index,exp_start:exp_end)-observed_baseline_transition_rate(edge_index));
         end
     end
     %compute moving average prediction rate (not used)
@@ -604,7 +607,7 @@ for stimulus_index = 1:number_of_stimulus_templates
         behavior_from = selected_transitions{selected_transition_index}(1);
         behavior_to = selected_transitions{selected_transition_index}(2);
         %get the counts for each bar
-        X_tick_labels = [X_tick_labels, {[behavior_names{behavior_from}, ' to ', behavior_names{behavior_to}, ' (n=', num2str(sum(transition_counts_for_frame(selected_transition_index,exp_start:exp_end))),')']}];
+        X_tick_labels = [X_tick_labels, {[behavior_names{behavior_from}, ' to ', behavior_names{behavior_to}, ' (n=', num2str(sum(transition_counts_for_frame(selected_transition_index,exp_start:exp_end))),', p=', transition_rate_change_significance_all_behaviors_pvalue(selected_transition_index),')']}];
     end
     set(gca, 'XTickLabels', X_tick_labels)
     axis([0, length(selected_transitions)+1, -0.5, 0.5])

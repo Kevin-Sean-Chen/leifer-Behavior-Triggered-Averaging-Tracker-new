@@ -10,7 +10,7 @@ load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_
 LNPStats = LNPStats_nondirectional_ret;
 
 %select folders
-%folders = getfoldersGUI();
+folders = getfoldersGUI();
 
 fps = 14;
 
@@ -510,6 +510,7 @@ if BTA_playback
     transition_rate_changes = zeros(1,number_of_stimulus_templates);
     transition_rate_propagated_errors = zeros(1,number_of_stimulus_templates);
     transition_rate_change_significance = false(1,number_of_stimulus_templates);
+    transition_rate_change_significance_pvalue = zeros(1,number_of_stimulus_templates);
     predicted_rate_changes = zeros(1,number_of_stimulus_templates);
     my_colors = behavior_colors;
     
@@ -537,8 +538,9 @@ if BTA_playback
         observed_peak_transition_rate_sem = std(transition_rate_for_frame(:,exp_start:exp_end),[],2) ./ sqrt(peak_window);
         %compute the significance
         transition_rate_change_significance_all_behaviors = false(1,number_of_behaviors);
+        transition_rate_change_significance_all_behaviors_pvalue = ones(1, number_of_behaviors);
         for behavior_index = 1:number_of_behaviors
-            transition_rate_change_significance_all_behaviors(behavior_index) = ttest(transition_rate_for_frame(behavior_index,exp_start:exp_end)-observed_baseline_transition_rate(behavior_index));
+            [transition_rate_change_significance_all_behaviors(behavior_index),transition_rate_change_significance_all_behaviors_pvalue(behavior_index)] = ttest(transition_rate_for_frame(behavior_index,exp_start:exp_end)-observed_baseline_transition_rate(behavior_index));
         end
         %compute moving average prediction rate (not used)
         predicted_moving_average_transition_rate = movingmean(predicted_behavior_transitions_for_stim{stimulus_index}, peak_window, 2);
@@ -547,6 +549,7 @@ if BTA_playback
         predicted_rate_changes(stimulus_index) = predicted_behavior_transitions_for_stim{stimulus_index}(stimulus_to_behavior_key(stimulus_index),peak_predicted_rate_location) - predicted_baseline_transition_rate(stimulus_to_behavior_key(stimulus_index));
         transition_rate_propagated_errors(stimulus_index) = observed_peak_transition_rate_sem(stimulus_to_behavior_key(stimulus_index));
         transition_rate_change_significance(stimulus_index) = transition_rate_change_significance_all_behaviors(stimulus_to_behavior_key(stimulus_index));
+        transition_rate_change_significance_pvalue(stimulus_index) = transition_rate_change_significance_all_behaviors_pvalue(stimulus_to_behavior_key(stimulus_index));
     end
     
     figure('pos',[0,0,600,400])
@@ -563,6 +566,8 @@ if BTA_playback
              text(stimulus_index-0.2, transition_rate_changes(stimulus_index) + transition_rate_propagated_errors(stimulus_index) + 0.01, '*', 'Fontsize', 20, 'HorizontalAlignment','center')
 %             sigstar({[stimulus_index-0.2, stimulus_index+0.2]},0.05)
         end
+        % print p values
+        text(stimulus_index-0.2, transition_rate_changes(stimulus_index) + transition_rate_propagated_errors(stimulus_index) + 0.05, ['p=', num2str(round(transition_rate_change_significance_pvalue(stimulus_index),2,'significant')) ], 'Fontsize', 14, 'HorizontalAlignment','center')
     end
     
     ax = gca;

@@ -6,6 +6,9 @@ function success = plot_image_directory(folder_name)
     %% STEP 1: initialize %%
     number_of_images_for_median_projection = 20;
     parameters = load_parameters(folder_name); %load experiment parameters
+    
+    %parameters.PlottingFrameRate = 14;
+    
     mask = parameters.Mask;
     
     if parameters.IndividualVideoPlottingFrameRate > 0
@@ -46,6 +49,7 @@ function success = plot_image_directory(folder_name)
     % Load Voltages
     fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+    LEDPowers = LEDVoltages ./ 5 .* parameters.avgPower500;
     fclose(fid);
     
     %% STEP 4: Get the median z projection %%
@@ -102,7 +106,7 @@ function success = plot_image_directory(folder_name)
             Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
         end
 
-        PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDVoltages(frame_index));
+        PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDPowers(frame_index));
         FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
         set(WTFigH, 'Name', FigureName);
         writeVideo(outputVideo, getframe(WTFigH));
