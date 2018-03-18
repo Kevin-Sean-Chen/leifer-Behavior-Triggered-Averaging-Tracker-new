@@ -1,12 +1,17 @@
-load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_reordered_20171030.mat')
-LNPStats = LNPStats_nondirectional_ret;
+% load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_reordered_20171030.mat')
+% LNPStats = LNPStats_nondirectional_ret;
+
+load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_noret_20180316.mat')
+LNPStats = LNPStats_nondirectional;
+meanLEDPower = stdLEDPower_nondirectional;
+stdLEDPower=stdLEDPower_nondirectional;
 load('reference_embedding.mat')
 number_of_behaviors = max(L(:))-1;
 
 
 %% hiearchical clustering of kernels
 %calculate distance information for kernels
-%kernels = vertcat(LNPStats.linear_kernel);
+% kernels = vertcat(LNPStats.linear_kernel);
 % %normalize each stimulus so that we get good coverage
 insignificant_indecies = [];
 significant_linear_kernels = [];
@@ -49,6 +54,6 @@ title('Behavioral Map Euclidean Distance for Watershed Centroids')
 set(gca,'YTickLabel',[]);
 
 %% supplement with all non-directional kernels and nonlinearities
-PlotBehavioralMappingExperimentGroup(LNPStats_nondirectional_ret,meanLEDPower_nondirectional_ret,stdLEDPower_nondirectional_ret, L, density, xx)
+PlotBehavioralMappingExperimentGroup(LNPStats,meanLEDPower,stdLEDPower_nondirectional, L, density, xx)
 
 %% 

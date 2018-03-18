@@ -12,7 +12,7 @@ folders = getfoldersGUI();
 save([SavePathName, filesep, SaveFileName], 'behavior_names', 'density', 'L', 'Tracks', 'xx', '-v7.3'); 
 
 %% load tracks from a remote directory and copy them into a local directory
-relevant_track_fields = {'BehavioralTransition','Embeddings','Frames','LEDPower','LEDVoltages','LEDVoltage2Power','Path','Centerlines','Speed','Velocity','Time','ProjectedEigenValues','Spectra'};    
+relevant_track_fields = {'BehavioralTransition','Embeddings','Frames','LEDPower','LEDVoltages','LEDVoltage2Power','Path','Centerlines','Speed','Velocity','ProjectedEigenValues','Spectra'};    
 
 source_folders = getfoldersGUI();
 destination_folder = uigetdir('', 'Select Destination Folder');
@@ -36,17 +36,21 @@ for folder_index = 1:length(source_folders)
     experiment_folder = source_path{length(source_path)};
     date_folder = source_path{length(source_path)-1};
     destination_path = [destination_folder, filesep, date_folder, filesep, experiment_folder];
+%     try
+%         rmdir([destination_path, filesep, 'individual_worm_imgs'], 's') %remove the indiviudal files folder
+%     catch
+%     end
+%     try
+%         delete([destination_path, filesep, 'status.csv']);
+%     catch
+%     end
+%     try
+%         delete([destination_path, filesep, 'processed.avi']);
+%     catch
+%     end
     try
-        rmdir([destination_path, filesep, 'individual_worm_imgs'], 's') %remove the indiviudal files folder
+        delete([destination_path, filesep, 'analysis', filesep, 'Time.mat']);
     catch
-    end
-    try
-        delete([destination_path, filesep, 'status.csv']);
-    catch
-    end
-    try
-        delete([destination_path, filesep, 'processed.avi']);
-    catch
-    end
+    end    
     folder_index
 end

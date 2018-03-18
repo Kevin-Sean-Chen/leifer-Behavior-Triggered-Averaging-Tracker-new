@@ -1,5 +1,5 @@
 auto_stimulus_period = true; %stimulus_period is found by autocorrelation if this is true
-BTA_playback = false;
+BTA_playback = true;
 stimulus_period = 60*14-1; 
 starting_shift = 0;
 relevant_track_fields = {'BehavioralTransition','Frames'};
@@ -596,6 +596,7 @@ for stimulus_index = 1:number_of_stimulus_templates
                 text(selected_transition_index-0.2, observed_baseline_substrated_mean_peak_rate(transition_index) - observed_peak_transition_rate_sem(transition_index) - 0.06, '*', 'Fontsize', 20, 'HorizontalAlignment','center', 'VerticalAlignment','middle')
             end   
         end
+        text(selected_transition_index-0.2, observed_baseline_substrated_mean_peak_rate(transition_index) - observed_peak_transition_rate_sem(transition_index) - 0.3, ['p=', num2str(round(transition_rate_change_significance_all_behaviors_pvalue(transition_index),2,'significant'))], 'Fontsize', 20, 'HorizontalAlignment','center', 'VerticalAlignment','middle')
     end
     
     ax = gca;
@@ -607,7 +608,7 @@ for stimulus_index = 1:number_of_stimulus_templates
         behavior_from = selected_transitions{selected_transition_index}(1);
         behavior_to = selected_transitions{selected_transition_index}(2);
         %get the counts for each bar
-        X_tick_labels = [X_tick_labels, {[behavior_names{behavior_from}, ' to ', behavior_names{behavior_to}, ' (n=', num2str(sum(transition_counts_for_frame(selected_transition_index,exp_start:exp_end))),', p=', transition_rate_change_significance_all_behaviors_pvalue(selected_transition_index),')']}];
+        X_tick_labels = [X_tick_labels, {[behavior_names{behavior_from}, ' to ', behavior_names{behavior_to}, ' (n=', num2str(sum(transition_counts_for_frame(selected_transition_index,exp_start:exp_end))),')']}];
     end
     set(gca, 'XTickLabels', X_tick_labels)
     axis([0, length(selected_transitions)+1, -0.5, 0.5])

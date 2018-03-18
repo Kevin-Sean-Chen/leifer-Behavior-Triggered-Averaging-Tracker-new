@@ -1,8 +1,11 @@
 load('reference_embedding.mat')
-load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_reordered_20171030.mat')
-
+%load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_reordered_20171030.mat')
 LNPStats = LNPStats_directional_ret;
 meanLEDPower = meanLEDPower_directional_ret;
+load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_noret_20180316.mat')
+LNPStats = LNPStats_directional;
+meanLEDPower = meanLEDPower_directional;
+
 fps = 14;
 number_of_behaviors = max(L(:))-1;
 BTA_seconds_before_and_after = 10;
