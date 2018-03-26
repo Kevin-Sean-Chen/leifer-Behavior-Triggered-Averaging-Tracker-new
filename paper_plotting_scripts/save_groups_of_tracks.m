@@ -49,7 +49,7 @@ for folder_index = 1:length(source_folders)
 %     catch
 %     end
     try
-        delete([destination_path, filesep, 'analysis', filesep, 'Time.mat']);
+        delete([destination_path, filesep, 'analysis', filesep, 'Spectra.mat']);
     catch
     end    
     folder_index

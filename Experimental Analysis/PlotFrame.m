@@ -57,5 +57,5 @@ else
     
 end
 
-
+axis tight
 hold off;    % So not to see movie replay
