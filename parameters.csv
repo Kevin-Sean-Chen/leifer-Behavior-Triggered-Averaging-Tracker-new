@@ -1,6 +1,6 @@
 Parameter,Description,Default,GEN-69VSW12,GEN-B0Q5F42,Lamp-PC,GEN-69VSW12;chrimson,GEN-B0Q5F42;chrimson,GEN-69VSW12;ChR2,GEN-B0Q5F42;ChR2,GEN-69VSW12;lowres,flies,platetap,microfluidics,Kevin,Ali
-avgPower500,Average Power in FOV at 5V (uW/mm^2),44.1256,38.1612,40.7146,19.5815,44.1256,49.5996,38.1612,40.7146,19.5815,,,,/tigress/LEIFER/Kevin/,/tigress/LEIFER/Ali/data/unanalyzed/
-RemotePath,Location of the Data Folder on Cluster,/tigress/LEIFER/Mochi/Data/,,,,,,,,,,,,,
+avgPower500,Average Power in FOV at 5V (uW/mm^2),44.1256,38.1612,40.7146,19.5815,44.1256,49.5996,38.1612,40.7146,19.5815,,,,,
+RemotePath,Location of the Data Folder on Cluster,/tigress/LEIFER/Mochi/Data/,,,,,,,,,,,,/tigress/LEIFER/Kevin/,/tigress/LEIFER/Ali/data/unanalyzed/
 LocalPath,Where on the local machine to save data,F:\Data\,F:\Data\,F:\Data\,E:\Data\,,,,,,,,,,
 power500,Matlab file containing stimulus power distribution at 5V,box1power500_red.mat,box1power500_red.mat,box2power500_red.mat,,box1power500_red.mat,box2power500_red.mat,box1power500_blue.mat,box2power500_blue.mat,,,,,,
 MinWormArea,Min size of single worm (pixels),100,,,37,,,,,25,1000,,25,,
