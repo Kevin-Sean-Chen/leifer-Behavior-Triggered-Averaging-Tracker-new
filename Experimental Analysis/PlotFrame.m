@@ -2,7 +2,7 @@ function PlotFrame(FigH, Frame, Tracks, frame_index, LEDPower)
 
 figure(FigH)
 %clf;
-imshow(Frame);
+imshow(Frame,'InitialMagnification',300);
 hold on;
 fps = 14;
 if nargin < 4
