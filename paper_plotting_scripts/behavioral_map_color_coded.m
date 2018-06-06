@@ -13,10 +13,16 @@ watershed_centroids = round(watershed_centroids);
 
 %special case
 watershed_centroids(2,2) = watershed_centroids(2,2) + 15;
+watershed_centroids(2,1) = watershed_centroids(2,1) - 10;
+watershed_centroids(7,1) = watershed_centroids(7,1) + 5;
 
 %modify color map
 %my_colormap = parula;
 my_colormap = [1 1 1; behavior_colors; 1 1 1];
+
+text_colors = [1 1 1; 0 0 0; 0 0 0; 1 1 1; 1 1 1; 1 1 1; 0 0 0; 1 1 1; 1 1 1];
+behavior_names{7} = ['Slow' char(10) 'Reverse'];
+behavior_names{8} = ['Fast' char(10) 'Reverse'];
 
 figure
 hold on
@@ -28,8 +34,8 @@ colormap(my_colormap)
 for behavior_index = 1:size(watershed_centroids,1)-1
     text(xx(watershed_centroids(behavior_index,1)), ...
         xx(watershed_centroids(behavior_index,2)), ...
-        behavior_names{behavior_index}, 'color', 'k', ...
-        'fontsize', 5, 'horizontalalignment', 'center', ...
+        behavior_names{behavior_index}, 'color', text_colors(behavior_index,:) , ...
+        'fontsize', 10, 'horizontalalignment', 'center', ...
         'verticalalignment', 'middle');
 end
 

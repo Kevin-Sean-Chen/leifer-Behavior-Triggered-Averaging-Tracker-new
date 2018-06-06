@@ -147,7 +147,6 @@ else
     set(hErrorbar, 'marker', 'none')
 end
 
-%hold off
 
 switch nargout
     case 1

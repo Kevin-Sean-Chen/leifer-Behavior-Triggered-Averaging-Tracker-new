@@ -6,8 +6,8 @@ function success = plot_image_directory(folder_name)
     %% STEP 1: initialize %%
     number_of_images_for_median_projection = 20;
     parameters = load_parameters(folder_name); %load experiment parameters
-    
-    %parameters.PlottingFrameRate = 14;
+    inset_magification = 10;
+    parameters.PlottingFrameRate = 14;
     
     mask = parameters.Mask;
     
@@ -70,7 +70,7 @@ function success = plot_image_directory(folder_name)
     if isempty(WTFigH)
         WTFigH = figure('Name', 'Tracking Results', ...
             'NumberTitle', 'off', ...
-            'Tag', 'WTFIG');
+            'Tag', 'WTFIG','units','normalized','outerposition',[0 0 1 1]);
     else
         figure(WTFigH);
     end
@@ -78,10 +78,12 @@ function success = plot_image_directory(folder_name)
     frames_per_plot_time = round(parameters.SampleRate/parameters.PlottingFrameRate);
     
     %save subtracted avi
-%     outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'MPEG-4');
-    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'Motion JPEG AVI');
+    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'MPEG-4');
+%    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'Motion JPEG AVI');
     outputVideo.FrameRate = parameters.PlottingFrameRate;
     open(outputVideo)
+    
+    current_track = 0;
     
     for frame_index = 1:frames_per_plot_time:length(image_files) - 1
         % Get Frame
@@ -107,8 +109,27 @@ function success = plot_image_directory(folder_name)
             Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
         end
 
-        PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDPowers(frame_index));
-%         PlotFrame(WTFigH, subtractedImage, Tracks, frame_index, LEDPowers(frame_index));
+%         active_tracks = PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDPowers(frame_index));
+      active_tracks =  PlotFrame(WTFigH, subtractedImage, Tracks, frame_index, LEDPowers(frame_index));
+        if ~isempty(active_tracks)
+            %draw inset video
+            figure(WTFigH);
+            axis manual;
+            hold on;
+            % get the smallest active track
+            if current_track == 0 || frame_index > max(Tracks(current_track).Frames)
+                current_track = min(active_tracks);
+                loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(current_track), '.mat']);
+                worm_images = loaded_file.worm_images;
+            end
+            in_track_index = frame_index-Tracks(current_track).Frames(1)+1;
+            I = squeeze(worm_images(:,:,in_track_index));
+            I_resize = imresize(I, size(I).*inset_magification);
+            imshow(imadjust(I_resize));
+            rectangle('Position',[0,0,size(I_resize)],'EdgeColor', 'g', 'LineWidth',5,'LineStyle','-')
+            rectangle('Position',[Tracks(current_track).Path(in_track_index,1)-(size(I,1)/2),Tracks(current_track).Path(in_track_index,2)-(size(I,2)/2),size(I)],'EdgeColor', 'g', 'LineWidth',2,'LineStyle','-')
+            hold off
+        end
         FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
         set(WTFigH, 'Name', FigureName);
         writeVideo(outputVideo, getframe(WTFigH));

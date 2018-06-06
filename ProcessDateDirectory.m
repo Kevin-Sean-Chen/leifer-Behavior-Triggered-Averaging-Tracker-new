@@ -3,7 +3,7 @@
 % analysis options
 tracking = 0;
 finding_centerline = 0;
-resolving_problems = 0;
+resolving_problems = 1;
 plotting = 1;
 calculate_behavior = 0;
 parameters = load_parameters(); %load default parameters

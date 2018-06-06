@@ -63,18 +63,26 @@ watershed_centroids = round(watershed_centroids);
 
 %special case
 watershed_centroids(2,2) = watershed_centroids(2,2) + 15;
+watershed_centroids(2,1) = watershed_centroids(2,1) - 10;
+watershed_centroids(7,1) = watershed_centroids(7,1) + 5;
 
 %modify color map
 %my_colormap = parula;
 my_colormap = [1 1 1; behavior_colors; 1 1 1];
 
-for track_index = 1:length(allTracks);
+text_colors = [1 1 1; 0 0 0; 0 0 0; 1 1 1; 1 1 1; 1 1 1; 0 0 0; 1 1 1; 1 1 1];
+behavior_names{7} = ['Slow' char(10) 'Reverse'];
+behavior_names{8} = ['Fast' char(10) 'Reverse'];
+
+%for track_index = 1:length(allTracks);
+
+for track_index = 41:46;
     plot_embedding = allTracks(track_index).Embeddings;
     image_file = fullfile([folders{folder_indecies(track_index)},filesep,'individual_worm_imgs',filesep,'worm_',num2str(track_indecies(track_index)),'.mat']);
     save_file = fullfile([folders{folder_indecies(track_index)},filesep,'individual_worm_imgs',filesep,'behaviormap_', num2str(track_indecies(track_index))]);
     load(image_file);
 
-    behavior_figure = figure('Position', [500, 500, 500, 250]);
+    behavior_figure = figure('Position', [500, 500, 1000, 500]);
     outputVideo = VideoWriter(save_file,'MPEG-4');
     outputVideo.FrameRate = 14;
     open(outputVideo)
@@ -98,11 +106,11 @@ for track_index = 1:length(allTracks);
         for behavior_index = 1:size(watershed_centroids,1)-1
             text(xx(watershed_centroids(behavior_index,1)), ...
                 xx(watershed_centroids(behavior_index,2)), ...
-                behavior_names{behavior_index}, 'color', 'k', ...
-                'fontsize', 5, 'horizontalalignment', 'center', ...
+                behavior_names{behavior_index}, 'color', text_colors(behavior_index,:) , ...
+                'fontsize', 14, 'horizontalalignment', 'center', ...
                 'verticalalignment', 'middle');
         end
-        plot(plot_embedding(worm_frame_index,1), plot_embedding(worm_frame_index,2), 'oy', 'MarkerSize', 15, 'LineWidth', 3)
+        plot(plot_embedding(worm_frame_index,1), plot_embedding(worm_frame_index,2), 'oy', 'MarkerSize', 30, 'LineWidth', 3)
 
         hold off
 
