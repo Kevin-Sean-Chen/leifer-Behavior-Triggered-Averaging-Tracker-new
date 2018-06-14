@@ -6,7 +6,7 @@ load('reference_embedding.mat')
 relevant_track_fields = {'BehavioralTransition','Frames'};
 
 %select folders
-folders_platetap = getfoldersGUI();
+%folders_platetap = getfoldersGUI();
 
 %load stimuli.txt from the first experiment
 num_stimuli = 1;
