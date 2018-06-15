@@ -7,7 +7,7 @@ function success = plot_image_directory(folder_name)
     number_of_images_for_median_projection = 20;
     parameters = load_parameters(folder_name); %load experiment parameters
     inset_magification = 10;
-    parameters.PlottingFrameRate = 14;
+    % parameters.PlottingFrameRate = 14;
     
     mask = parameters.Mask;
     
@@ -78,8 +78,8 @@ function success = plot_image_directory(folder_name)
     frames_per_plot_time = round(parameters.SampleRate/parameters.PlottingFrameRate);
     
     %save subtracted avi
-    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'MPEG-4');
-%    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'Motion JPEG AVI');
+%    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'MPEG-4');
+    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'Motion JPEG AVI');
     outputVideo.FrameRate = parameters.PlottingFrameRate;
     open(outputVideo)
     
