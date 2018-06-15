@@ -52,7 +52,7 @@ else
         plot_y = ceil(frame_h/10);
         time_text = ['t=', datestr(abs(frame_index)/24/3600/fps,'MM:SS.FFF')];
 
-        plot(plot_x, plot_y, 'o', 'MarkerSize', 50, 'MarkerEdgeColor','none', 'MarkerFaceColor',[max(LEDPower/80,0) 0 0])
+        plot(plot_x, plot_y, 'o', 'MarkerSize', 50, 'MarkerEdgeColor','none', 'MarkerFaceColor',[min(max(LEDPower/80,0),1) 0 0])
         text(plot_x+150,plot_y+130, [num2str(round(LEDPower)), ' uW mm^{-2}'], 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', 'color', [1 0 0], 'fontsize', 20);
         text(plot_x+150,plot_y+220, time_text, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', 'color', [1 1 1], 'fontsize', 20);
         
