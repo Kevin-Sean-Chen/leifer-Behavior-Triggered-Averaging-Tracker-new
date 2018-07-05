@@ -3,7 +3,7 @@ function active_track_indecies = PlotFrame(FigH, Frame, Tracks, frame_index, LED
 figure(FigH)
 clf;
 %imshow(Frame,'InitialMagnification',300);
-imshow(Frame, 'Border','tight');
+imshow(Frame,'InitialMagnification',100, 'Border','tight');
 hold on;
 fps = 14;
 active_track_indecies = [];
@@ -18,8 +18,8 @@ if nargin < 4
     for i = 1:length(ActiveTracks)
         figure(FigH)
         plot(Tracks(ActiveTracks(i)).Path(:,1), Tracks(ActiveTracks(i)).Path(:,2), 'r');
-        plot(Tracks(ActiveTracks(i)).LastCoordinates(1), Tracks(ActiveTracks(i)).LastCoordinates(2), 'wo');
-        text(Tracks(ActiveTracks(i)).LastCoordinates(1)+10, Tracks(ActiveTracks(i)).LastCoordinates(2)+10, num2str(ActiveTracks(i)), 'color', 'g')
+        %plot(Tracks(ActiveTracks(i)).LastCoordinates(1), Tracks(ActiveTracks(i)).LastCoordinates(2), 'wo');
+        %(Tracks(ActiveTracks(i)).LastCoordinates(1)+10, Tracks(ActiveTracks(i)).LastCoordinates(2)+10, num2str(ActiveTracks(i)), 'color', 'g')
     end
 else
     %plot after analysis
@@ -37,8 +37,8 @@ else
                 %active track found
                 in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
                 plot(Tracks(track_index).Path(1:in_track_index,1), Tracks(track_index).Path(1:in_track_index,2), 'Color', myColors(currentActiveTrack,:));
-                plot(Tracks(track_index).Path(in_track_index,1), Tracks(track_index).Path(in_track_index,2),'x' , 'Color', myColors(currentActiveTrack,:));
-                text(Tracks(track_index).Path(in_track_index,1)+10, Tracks(track_index).Path(in_track_index,2)+10, num2str(track_index), 'Color', myColors(currentActiveTrack,:));
+%                plot(Tracks(track_index).Path(in_track_index,1), Tracks(track_index).Path(in_track_index,2),'x' , 'Color', myColors(currentActiveTrack,:));
+%                 text(Tracks(track_index).Path(in_track_index,1)+10, Tracks(track_index).Path(in_track_index,2)+10, num2str(track_index), 'Color', myColors(currentActiveTrack,:));
                 currentActiveTrack = currentActiveTrack + 1;
                 active_track_indecies = [active_track_indecies, track_index];
             end

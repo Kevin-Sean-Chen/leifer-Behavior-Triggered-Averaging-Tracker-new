@@ -32,8 +32,10 @@ function [largest_percent_change, baseline_mean, exp_max, exp_min, baseline_std,
         else
             largest_percent_change(behavior_index) = -min_change(behavior_index);
         end
+        [~,p_temp,~,~] = ttest2(baseline_data(behavior_index,:), exp_data(behavior_index,:));
+        p(behavior_index) = p_temp;
     end
-    [~,p,~,~] = ttest2(baseline_data, exp_data);
+    
 
 
 end

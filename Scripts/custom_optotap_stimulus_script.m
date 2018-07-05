@@ -162,8 +162,8 @@ x = stimulus_intensities;
 y = behavior_max';
 
 figure('Position',[100,100,800,600])
-hold on
-rectangle('Position',[0,0,50,0.6],'FaceColor',[1 0.5 0.5])
+% hold on
+% rectangle('Position',[0,0,50,0.6],'FaceColor',[1 0.5 0.5])
 plot(x, y, 'bo-', 'LineWidth',2,'Markersize',10)
 
 for stimulus_index = 1:length(stimulus_intensities)
@@ -173,7 +173,7 @@ end
 
 ax = gca;
 ax.XTick = stimulus_intensities;
-ax.YTick = [0 0.3 0.6];
+% ax.YTick = [0 0.3 0.6];
 ax.FontSize = 20;
 
 xlabel('Stimulus Intensity (uW/mm2)') % x-axis label

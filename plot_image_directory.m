@@ -70,7 +70,7 @@ function success = plot_image_directory(folder_name)
     if isempty(WTFigH)
         WTFigH = figure('Name', 'Tracking Results', ...
             'NumberTitle', 'off', ...
-            'Tag', 'WTFIG','units','normalized','outerposition',[0 0 1 1]);
+            'Tag', 'WTFIG','units','normalized','outerposition',[0 0 2 2]);
     else
         figure(WTFigH);
     end
@@ -111,25 +111,25 @@ function success = plot_image_directory(folder_name)
 
 %         active_tracks = PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDPowers(frame_index));
       active_tracks =  PlotFrame(WTFigH, subtractedImage, Tracks, frame_index, LEDPowers(frame_index));
-        if ~isempty(active_tracks)
-            %draw inset video
-            figure(WTFigH);
-            axis manual;
-            hold on;
-            % get the smallest active track
-            if current_track == 0 || frame_index > max(Tracks(current_track).Frames)
-                current_track = min(active_tracks);
-                loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(current_track), '.mat']);
-                worm_images = loaded_file.worm_images;
-            end
-            in_track_index = frame_index-Tracks(current_track).Frames(1)+1;
-            I = squeeze(worm_images(:,:,in_track_index));
-            I_resize = imresize(I, size(I).*inset_magification);
-            imshow(imadjust(I_resize));
-            rectangle('Position',[0,0,size(I_resize)],'EdgeColor', 'g', 'LineWidth',5,'LineStyle','-')
-            rectangle('Position',[Tracks(current_track).Path(in_track_index,1)-(size(I,1)/2),Tracks(current_track).Path(in_track_index,2)-(size(I,2)/2),size(I)],'EdgeColor', 'g', 'LineWidth',2,'LineStyle','-')
-            hold off
-        end
+%         if ~isempty(active_tracks)
+%             %draw inset video
+%             figure(WTFigH);
+%             axis manual;
+%             hold on;
+%             % get the smallest active track
+%             if current_track == 0 || frame_index > max(Tracks(current_track).Frames)
+%                 current_track = min(active_tracks);
+%                 loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(current_track), '.mat']);
+%                 worm_images = loaded_file.worm_images;
+%             end
+%             in_track_index = frame_index-Tracks(current_track).Frames(1)+1;
+%             I = squeeze(worm_images(:,:,in_track_index));
+%             I_resize = imresize(I, size(I).*inset_magification);
+%             imshow(imadjust(I_resize));
+%             rectangle('Position',[0,0,size(I_resize)],'EdgeColor', 'g', 'LineWidth',5,'LineStyle','-')
+%             rectangle('Position',[Tracks(current_track).Path(in_track_index,1)-(size(I,1)/2),Tracks(current_track).Path(in_track_index,2)-(size(I,2)/2),size(I)],'EdgeColor', 'g', 'LineWidth',2,'LineStyle','-')
+%             hold off
+%         end
         FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
         set(WTFigH, 'Name', FigureName);
         writeVideo(outputVideo, getframe(WTFigH));

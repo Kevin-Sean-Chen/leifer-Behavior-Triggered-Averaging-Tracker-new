@@ -14,7 +14,7 @@ BTA_seconds_after = BTA_seconds_before_and_after;
 NumTicks = 3;
 folders_platetap = getfoldersGUI();
 folders_optotap = getfoldersGUI();
-rows_per_page = 3;
+rows_per_page = 9;
 
 
 %% plot the forward locomotion series
