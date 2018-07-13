@@ -169,6 +169,8 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
         h = true;
     end
    
+    
+    
 %     %% plot the differences
 %     %calculate the mean and std of the measured transition rates
 %     figure('Position', [0, 0, 200, 200]);

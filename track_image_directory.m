@@ -49,9 +49,13 @@ function success = track_image_directory(folder_name, analysis_mode)
     end
     
     % Load Voltages
-    fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
-    LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
-    fclose(fid);
+    if exist([folder_name, filesep, 'LEDVoltages.txt'], 'file') == 2
+        fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
+        LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+        fclose(fid);
+    else
+        LEDVoltages = zeros(1,length(image_files)-1);
+    end
     
     if length(image_files)-1 > length(LEDVoltages)
         %there are more frames than there are stimulus
