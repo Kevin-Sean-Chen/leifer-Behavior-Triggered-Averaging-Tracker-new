@@ -10,7 +10,7 @@ parameters = load_parameters(); %load default parameters
 
 
 %% STEP 1: Get folders
-%[folders, folder_count] = getfolders();
+[folders, folder_count] = getfolders();
 
 %% STEP 3: Track and save the individual worm images %%
 if tracking

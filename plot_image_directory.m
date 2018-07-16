@@ -57,7 +57,6 @@ function success = plot_image_directory(folder_name)
     end
     
     LEDPowers = LEDVoltages ./ 5 .* parameters.avgPower500;
-    fclose(fid);
     
     %% STEP 4: Get the median z projection %%
     medianProj = imread([folder_name, filesep, image_files(1).name]);
