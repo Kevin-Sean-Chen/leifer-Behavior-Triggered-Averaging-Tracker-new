@@ -46,9 +46,16 @@ function success = plot_image_directory(folder_name)
     if isempty(image_files)
         image_files = dir([folder_name, filesep, '*.tif']); 
     end
+    
     % Load Voltages
-    fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
-    LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+    if exist([folder_name, filesep, 'LEDVoltages.txt'], 'file') == 2
+        fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
+        LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+        fclose(fid);
+    else
+        LEDVoltages = zeros(1,length(image_files)-1);
+    end
+    
     LEDPowers = LEDVoltages ./ 5 .* parameters.avgPower500;
     fclose(fid);
     
