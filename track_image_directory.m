@@ -48,13 +48,22 @@ function success = track_image_directory(folder_name, analysis_mode)
         image_files = dir([folder_name, filesep, '*.tif']); 
     end
     
-    % Load Voltages
+    LEDVoltages = zeros(1,length(image_files)-1);
+    PWM = zeros(1,length(image_files)-1);
+    frequencies = zeros(1,length(image_files)-1);
+    % Load Voltages if it exists, otherwise, look for vibrations
     if exist([folder_name, filesep, 'LEDVoltages.txt'], 'file') == 2
         fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
         LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
-    else
-        LEDVoltages = zeros(1,length(image_files)-1);
+    elseif exist([folder_name, filesep, 'PWM.txt'], 'file') == 2
+        %vibrations
+        fid = fopen([folder_name, filesep, 'PWM.txt']);
+        PWM = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+        fclose(fid);
+        fid = fopen([folder_name, filesep, 'frequencies.txt']);
+        frequencies = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+        fclose(fid);        
     end
     
     if length(image_files)-1 > length(LEDVoltages)
@@ -314,6 +323,9 @@ function success = track_image_directory(folder_name, analysis_mode)
         Tracks(track_index).Runs = IdentifyRuns(Tracks(track_index), parameters);
         %Save the LED Voltages for this track
         Tracks(track_index).LEDVoltages = LEDVoltages(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
+        %Save the PWM duty cycles and frequencies too
+        Tracks(track_index).PWM = PWM(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
+        Tracks(track_index).frequencies = frequencies(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
     end
     
 %% STEP 8: Calculate LED Power %%
