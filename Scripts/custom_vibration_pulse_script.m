@@ -3,7 +3,7 @@ load('reference_embedding.mat')
 % relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
 relevant_track_fields = {'BehavioralTransition','Frames'};
 
-%select folders
+%select foldersta
 folders_optotap = getfoldersGUI();
 
 %load stimuli.txt from the first experiment
