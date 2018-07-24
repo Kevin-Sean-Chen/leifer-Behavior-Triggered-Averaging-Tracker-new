@@ -139,7 +139,7 @@ for behavior_index = 1:number_of_behaviors
     hold on
     for stimulus_index = 1:length(stimulus_intensities)
         track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
-        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',[num2str(stimulus_intensities(stimulus_index)), 'uW/mm2 (n = ', num2str(track_n),' tracks)']);
+        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',[num2str(stimulus_intensities(stimulus_index)), ' percent duty cycle (n = ', num2str(track_n),' tracks)']);
     end
     hold off
     xlabel('Time (s)') % x-axis label
@@ -174,5 +174,5 @@ ax.XTick = stimulus_intensities;
 % ax.YTick = [0 0.3 0.6];
 ax.FontSize = 20;
 
-xlabel('Stimulus Intensity (uW/mm2)') % x-axis label
+xlabel('Stimulus Intensity (percent duty cycle)') % x-axis label
 ylabel('Fast Reverse Behavioral Ratio') % y-axis label
