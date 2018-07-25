@@ -15,7 +15,7 @@ NumTicks = 3;
 folders_platetap = getfoldersGUI();
 folders_optotap = getfoldersGUI();
 rows_per_page = 3;
-boostrap_n = 100;
+bootstrap_n = 100;
 
 
 %% plot the forward locomotion series
@@ -134,8 +134,8 @@ for behavior_from = 1:number_of_behaviors
             stim_samples(1:optotap_transitions_counts(behavior_from,behavior_to)) = true;            
             control_samples = false(1,control_sample_count);
             control_samples(1:control_optotap_transitions_counts(behavior_from,behavior_to)) = true;
-            bootstrap_frac_inc = zeros(1,boostrap_n);
-            for bootstrap_index = 1:boostrap_n
+            bootstrap_frac_inc = zeros(1,bootstrap_n);
+            for bootstrap_index = 1:bootstrap_n
                 bootstrap_stim_sample = datasample(stim_samples,stim_sample_count);
                 bootstrap_control_sample = datasample(control_samples,stim_sample_count);
                 if any(bootstrap_control_sample)
@@ -270,8 +270,8 @@ for behavior_from = 1:number_of_behaviors
             stim_samples(1:optotap_transitions_counts(behavior_from,behavior_to)) = true;            
             control_samples = false(1,control_sample_count);
             control_samples(1:control_optotap_transitions_counts(behavior_from,behavior_to)) = true;
-            bootstrap_frac_inc = zeros(1,boostrap_n);
-            for bootstrap_index = 1:boostrap_n
+            bootstrap_frac_inc = zeros(1,bootstrap_n);
+            for bootstrap_index = 1:bootstrap_n
                 bootstrap_stim_sample = datasample(stim_samples,stim_sample_count);
                 bootstrap_control_sample = datasample(control_samples,stim_sample_count);
                 if any(bootstrap_control_sample)
