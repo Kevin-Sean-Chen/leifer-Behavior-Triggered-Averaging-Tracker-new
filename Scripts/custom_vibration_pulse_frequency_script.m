@@ -56,8 +56,10 @@ for folder_index = 1:length(folders_optotap)
             if current_frame <= length(PWM_dutycycles) && current_frame >= 1
                 %make sure the current frame is in range
                 tracks_on_critical_frame = FilterTracksByTime(current_tracks,current_frame, current_frame);
-                all_behavior_transitions_for_frame{current_stim_index}{frame_shift+time_window_before+1} = [all_behavior_transitions_for_frame{current_stim_index}{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
-                all_behavior_annotations_for_frame{current_stim_index}{frame_shift+time_window_before+1} = [all_behavior_annotations_for_frame{current_stim_index}{frame_shift+time_window_before+1}, tracks_on_critical_frame.BehavioralAnnotation];
+                if ~isempty(tracks_on_critical_frame)
+                    all_behavior_transitions_for_frame{current_stim_index}{frame_shift+time_window_before+1} = [all_behavior_transitions_for_frame{current_stim_index}{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
+                    all_behavior_annotations_for_frame{current_stim_index}{frame_shift+time_window_before+1} = [all_behavior_annotations_for_frame{current_stim_index}{frame_shift+time_window_before+1}, tracks_on_critical_frame.BehavioralAnnotation];
+                end
             end
         end
     end
@@ -138,7 +140,7 @@ for behavior_index = 1:number_of_behaviors
     hold on
     for stimulus_index = 1:length(stimulus_frequencies)
         track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
-        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',[num2str(stimulus_frequencies(stimulus_index)), ' percent duty cycle (n = ', num2str(track_n),' tracks)']);
+        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',[num2str(stimulus_frequencies(stimulus_index)), ' Hz (n = ', num2str(track_n),' tracks)']);
     end
     hold off
     xlabel('Time (s)') % x-axis label
