@@ -19,7 +19,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
     plot_linear_filter = 0;
     plot_filtered_signal_histogram = 0;
     plot_filtered_signal_given_reversal_histogram = 0;
-    plot_non_linearity = 0;
+    plot_non_linearity = 1;
     plot_kernel_significance = 0;
     figure
 
@@ -121,7 +121,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
 %             xlabel(['Time (s) (n=', num2str(LNPStats(behavior_index).trigger_count),')']) % x-axis label
             xlabel(['n = ', num2str(LNPStats(behavior_index).trigger_count),'']) % x-axis label
             %ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label 
-            axis([-10 10 0 2])
+            axis([-10 10 0.85 1.15])
             %axis([-10 2 0 5])
             ax = gca;
             %ax.XTick = ;

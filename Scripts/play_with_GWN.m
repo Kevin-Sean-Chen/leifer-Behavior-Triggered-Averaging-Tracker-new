@@ -2,8 +2,8 @@
 relevant_track_fields = {'BehavioralTransition','Frames','LEDPower','LEDVoltage2Power'};    
 
 %select folders
-folders_GWN_ret = getfoldersGUI();
-folders_GWN_noret = getfoldersGUI();
+% folders_GWN_ret = getfoldersGUI();
+% folders_GWN_noret = getfoldersGUI();
 % folders_tri_ret = getfoldersGUI();
 
 %ret
