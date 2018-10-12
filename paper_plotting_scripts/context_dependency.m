@@ -1,7 +1,7 @@
 load('reference_embedding.mat')
 %load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_behaviors_reordered_20171030.mat')
-LNPStats = LNPStats_directional_ret;
-meanLEDPower = meanLEDPower_directional_ret;
+% LNPStats = LNPStats_directional_ret;
+% meanLEDPower = meanLEDPower_directional_ret;
 load('C:\Users\mochil\Dropbox\LeiferShaevitz\Papers\mec-4\AML67\behavior_map_no_subsampling\Embedding_LNPFit\LNPfit_noret_20180316.mat')
 LNPStats = LNPStats_directional;
 meanLEDPower = meanLEDPower_directional;
@@ -14,7 +14,7 @@ BTA_seconds_after = BTA_seconds_before_and_after;
 NumTicks = 3;
 folders_platetap = getfoldersGUI();
 folders_optotap = getfoldersGUI();
-rows_per_page = 3;
+rows_per_page = 9;
 bootstrap_n = 100;
 
 
@@ -128,12 +128,12 @@ for behavior_from = 1:number_of_behaviors
                 average_transition_rate_after_tap(folders_platetap, behavior_from, behavior_to);
             
             %bootstrap values for fractional increase from baseline after stim
-            stim_sample_count = optotap_observation_counts(behavior_from,behavior_to)/29; % 29 is 2 seconds
-            control_sample_count = control_optotap_observation_counts(behavior_from,behavior_to)/29;
+            stim_sample_count = tap_observation_counts(behavior_from,behavior_to)/29; % 29 is 2 seconds
+            control_sample_count = control_tap_observation_counts(behavior_from,behavior_to)/29;
             stim_samples = false(1,stim_sample_count);
-            stim_samples(1:optotap_transitions_counts(behavior_from,behavior_to)) = true;            
+            stim_samples(1:tap_transitions_counts(behavior_from,behavior_to)) = true;            
             control_samples = false(1,control_sample_count);
-            control_samples(1:control_optotap_transitions_counts(behavior_from,behavior_to)) = true;
+            control_samples(1:control_tap_transitions_counts(behavior_from,behavior_to)) = true;
             bootstrap_frac_inc = zeros(1,bootstrap_n);
             for bootstrap_index = 1:bootstrap_n
                 bootstrap_stim_sample = datasample(stim_samples,stim_sample_count);

@@ -121,7 +121,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
 %             xlabel(['Time (s) (n=', num2str(LNPStats(behavior_index).trigger_count),')']) % x-axis label
             xlabel(['n = ', num2str(LNPStats(behavior_index).trigger_count),'']) % x-axis label
             %ylabel('Stimulus Intensity (uW/mm^2)') % y-axis label 
-            axis([-10 10 0.85 1.15])
+            axis([-10 10 0.9 1.1])
             %axis([-10 2 0 5])
             ax = gca;
             %ax.XTick = ;
@@ -129,7 +129,7 @@ function [] = PlotBehavioralMappingExperimentGroup (LNPStats, meanLEDPower, stdL
             ax.FontSize = 18;
             ax.Clipping = 'off';
             xlabh = get(gca,'XLabel');
-            set(xlabh,'Position',get(xlabh,'Position') + [0 2.5 0])
+            set(xlabh,'Position',get(xlabh,'Position') + [0 0.1 0])
 
             limits = get(gca,'XLim');
             set(gca,'XTick',linspace(limits(1),limits(2),NumTicks))
