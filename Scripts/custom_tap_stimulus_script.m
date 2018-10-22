@@ -46,6 +46,33 @@ xcorr_ledvoltages_stimulus = padded_conv(LEDVoltages, normalized_stimuli);
 peak_thresh = 0.99.*max(xcorr_ledvoltages_stimulus); %the peak threshold is 99% of the max (because edge effects)
 [~, critical_frames] = findpeaks(xcorr_ledvoltages_stimulus, 'MinPeakHeight', peak_thresh,'MinPeakDistance',14);
 
+%% 0 plot the baseline rates and counts for every behavior
+binary_behavioral_transitions = [allTracks.Behaviors];
+transition_counts = sum(binary_behavioral_transitions,2);
+total_time_point_count = size(binary_behavioral_transitions,2);
+transition_rates = transition_counts./total_time_point_count.*fps.*60;
+bootstrap_transition_rates = zeros(number_of_behaviors,bootstrap_n);
+
+for behavior_index = 1:number_of_behaviors
+    for bootstrap_index = 1:bootstrap_n
+        bootstrap_samples = datasample(binary_behavioral_transitions(behavior_index,:),total_time_point_count);
+        bootstrap_transition_rates(behavior_index, bootstrap_index) = sum(bootstrap_samples)./total_time_point_count.*fps.*60;
+    end
+end
+bootstrap_transition_rates_std =std(bootstrap_transition_rates,0,2)';
+bootstrap_transition_rates_mean = mean(bootstrap_transition_rates,2)';
+
+figure
+hold on
+errorbar(1:number_of_behaviors, transition_rates, bootstrap_transition_rates_std, 'b*')
+%plot(1:number_of_behaviors, transition_rates, 'r*')
+hold off
+ax = gca;
+ax.XLim = [0 number_of_behaviors+1];
+set(gca,'XTickLabel',[{''},behavior_names,{''}])
+ylabel('Transition Rate (transitions/min)') % y-axis label
+
+
 %% 1 plot the transition rates as a function of time
 behavior_transitions_for_frame = cell(1,time_window_before+time_window_after+1);
 behaviors_for_frame = cell(1,time_window_before+time_window_after+1);
