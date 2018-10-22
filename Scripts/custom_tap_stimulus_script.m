@@ -62,6 +62,11 @@ end
 bootstrap_transition_rates_std =std(bootstrap_transition_rates,0,2)';
 bootstrap_transition_rates_mean = mean(bootstrap_transition_rates,2)';
 
+behavior_names_with_count = behavior_names;
+for behavior_index = 1:number_of_behaviors
+    behavior_names_with_count{behavior_index} = [behavior_names_with_count{behavior_index}, '(n=', num2str(transition_counts(behavior_index)), ')'];
+end
+
 figure
 hold on
 errorbar(1:number_of_behaviors, transition_rates, bootstrap_transition_rates_std, 'b*')
@@ -69,7 +74,7 @@ errorbar(1:number_of_behaviors, transition_rates, bootstrap_transition_rates_std
 hold off
 ax = gca;
 ax.XLim = [0 number_of_behaviors+1];
-set(gca,'XTickLabel',[{''},behavior_names,{''}])
+set(gca,'XTickLabel',[{''},behavior_names_with_count,{''}])
 ylabel('Transition Rate (transitions/min)') % y-axis label
 
 
