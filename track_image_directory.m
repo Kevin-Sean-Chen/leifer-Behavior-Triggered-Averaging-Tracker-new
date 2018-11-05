@@ -61,9 +61,15 @@ function success = track_image_directory(folder_name, analysis_mode)
         fid = fopen([folder_name, filesep, 'PWM.txt']);
         PWM = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
+        if isempty(PWM)
+            PWM = zeros(1,length(image_files)-1);
+        end
         fid = fopen([folder_name, filesep, 'frequencies.txt']);
         frequencies = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
-        fclose(fid);        
+        fclose(fid);
+        if isempty(frequencies)
+            frequencies = zeros(1,length(image_files)-1);
+        end
     end
     
     if length(image_files)-1 > length(LEDVoltages)
