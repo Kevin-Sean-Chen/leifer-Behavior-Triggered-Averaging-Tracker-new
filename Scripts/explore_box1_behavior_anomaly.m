@@ -9,8 +9,8 @@ start_frame = 25*60*fps+1;
 end_frame = 30*60*fps;
 filtered_tracks = FilterTracksByTime(Tracks,start_frame, end_frame, false);
 
-n_samples = 100;
-%n_samples = length(Tracks);
+%n_samples = 100;
+n_samples = length(Tracks);
 track_indecies = randperm(length(filtered_tracks));
 % plot paths
 figure

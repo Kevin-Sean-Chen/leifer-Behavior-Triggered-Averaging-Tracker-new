@@ -15,13 +15,13 @@ load('reference_embedding.mat')
 relevant_track_fields = {'BehavioralTransition','Embeddings','Centerlines'};%'Direction','Velocity';
 
 
-% folders = getfoldersGUI();
-% % allow user to select the folder to save as
-% pathname = uigetdir('', 'Select Save Folder')
-% if isequal(pathname,0)
-%     %cancel
-%    return
-% end
+folders = getfoldersGUI();
+% allow user to select the folder to save as
+pathname = uigetdir('', 'Select Save Folder')
+if isequal(pathname,0)
+    %cancel
+   return
+end
 %% STEP 2: allow user to select the folder to save as
 [allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields );
 if ~exist('Embeddings', 'var')
@@ -66,7 +66,8 @@ for watershed_region = 1:max(L(:)-1)
     possible_indecies = possible_indecies(random_order);
 
     if length(possible_indecies) < N
-        error(['Cannot output video. There are only ' num2str(length(possible_indecies)) ' observed behaviors, fewer than the required ' num2str(N)])
+        display(['Cannot output video. There are only ' num2str(length(possible_indecies)) ' observed behaviors, fewer than the required ' num2str(N)])
+        continue
     end
 
 
