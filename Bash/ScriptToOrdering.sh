@@ -7,36 +7,44 @@ case "$script_name" in
 		echo 0
 		;;
 
-    track_image_directory)
+    unzip_data)
         echo 1
+        ;;
+
+    track_image_directory)
+        echo 2
         ;;
      
     find_centerlines)
-        echo 2
-        ;;
-
-    auto_resolve_problems)
         echo 3
         ;;
 
-    calculate_spectra)
+    auto_resolve_problems)
         echo 4
         ;;
 
-    calculate_embeddings)
+    calculate_spectra)
         echo 5
         ;;
 
-	calculate_behaviors)
+    calculate_embeddings)
         echo 6
         ;;
 
-	plot_image_directory)
+	calculate_behaviors)
         echo 7
         ;;
 
+	plot_image_directory)
+        echo 8
+        ;;
+
+    zip_data)
+        echo 9
+        ;;
+
     max)
-        echo 7
+        echo 9
         ;;
         
     *)

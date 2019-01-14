@@ -1,8 +1,13 @@
 #!/bin/bash
 folder_name=${1%/}
-job_ID=$2
 
 UpdateLog.sh $folder_name zip_data $job_ID START Zipping_Data_And_Deleting_Raw_Images
+
+#read the last line of the log, get job IX
+log_name=$folder_name/status.csv
+last_line=$(tac $log_name |egrep -m 1 .)
+IFS=',' read -ra ADDR <<< "$last_line"
+job_ID=${ADDR[2]}
 
 #get how many jpg files are there
 jpg_count=$(ls $folder_name/*.jpg | wc -l)

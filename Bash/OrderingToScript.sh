@@ -8,34 +8,42 @@ case $ordering in
 		;;
 
     1)
+        echo unzip_data
+        ;;
+
+    2)
         echo track_image_directory
         ;;
      
-    2)
+    3)
         echo find_centerlines
         ;;
 
-    3)
+    4)
         echo auto_resolve_problems
         ;;
 
-    4)
+    5)
         echo calculate_spectra
         ;;
 
-    5)
+    6)
         echo calculate_embeddings
         ;;
 
-	6)
+	7)
         echo calculate_behaviors
         ;;
 
-	7)
+	8)
         echo plot_image_directory
         ;;
 
-    8)
+    9)
+        echo zip_data
+        ;;
+
+    10)
         echo more_than_max
         ;;
         
