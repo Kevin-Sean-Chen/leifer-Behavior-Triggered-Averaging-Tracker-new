@@ -9,7 +9,7 @@ jpg_count=$(ls $folder_name/*.jpg | wc -l)
 
 if [ "$jpg_count" -gt "0" ]; then 
 	# jpg file exists, zip them
-	zip -m -u $folder_name/raw_images.zip $folder_name/*.jpg
+	zip -m -u $folder_name/raw_images.zip $folder_name/*.jpg > /dev/null
 fi
 
-UpdateLog.sh $folder_name delete_tracks $job_ID COMPLETE $jpg_count'jpg_files_zipped'
+UpdateLog.sh $folder_name zip_data $job_ID COMPLETE $jpg_count'_jpg_files_zipped'
