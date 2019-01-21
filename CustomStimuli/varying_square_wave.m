@@ -1,9 +1,9 @@
 PowerList = {16, 8};
 trials = 10;
-frame_count = 25200;
+frame_count = 1680;
 minPower = 0;
-pulse_wait = 1400;
-pulse_duration = 7;
+pulse_wait = 826;
+pulse_duration = 14;
 VoltageToPower = 17/5;
 
 pulse_power = []

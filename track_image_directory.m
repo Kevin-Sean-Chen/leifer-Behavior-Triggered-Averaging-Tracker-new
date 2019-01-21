@@ -109,8 +109,8 @@ function success = track_image_directory(folder_name, analysis_mode)
                 Level = parameters.ManualSetLevel;
             end
             
-            NUM = parameters.MaxObjects + 1;
-            while (NUM > parameters.MaxObjects)
+            NumWorms = parameters.MaxObjects + 1;
+            while (NumWorms > parameters.MaxObjects)
                 if parameters.DarkObjects
                     BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
                 else
@@ -118,14 +118,19 @@ function success = track_image_directory(folder_name, analysis_mode)
                 end
                 
                 % Identify all objects
-                [L,NUM] = bwlabel(BW);
+                [L,~] = bwlabel(BW);
                 Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
+                AREASTATS = regionprops(L, {'Area'});
+                % Identify all worms by size
+                WormIndices = find([AREASTATS.Area] > parameters.MinWormArea & ...
+                    [AREASTATS.Area] < parameters.MaxWormArea);
+                NumWorms = length(WormIndices);
             end
+            
+            %reset the image so STATS gets processed faster
+            BW(~ismember(L, WormIndices)) = 0; 
+            [L,~] = bwlabel(BW);
             STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity', 'Extrema'});
-
-            % Identify all worms by size
-            WormIndices = find([STATS.Area] > parameters.MinWormArea & ...
-                [STATS.Area] < parameters.MaxWormArea);
             
             % Find and ignore the blobs touching the edge
             all_extrema = reshape([STATS.Extrema], 8, 2, []);
@@ -144,15 +149,15 @@ function success = track_image_directory(folder_name, analysis_mode)
             frames_on_border = bsxfun(@or, frames_on_border, y_extrema_top_border);
             frames_on_border = bsxfun(@or, frames_on_border, y_extrema_bottom_border);
             
-            WormIndices = intersect(WormIndices, find(~frames_on_border));
+            STATS(frames_on_border) = []; %delete indecies on border
             
             % get their centroid coordinates
-            NumWorms = length(WormIndices);
-            WormCentroids = [STATS(WormIndices).Centroid];
+            NumWorms = length(STATS); %recalculate num worms after deleting border cases
+            WormCentroids = [STATS.Centroid];
             WormCoordinates = [WormCentroids(1:2:2*NumWorms)', WormCentroids(2:2:2*NumWorms)'];
-            WormSizes = [STATS(WormIndices).Area];
-            WormFilledAreas = [STATS(WormIndices).FilledArea];
-            WormEccentricities = [STATS(WormIndices).Eccentricity];
+            WormSizes = [STATS.Area];
+            WormFilledAreas = [STATS.FilledArea];
+            WormEccentricities = [STATS.Eccentricity];
 
             % Track worms 
             if isempty(Tracks)
@@ -389,16 +394,22 @@ function success = track_image_directory(folder_name, analysis_mode)
             Level = parameters.ManualSetLevel;
         end
         % Convert frame to a binary image 
-        NUM = parameters.MaxObjects + 1;
-        while (NUM > parameters.MaxObjects)
+        NumWorms = parameters.MaxObjects + 1;
+        while (NumWorms > parameters.MaxObjects)
             if parameters.DarkObjects
                 BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
             else
                 BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
             end
+
             % Identify all objects
-            [L,NUM] = bwlabel(BW);
+            [L,~] = bwlabel(BW);
             Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
+            AREASTATS = regionprops(L, {'Area'});
+            % Identify all worms by size
+            WormIndices = find([AREASTATS.Area] > parameters.MinWormArea & ...
+                [AREASTATS.Area] < parameters.MaxWormArea);
+            NumWorms = length(WormIndices);
         end
 
         for image_stack_index = 1:length(current_image_stacks)
