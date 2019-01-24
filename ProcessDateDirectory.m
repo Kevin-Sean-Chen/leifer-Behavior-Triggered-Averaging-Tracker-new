@@ -10,9 +10,10 @@ parameters = load_parameters(); %load default parameters
 
 
 %% STEP 1: Get folders
-%[folders, folder_count] = getfolders();
+[folders, folder_count] = getfolders();
 
 %% STEP 3: Track and save the individual worm images %%
+tic
 if tracking
     'Tracking...'
    
@@ -30,7 +31,7 @@ if tracking
         end
     end
 end
-
+toc
 %% STEP 4: Find centerlines %%
 if finding_centerline
     'Getting Centerlines...'
