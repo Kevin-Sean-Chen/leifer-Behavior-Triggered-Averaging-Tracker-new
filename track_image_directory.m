@@ -131,7 +131,7 @@ function success = track_image_directory(folder_name, analysis_mode)
             BW(~ismember(L, WormIndices)) = 0; 
             [L,~] = bwlabel(BW);
             STATS = regionprops(L, {'Area', 'Centroid', 'FilledArea', 'Eccentricity', 'Extrema'});
-            
+            WormIndices = 1:NumWorms; %reindex
             % Find and ignore the blobs touching the edge
             all_extrema = reshape([STATS.Extrema], 8, 2, []);
             x_extrema = squeeze(all_extrema(:,2,:));
@@ -150,6 +150,7 @@ function success = track_image_directory(folder_name, analysis_mode)
             frames_on_border = bsxfun(@or, frames_on_border, y_extrema_bottom_border);
             
             STATS(frames_on_border) = []; %delete indecies on border
+            WormIndices(frames_on_border) = [];
             
             % get their centroid coordinates
             NumWorms = length(STATS); %recalculate num worms after deleting border cases
@@ -411,7 +412,10 @@ function success = track_image_directory(folder_name, analysis_mode)
                 [AREASTATS.Area] < parameters.MaxWormArea);
             NumWorms = length(WormIndices);
         end
-
+        %reset the image like before
+        BW(~ismember(L, WormIndices)) = 0; 
+        [L,~] = bwlabel(BW);
+            
         for image_stack_index = 1:length(current_image_stacks)
             %for each track in this frame, get the image
             track_index = current_image_stacks(image_stack_index).TrackIndex;
