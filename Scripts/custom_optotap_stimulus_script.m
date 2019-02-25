@@ -4,7 +4,7 @@ load('reference_embedding.mat')
 relevant_track_fields = {'BehavioralTransition','Frames'};
 
 %select folders
-folders_optotap = getfoldersGUI();
+%folders_optotap = getfoldersGUI();
 
 %load stimuli.txt from the first experiment
 num_stimuli = 1;
@@ -13,6 +13,7 @@ time_window_before = 140;
 time_window_after = 140;
 total_window_frames = time_window_before+time_window_after+1;
 fps = 14;
+stim_similarity_thresh = 1.11;
 
 number_of_behaviors = max(L(:)-1);
 stimulus_intensities = [];
@@ -43,7 +44,7 @@ for folder_index = 1:length(folders_optotap)
         %get the stimulus intensity for this peak
         current_stim_power = LEDPowers(peak_locations(peak_index));
         %see if this stim_power already exists
-        current_stim_index = find(stimulus_intensities == current_stim_power);
+        current_stim_index = find(and(stimulus_intensities < current_stim_power*stim_similarity_thresh,stimulus_intensities > current_stim_power/stim_similarity_thresh));
         if isempty(current_stim_index)
             %no entry yet
             stimulus_intensities = [stimulus_intensities,current_stim_power];
@@ -59,8 +60,10 @@ for folder_index = 1:length(folders_optotap)
             if current_frame <= length(LEDPowers) && current_frame >= 1
                 %make sure the current frame is in range
                 tracks_on_critical_frame = FilterTracksByTime(current_tracks,current_frame, current_frame);
-                all_behavior_transitions_for_frame{current_stim_index}{frame_shift+time_window_before+1} = [all_behavior_transitions_for_frame{current_stim_index}{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
-                all_behavior_annotations_for_frame{current_stim_index}{frame_shift+time_window_before+1} = [all_behavior_annotations_for_frame{current_stim_index}{frame_shift+time_window_before+1}, tracks_on_critical_frame.BehavioralAnnotation];
+                if ~isempty(tracks_on_critical_frame)
+                    all_behavior_transitions_for_frame{current_stim_index}{frame_shift+time_window_before+1} = [all_behavior_transitions_for_frame{current_stim_index}{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
+                    all_behavior_annotations_for_frame{current_stim_index}{frame_shift+time_window_before+1} = [all_behavior_annotations_for_frame{current_stim_index}{frame_shift+time_window_before+1}, tracks_on_critical_frame.BehavioralAnnotation];
+                end
             end
         end
     end
