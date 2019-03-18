@@ -22,7 +22,7 @@ if isequal(pathname,0)
     %cancel
    return
 end
-%% STEP 2: allow user to select the folder to save as
+%% STEP 2: load tracks
 [allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields );
 if ~exist('Embeddings', 'var')
     Embeddings = {allTracks.Embeddings};
