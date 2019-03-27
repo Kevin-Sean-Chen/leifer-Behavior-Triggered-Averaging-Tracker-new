@@ -5,9 +5,9 @@ folders = getfoldersGUI();
 
 [allTracks, folder_indecies, track_indecies] = loadtracks(folders,relevant_track_fields);
 
-
+parameters = load_parameters(folders{1});
 observations = cell(size(L));
-image_size = [70, 70];
+image_size = [parameters.ImageSize, parameters.ImageSize];
 
 for track_index = 1:length(allTracks)
     Track = allTracks(track_index);

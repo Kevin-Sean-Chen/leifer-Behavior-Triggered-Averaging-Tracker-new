@@ -74,7 +74,7 @@ function behavior_explorer_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     hObject.UserData{7} = L;
     hObject.UserData{8} = xx;
     hObject.UserData{9} = density;
-    hObject.UserData{10} = behavioral_space_to_behavior(Track.Embeddings, L, xx);
+    hObject.UserData{10} = [];%behavioral_space_to_behavior(Track.Embeddings, L, xx);
     
     display_frame(hObject, current_frame);
 end
@@ -218,7 +218,7 @@ function display_frame(hObject, frame_index)
     [ii,jj] = find(L==0);
     I = squeeze(worm_images(:,:,frame_index));
     maxDensity = max(density(:));
-    plot_embedding = Track.Embeddings;
+%     plot_embedding = Track.Embeddings;
     
     axes_handle = findobj('Tag', 'image_axes');
     axes(axes_handle)
@@ -245,7 +245,7 @@ function display_frame(hObject, frame_index)
     caxis([0 maxDensity * .8])
     colormap(jet)
     plot(xx(jj),xx(ii),'k.') %watershed borders
-    plot(plot_embedding(frame_index,1), plot_embedding(frame_index,2), 'om', 'MarkerSize', 15, 'LineWidth', 3)
+%     plot(plot_embedding(frame_index,1), plot_embedding(frame_index,2), 'om', 'MarkerSize', 15, 'LineWidth', 3)
     watershed_centroids = regionprops(L, 'centroid');
     watershed_centroids = vertcat(watershed_centroids.Centroid);
     watershed_centroids = round(watershed_centroids);
@@ -261,24 +261,24 @@ function display_frame(hObject, frame_index)
     set(gca, 'Tag', 'axes2');
 
 
-    current_behaviors = double(Track.Behaviors(:,frame_index))';
+%     current_behaviors = double(Track.Behaviors(:,frame_index))';
 
     text_handle = findobj('Tag', 'PropertiesText');
     text_handle.String = {['Track #: ', num2str(track_index)], ...
         ['Frame #: ', num2str(frame_index)], ...
         ['Error: ', problem_code_lookup(Track.PotentialProblems(frame_index))], ...
-        ['Watershed #: ', num2str(behavior_timeseries(frame_index))], ...
-        ['Behaviors: ', num2str(current_behaviors)] ...
+%        ['Watershed #: ', num2str(behavior_timeseries(frame_index))], ...
+%        ['Behaviors: ', num2str(current_behaviors)] ...
         
         };
     
-    normalized_colors = jet(size(Track.Behaviors,1)) ./ size(Track.Behaviors,1);
-    calculated_color = current_behaviors * normalized_colors;
-    
-    if sum(calculated_color) > 0
-        text_handle.BackgroundColor = calculated_color;
-    else
-        text_handle.BackgroundColor = [0.94, 0.94, 0.94];
-    end
+%     normalized_colors = jet(size(Track.Behaviors,1)) ./ size(Track.Behaviors,1);
+%     calculated_color = current_behaviors * normalized_colors;
+%     
+%     if sum(calculated_color) > 0
+%         text_handle.BackgroundColor = calculated_color;
+%     else
+%         text_handle.BackgroundColor = [0.94, 0.94, 0.94];
+%     end
 
 end

@@ -28,21 +28,4 @@ function [total_score, image_score, displacement_score, centerline_pixels_out_of
         displacement_score = 1;
     end
     total_score = image_score + displacement_score;
-%     if image_score < 0.5
-%         %debug
-%          subplot(1,2,1), imshow(BW,[])
-% %        subplot(1,2,1), imshow(reshape(union,70,70),[])
-%         hold on
-%         plot(K(:,2), K(:,1), 'g-');
-%         hold off
-% 
-%          subplot(1,2,2), imshow(generated_binary_image,[])
-% %         subplot(1,2,2), imshow(reshape(intersection,70,70),[])
-%         hold on
-%         plot(K(:,2), K(:,1), 'g-');
-%         hold off
-% 
-%         [total_score, image_score, displacement_score, centerline_pixels_out_of_body]
-%     end
-
 end

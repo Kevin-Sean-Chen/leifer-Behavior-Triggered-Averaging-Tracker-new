@@ -36,18 +36,5 @@ function phi_dt = worm_phase_velocity(ProjectedEigenValues, parameters)
     phi_dt(phi_dt < parameters.MinPhaseVelocity) = parameters.MinPhaseVelocity;
     phi_dt(phi_dt > parameters.MaxPhaseVelocity) = parameters.MaxPhaseVelocity;
     
-%     image_size = [70, 70];
-%     direction_vector = [[Track.Speed].*-cosd([Track.Direction]); [Track.Speed].*sind([Track.Direction])];
-%     head_vector = reshape(Track.Centerlines(1,:,:),2,[]) - (image_size(1)/2);    
-%     %normalize into unit vector
-%     head_normalization = hypot(head_vector(1,:), head_vector(2,:));
-%     head_vector = head_vector ./ repmat(head_normalization, 2, 1);
-%     head_direction_dot_product = dot(head_vector, direction_vector);
-% 
-%     hold all
-%     plot(phi_dt/max(phi_dt))
-%     plot(head_direction_dot_product/max(head_direction_dot_product))
-%     xlabel('Time (frames)')
-%     ylabel('Normalized Phase Velocity and direction_vector')
 end
 

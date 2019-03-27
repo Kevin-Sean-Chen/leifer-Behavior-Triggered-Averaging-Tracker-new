@@ -255,7 +255,9 @@ function success = track_image_directory(folder_name, analysis_mode)
                     for tracks_that_started_immediately_after_index = 1:length(tracks_that_started_immediately_after)
                         current_track_index = tracks_that_started_immediately_after(tracks_that_started_immediately_after_index);
                         if Tracks(current_track_index).WormIndex(1) == Tracks(i).MergedBlobIndex
-                            %this track is a result of increased blob size
+                            %this track is a result of increased blob size,
+                            %assume it is invalid because it is likely a
+                            %worm bumping into another worm or gunk
                             DeleteTracks = [DeleteTracks, current_track_index];
                             break
                         end

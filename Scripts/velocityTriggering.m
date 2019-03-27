@@ -3,13 +3,13 @@
 %calculate the triggers for LNP fitting based on velocity ranges
 
 number_of_behaviors = 5;
-image_size = [70 70];
-
 %load tracks
 relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Direction','Speed','Centerlines'};
 folders = getfoldersGUI();
 [allTracks, folder_indecies, ~] = loadtracks(folders,relevant_track_fields);
 load('reference_embedding.mat')
+parameters = load_parameters(folders{1});
+image_size = [parameters.ImageSize parameters.ImageSize];
 
 %% calculate the velocities, defined as the dot product between the head vector and the speed/direction vector
 allTracks(1).Velocity = [];

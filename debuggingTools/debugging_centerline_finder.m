@@ -17,7 +17,7 @@ Tracks(track_count).MeanAngle = [];
 Tracks(track_count).Angles = [];
 Tracks(track_count).ProjectedEigenValues = [];
 
-for track_index = 217:217
+for track_index = 1:1
     load(['worm_', num2str(track_index), '.mat']);
     Track = Tracks(track_index);
     Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), Prefs, track_index);
