@@ -469,10 +469,10 @@ function Track = initial_sweep(image_stack, Track, parameters, plot_index)
     %% STEP 16: determine if there are additional problems
     aspect_ratio = Length / dilation_size;
     potential_problems(ImageScore < 0.5) = 2;
-    potential_problems(PixelsOutOfBody > 10) = 3;
+    potential_problems(PixelsOutOfBody > 50) = 3;
     potential_problems(DisplacementScore < 0.85) = 4;
     potential_problems(Length < 25) = 5; 
-    potential_problems(Length > 65) = 6;
+    potential_problems(Length > 130) = 6;
     potential_problems(aspect_ratio < 4) = 7; 
     potential_problems(aspect_ratio > 12) = 8;
     
