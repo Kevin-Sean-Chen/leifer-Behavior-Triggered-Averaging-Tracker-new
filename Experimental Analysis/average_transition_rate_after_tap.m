@@ -4,7 +4,7 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
 % behavior_from is 0, it is ignored
     load('reference_embedding.mat')
     %load tracks
-    relevant_track_fields = {'BehavioralTransition','Frames'};
+    relevant_track_fields = {'BehavioralTransition','Frames', 'Size'};
 
     %load stimuli.txt from the first experiment
     normalized_stimuli = 1; %delta function
@@ -42,6 +42,10 @@ function [tap_transition_rate_of_interest,control_transition_rate_of_interest,ta
         
         %load the tracks for this folder
         [current_tracks, ~, ~] = loadtracks(folders_platetap(folder_index),relevant_track_fields);
+        
+        %filter by size if needed
+        %current_tracks = FilterTracksBySize(current_tracks,0,300);
+
         current_tracks = BehavioralTransitionToBehavioralAnnotation(current_tracks);
 
         %generate the Behavior matricies

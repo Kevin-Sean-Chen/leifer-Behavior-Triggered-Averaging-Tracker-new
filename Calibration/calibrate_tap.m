@@ -5,7 +5,7 @@ z_indecies = 31:40;
 y_indecies = 41:50;
 x_indecies = 51:60;
 
-% root_folder_name = uigetdir
+root_folder_name = uigetdir
 folders = {};
 cd(root_folder_name) %open the date directory
 allFiles = dir(); %get all the subfolders
@@ -75,6 +75,7 @@ xyz_magnitutde_g = xyz_magnitutde_voltage / 0.057;
 xyz_magnitutde_voltage_std = sqrt((x_std_voltage.^2) + (y_std_voltage.^2) + (z_std_voltage.^2));
 xyz_magnitutde_std_g = xyz_magnitutde_voltage_std / 0.057;
 
+figure
 shadedErrorBar(time,xyz_magnitutde_g,xyz_magnitutde_std_g)
 title(['Max = ', num2str(max(xyz_magnitutde_g)), ' g'])
 xlabel('Time (s)')

@@ -3,7 +3,7 @@
 load('reference_embedding.mat')
 %load tracks
 % relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
-relevant_track_fields = {'BehavioralTransition','Frames'};
+relevant_track_fields = {'BehavioralTransition','Frames', 'Size'};
 
 %select folders
 folders_platetap = getfoldersGUI();
@@ -33,6 +33,9 @@ for folder_index = 1:length(folders_platetap)
     
     allTracks = [allTracks, current_tracks];
 end
+
+%do a size filter
+%allTracks = FilterTracksBySize(allTracks,0,300);
 
 %for each experiment, search for the occurance of each stimulus after
 %normalizing to 1

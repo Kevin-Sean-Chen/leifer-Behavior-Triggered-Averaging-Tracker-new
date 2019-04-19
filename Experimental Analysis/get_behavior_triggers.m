@@ -5,7 +5,11 @@ function Tracks = get_behavior_triggers(Tracks,randomize)
     if nargin<2
         randomize = false;
     end
-
+    
+    if isempty(Tracks)
+        return
+    end
+    
     load('reference_embedding.mat')
     %calculate the triggers for LNP fitting
     number_of_behaviors = max(L(:)-1);
