@@ -15,7 +15,7 @@ function K = relax2tip(P, tips, kappa, Fline, gamma, B, ConCrit, cd, mu, l0, nu,
     %xi: tip force constant
     POriginal = P;
     nPoints = size(P,1);
-    max_iteration = 100;
+    max_iteration = 35;
     Pdiff = ConCrit + 1;
     iteration = 1;
     try
