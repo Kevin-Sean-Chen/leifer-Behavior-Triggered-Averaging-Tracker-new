@@ -1,4 +1,4 @@
-function [] = plot_worm_frame(I, center_lines, centerline_color, eccentricity, direction, speed, score, plotting_index, debugimage)
+function [] = plot_worm_frame(I, center_lines, centerline_color, eccentricity, direction, speed, score, UncertainTips, debugimage)
 %     IWFig = findobj('Tag', ['IWFig', num2str(plotting_index)]);
 %     if isempty(IWFig)
 %         IWFig = figure('Tag', ['IWFig', num2str(plotting_index)]);
@@ -29,10 +29,10 @@ function [] = plot_worm_frame(I, center_lines, centerline_color, eccentricity, d
         plot(center_lines(1,2), center_lines(1,1), '.', 'Color', centerline_color, 'markersize',20)
         %plot(center_lines(1,2), center_lines(1,1), '.g','markersize',50)
 
-    %     %uncertain tips
-    %     if ~isempty(UncertainTips.Tips)
-    %         plot(UncertainTips.Tips(:,2), UncertainTips.Tips(:,1), 'oy')
-    %     end
+        %uncertain tips
+        if ~isempty(UncertainTips.Tips)
+            plot(UncertainTips.Tips(:,2), UncertainTips.Tips(:,1), 'oy')
+        end
     %     %tail
     %     plot(center_lines(end,2), center_lines(end,1), 'ob')
     % 

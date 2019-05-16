@@ -291,8 +291,8 @@ function Track = initial_sweep(image_stack, Track, parameters, plot_index)
             
 %             %%%%%%STEP DEBUG: plot as we go along%%%%%%
 %             plot_worm_frame(I, squeeze(all_center_lines(:,:,index)), ...
-%                 Track.UncertainTips(index), Track.Eccentricity(index), ...
-%                 Track.Direction(index), Track.Speed(index), Track.TotalScore(index), 1);
+%                 [], Track.Eccentricity(index), ...
+%                 Track.Direction(index), Track.Speed(index), TotalScore(index), UncertainTips(index));
 %             index
 %             pause(0.1)
 
