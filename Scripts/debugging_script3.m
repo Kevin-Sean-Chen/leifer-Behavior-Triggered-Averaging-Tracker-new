@@ -1,4 +1,7 @@
-    %predict the behavioral rates based on the preloaded LNP model
-    for behavior_index = 8:8
-        experiment_behavior_predictions(behavior_index,:) = PredictLNP(PWM_dutycycles, LNPStats(behavior_index).linear_kernel, LNPStats(behavior_index).non_linearity_fit);
-    end
+% relevant_track_fields = {'Eccentricity','Direction','Speed','Size'};
+% 
+% %% Load tracks
+% Tracks = load_single_folder(folder_name, relevant_track_fields);
+tic
+find_centerlines(folder_name)
+toc

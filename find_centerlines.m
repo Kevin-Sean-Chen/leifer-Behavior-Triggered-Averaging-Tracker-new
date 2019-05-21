@@ -39,19 +39,21 @@ function success = find_centerlines(folder_name)
     Tracks(track_count).ProjectedEigenValues = [];
     Tracks(track_count).Velocity = [];
     
-    try
-        parpool(feature('numcores'))
-    catch
-        %sometimes matlab attempts to write to the same temp file. wait and
-        %restart
-        pause(randi(60));
-        parpool(feature('numcores'))
-    end
+%     try
+%         parpool(feature('numcores'))
+%     catch
+%         %sometimes matlab attempts to write to the same temp file. wait and
+%         %restart
+%         pause(randi(60));
+%         parpool(feature('numcores'))
+%     end
     
     %% Extract Centerlines and eigenworms
-    parfor track_index = 1:track_count
-    %for track_index = 1:track_count
+%     parfor track_index = 1:track_count
+    for track_index = 1:track_count
         % loop through all the tracks to get centerlines
+        track_index
+        tic
         try
             % if anything goes wrong in centerline finding, make a note to
             % remove the track
@@ -67,6 +69,7 @@ function success = find_centerlines(folder_name)
             % resolution
             Tracks(track_index).PotentialProblems = [];
         end
+        toc
     end
     
     %% save the results
