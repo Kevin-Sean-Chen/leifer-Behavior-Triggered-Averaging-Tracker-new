@@ -8,7 +8,8 @@
     prev_tail = [max(prev_tail(1),1), max(prev_tail(2),1)];
     prev_tail = [min(prev_tail(1),size(I,1)), min(prev_tail(2),size(I,1))];
     
-    max_tip_displacement_per_frame = 7; %pixels the tips are allowed to move
+%     max_tip_displacement_per_frame = 7; %pixels the tips are allowed to move
+    max_tip_displacement_per_frame = 14; %pixels the tips are allowed to move
     prev_tips = [prev_head; prev_tail];
 
     %% STEP 1: use mexican hat filter to find tips %%

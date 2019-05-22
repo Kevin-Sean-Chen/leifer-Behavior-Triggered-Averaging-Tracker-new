@@ -15,10 +15,10 @@ function success = call_function(input_string)
         
         function_handle = str2func(script_name);
         %run the function
-        profile on
+%         profile on
         function_handle(folder_name);
-        profile off
-        profsave(profile('info'),folder_name)
+%         profile off
+%         profsave(profile('info'),folder_name)
         success = true;
         %update the logs after completing
         update_logs(folder_name,script_name,'COMPLETE',job_ID,'Within_MATLAB');

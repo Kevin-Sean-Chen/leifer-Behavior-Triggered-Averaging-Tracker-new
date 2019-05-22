@@ -2,6 +2,6 @@
 % 
 % %% Load tracks
 % Tracks = load_single_folder(folder_name, relevant_track_fields);
-tic
+%tic
 find_centerlines(folder_name)
-toc
+%toc
