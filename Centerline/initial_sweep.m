@@ -474,7 +474,7 @@ function Track = initial_sweep(image_stack, Track, parameters, plot_index)
     potential_problems(Length < 25) = 5; 
     potential_problems(Length > 130) = 6;
     potential_problems(aspect_ratio < 4) = 7; 
-    potential_problems(aspect_ratio > 12) = 8;
+    potential_problems(aspect_ratio > 30) = 8;
     
     %% STEP 17: store results
     Track.Centerlines = all_center_lines;

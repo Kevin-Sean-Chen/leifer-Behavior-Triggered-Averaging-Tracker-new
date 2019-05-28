@@ -51,9 +51,9 @@ function success = find_centerlines(folder_name)
     %% Extract Centerlines and eigenworms
      parfor track_index = 1:track_count
 %    for track_index = 2:2
-        % loop through all the tracks to get centerlines
-        track_index
-        tic
+         % loop through all the tracks to get centerlines
+%         track_index
+%         tic
         try
             % if anything goes wrong in centerline finding, make a note to
             % remove the track
@@ -69,7 +69,7 @@ function success = find_centerlines(folder_name)
             % resolution
             Tracks(track_index).PotentialProblems = [];
         end
-        toc
+%         toc
     end
     
     %% save the results
