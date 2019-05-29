@@ -1,6 +1,10 @@
 function [] = savetracks(Tracks, folder_name, overwrite, fields_to_save)
 %save the tracks as individual variables given folders
-    savePath = [folder_name, filesep, 'analysis'];
+    if strcmp(folder_name(end), filesep)
+        savePath = [folder_name, 'analysis'];
+    else
+        savePath = [folder_name, filesep, 'analysis'];
+    end
     
     if nargin < 3
         %default is to not overwrite values already calculated that are not in the track

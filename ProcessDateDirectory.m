@@ -1,8 +1,8 @@
 % This script performs behavioral analysis without a cluster
 
 % analysis options
-tracking = 0;
-finding_centerline = 1;
+tracking = 1;
+finding_centerline = 0;
 resolving_problems = 0;
 plotting = 0;
 calculate_behavior = 0;

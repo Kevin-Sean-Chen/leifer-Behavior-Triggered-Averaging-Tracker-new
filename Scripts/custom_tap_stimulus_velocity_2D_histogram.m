@@ -40,31 +40,53 @@ LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt'])
 %reversed stimulus (cross-correlation)
 xcorr_ledvoltages_stimulus = padded_conv(LEDVoltages, normalized_stimuli);
 peak_thresh = 0.99.*max(xcorr_ledvoltages_stimulus); %the peak threshold is 99% of the max (because edge effects)
-[~, critical_frames] = findpeaks(xcorr_ledvoltages_stimulus, 'MinPeakHeight', peak_thresh,'MinPeakDistance',14);
+[~, tap_frames] = findpeaks(xcorr_ledvoltages_stimulus, 'MinPeakHeight', peak_thresh,'MinPeakDistance',14);
 
+%generate a series of control taps
+control_frame_shift = round((tap_frames(2)-tap_frames(1))/2); %the control taps are exactly in between taps
+control_LEDVoltages = circshift(LEDVoltages,[0,control_frame_shift]);
+xcorr_ledvoltages_stimulus = padded_conv(control_LEDVoltages, normalized_stimuli);
+[~, control_frames] = findpeaks(xcorr_ledvoltages_stimulus, 'MinPeakHeight', peak_thresh,'MinPeakDistance',14);
 
-%% 1 plot the transition rates as a function of time
-track_count_that_end_on_frame = zeros(1,time_window_before+time_window_after+1);
-velocities_before = [];
-velocities_after = [];
+%% 1 plot tap 2d velocity histogram
+conditions = {'tap', 'control'};
 
-for critical_frame_index = 1:length(critical_frames)
-    %for every time a stimulus is delivered, look through tracks with the
-    %relevant window
-    Tracks = FilterTracksByTime(allTracks, critical_frames(critical_frame_index)-time_window_before-1, critical_frames(critical_frame_index)+time_window_after, true);
-    for track_index = 1:length(Tracks)
-        mean_velocity_before = mean(Tracks(track_index).Velocity(1:time_window_before));
-        mean_velocity_after = mean(Tracks(track_index).Velocity(time_window_before+2:end));
-        velocities_before = [velocities_before, mean_velocity_before];
-        velocities_after = [velocities_after, mean_velocity_after];
+for condition_index = 1:length(conditions)
+    if strcmp(conditions{condition_index},'tap')
+        critical_frames = tap_frames;
+    elseif strcmp(conditions{condition_index},'control')
+        critical_frames = control_frames;
     end
-    
+
+    track_count_that_end_on_frame = zeros(1,time_window_before+time_window_after+1);
+    velocities_before = [];
+    velocities_after = [];
+
+    for critical_frame_index = 1:length(critical_frames)
+        %for every time a stimulus is delivered, look through tracks with the
+        %relevant window
+        Tracks = FilterTracksByTime(allTracks, critical_frames(critical_frame_index)-time_window_before-1, critical_frames(critical_frame_index)+time_window_after, true);
+        for track_index = 1:length(Tracks)
+            mean_velocity_before = mean(Tracks(track_index).Velocity(1:time_window_before));
+            mean_velocity_after = mean(Tracks(track_index).Velocity(time_window_before+2:end));
+            velocities_before = [velocities_before, mean_velocity_before];
+            velocities_after = [velocities_after, mean_velocity_after];
+        end
+
+    end
+
+    figure
+    hold on
+    histogram2(velocities_after,velocities_before,edges,edges,'DisplayStyle','tile','ShowEmptyBins','off', 'Normalization', 'probability')
+    yL = get(gca,'YLim');
+    xL = get(gca,'XLim');
+    line(xL,[0 0],'Color','r','linewidth',2);
+    line([0 0],yL,'Color','r','linewidth',2);
+    line([0 xL(2)],[0, yL(2)],'Color','r','linewidth',2);
+
+    axis square;
+    colorbar
+    xlabel('Velocity After Tap (mm/s)')
+    ylabel('Velocity Before Tap (mm/s)')
+    title(conditions{condition_index})
 end
-
-
-figure
-%scatter(velocities_after,velocities_before)
-histogram2(velocities_after,velocities_before,edges,edges,'DisplayStyle','tile','ShowEmptyBins','off')
-colorbar
-xlabel('Velocity After Tap (mm/s)')
-ylabel('Velocity Before Tap (mm/s)')
