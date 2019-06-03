@@ -2,10 +2,10 @@
 % displays a GUI to view problems in the centerline
     %if nargin == 0
         %allow user to select directory
-        %curDir = uigetdir
+%         curDir = uigetdir
     %end
-        
-    %Tracks = loadtracks(curDir);
+    relevant_track_fields = {'Frames', 'Behaviors', 'Embeddings', 'PotentialProblems', 'Centerlines', 'Eccentricity', 'Direction', 'Speed', 'TotalScore', 'UncertainTips', 'Velocity'};
+    Tracks = loadtracks(curDir, relevant_track_fields);
 
     for track_index = 1:length(Tracks)
         Track = Tracks(track_index);

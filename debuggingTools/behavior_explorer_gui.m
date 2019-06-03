@@ -74,7 +74,8 @@ function behavior_explorer_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     hObject.UserData{7} = L;
     hObject.UserData{8} = xx;
     hObject.UserData{9} = density;
-    hObject.UserData{10} = [];%behavioral_space_to_behavior(Track.Embeddings, L, xx);
+    hObject.UserData{10} = behavioral_space_to_behavior(Track.Embeddings, L, xx);
+    hObject.UserData{11} = behavior_names;
     
     display_frame(hObject, current_frame);
 end
@@ -215,19 +216,21 @@ function display_frame(hObject, frame_index)
     xx = hObject.UserData{8};
     density = hObject.UserData{9};
     behavior_timeseries = hObject.UserData{10};
+    behavior_names = hObject.UserData{11};
+    
     [ii,jj] = find(L==0);
     I = squeeze(worm_images(:,:,frame_index));
     maxDensity = max(density(:));
-%     plot_embedding = Track.Embeddings;
+    plot_embedding = Track.Embeddings;
     
     axes_handle = findobj('Tag', 'image_axes');
     axes(axes_handle)
     set(gca, 'position', [-0.225 0 0.8 0.8])    
     
     plot_worm_frame(I, squeeze(Track.Centerlines(:,:,frame_index)), ...
-        Track.UncertainTips(frame_index), ...
+        [], ...
         Track.Eccentricity(frame_index), Track.Direction(frame_index), ...
-        Track.Speed(frame_index),  Track.TotalScore(frame_index), 1);
+        Track.Speed(frame_index),  Track.TotalScore(frame_index), Track.UncertainTips(frame_index), 1);
     set(gca, 'Tag', 'image_axes');
     axis tight
     freezeColors
@@ -245,7 +248,7 @@ function display_frame(hObject, frame_index)
     caxis([0 maxDensity * .8])
     colormap(jet)
     plot(xx(jj),xx(ii),'k.') %watershed borders
-%     plot(plot_embedding(frame_index,1), plot_embedding(frame_index,2), 'om', 'MarkerSize', 15, 'LineWidth', 3)
+    plot(plot_embedding(frame_index,1), plot_embedding(frame_index,2), 'om', 'MarkerSize', 15, 'LineWidth', 3)
     watershed_centroids = regionprops(L, 'centroid');
     watershed_centroids = vertcat(watershed_centroids.Centroid);
     watershed_centroids = round(watershed_centroids);
@@ -261,14 +264,14 @@ function display_frame(hObject, frame_index)
     set(gca, 'Tag', 'axes2');
 
 
-%     current_behaviors = double(Track.Behaviors(:,frame_index))';
+    current_behaviors = find(double(Track.Behaviors(:,frame_index))');
 
     text_handle = findobj('Tag', 'PropertiesText');
     text_handle.String = {['Track #: ', num2str(track_index)], ...
         ['Frame #: ', num2str(frame_index)], ...
         ['Error: ', problem_code_lookup(Track.PotentialProblems(frame_index))], ...
-%        ['Watershed #: ', num2str(behavior_timeseries(frame_index))], ...
-%        ['Behaviors: ', num2str(current_behaviors)] ...
+        ['Watershed #: ', num2str(behavior_timeseries(frame_index))], ...
+        ['Behaviors: ', num2str(current_behaviors)] ...
         
         };
     

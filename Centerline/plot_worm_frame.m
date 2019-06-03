@@ -8,7 +8,7 @@ function [] = plot_worm_frame(I, center_lines, centerline_color, eccentricity, d
     %used for debugging
 %     hold off;
 
-    clf
+%     clf
     if nargin > 8
         %debugimage inputted
         imshow(I + debugimage, [], 'InitialMagnification', 300, 'Border','tight');
@@ -47,5 +47,5 @@ function [] = plot_worm_frame(I, center_lines, centerline_color, eccentricity, d
     %     text(10, 60, num2str(eccentricity), 'Color', 'y');
         hold off;
     end
-    drawnow
+%     drawnow
 end
