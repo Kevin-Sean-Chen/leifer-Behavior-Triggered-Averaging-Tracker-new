@@ -90,3 +90,4 @@ for condition_index = 1:length(conditions)
     ylabel('Velocity Before Tap (mm/s)')
     title(conditions{condition_index})
 end
+
