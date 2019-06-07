@@ -157,28 +157,28 @@ axis([-time_window_before/fps time_window_after/fps 0 0.7])
 %     ax.FontSize = 10;
 % end
 % 
-% %% plot how we picked the GWN range
-% %optotap_behavioral_ratio_percent_changes = percent_change_above_baseline(squeeze(behavior_ratios_for_frame(:,4,:)));
-% behavior_index = 8;
-% [behavior_percent_change, behavior_baselines, behavior_max, behavior_min] = percent_change_above_baseline(squeeze(behavior_ratios_for_frame(behavior_index,:,:)));
-% 
-% x = stimulus_intensities;
-% y = behavior_max';
-% 
-% figure('Position',[100,100,800,600])
-% % hold on
-% % rectangle('Position',[0,0,50,0.6],'FaceColor',[1 0.5 0.5])
-% plot(x, y, 'bo-', 'LineWidth',2,'Markersize',10)
-% 
-% for stimulus_index = 1:length(stimulus_intensities)
-%     track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
-%     text(x(stimulus_index), y(stimulus_index), ['   n=', num2str(track_n)]);
-% end
-% 
-% ax = gca;
-% ax.XTick = stimulus_intensities;
-% % ax.YTick = [0 0.3 0.6];
-% ax.FontSize = 20;
-% 
-% xlabel('Stimulus Intensity (uW/mm2)') % x-axis label
-% ylabel('Fast Reverse Behavioral Ratio') % y-axis label
+%% plot how we picked the GWN range
+%optotap_behavioral_ratio_percent_changes = percent_change_above_baseline(squeeze(behavior_ratios_for_frame(:,4,:)));
+behavior_index = 8;
+[behavior_percent_change, behavior_baselines, behavior_max, behavior_min] = percent_change_above_baseline(squeeze(behavior_ratios_for_frame(behavior_index,:,:)));
+
+x = stimulus_intensities;
+y = behavior_max';
+
+figure('Position',[100,100,800,600])
+% hold on
+% rectangle('Position',[0,0,50,0.6],'FaceColor',[1 0.5 0.5])
+plot(x, y, 'bo-', 'LineWidth',2,'Markersize',10)
+
+for stimulus_index = 1:length(stimulus_intensities)
+    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+    text(x(stimulus_index), y(stimulus_index), ['   n=', num2str(track_n)]);
+end
+
+ax = gca;
+ax.XTick = stimulus_intensities;
+% ax.YTick = [0 0.3 0.6];
+ax.FontSize = 20;
+
+xlabel('Stimulus Intensity (uW/mm2)') % x-axis label
+ylabel('Fast Reverse Behavioral Ratio') % y-axis label
