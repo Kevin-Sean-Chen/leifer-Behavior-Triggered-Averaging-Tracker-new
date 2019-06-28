@@ -6,7 +6,7 @@ function success = plot_image_directory(folder_name)
     %% STEP 1: initialize %%
     number_of_images_for_median_projection = 20;
     parameters = load_parameters(folder_name); %load experiment parameters
-    inset_magification = 10;
+%     inset_magification = 10;
     % parameters.PlottingFrameRate = 14;
     
     mask = parameters.Mask;
@@ -58,6 +58,25 @@ function success = plot_image_directory(folder_name)
     
     LEDPowers = LEDVoltages ./ 5 .* parameters.avgPower500;
     
+    % Load deleted tracks if we are debugging mode
+    all_deleted_tracks = [];
+    if parameters.TrackingDebugMode
+        deleted_track_file_name = [folder_name, filesep, 'tracking_deleted_tracks.mat'];
+        if exist(deleted_track_file_name, 'file') == 2
+            load(deleted_track_file_name);
+        end
+        all_deleted_tracks = deleted_tracks;
+        deleted_track_file_name = [folder_name, filesep, 'centerline_deleted_tracks.mat'];
+        if exist(deleted_track_file_name, 'file') == 2
+            load(deleted_track_file_name);
+        end
+        for track_index = 1:length(deleted_tracks)
+            deleted_tracks(track_index).DeletionReason = 'Low Centerline Score';
+        end
+        all_deleted_tracks = [all_deleted_tracks, deleted_tracks];
+        clear deleted_tracks
+    end
+    
     %% STEP 4: Get the median z projection %%
     medianProj = imread([folder_name, filesep, image_files(1).name]);
     medianProjCount = min(number_of_images_for_median_projection, length(image_files) - 1); 
@@ -94,29 +113,33 @@ function success = plot_image_directory(folder_name)
     for frame_index = 1:frames_per_plot_time:length(image_files) - 1
         % Get Frame
         curImage = imread([folder_name, filesep, image_files(frame_index).name]);
-        subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
-        if parameters.AutoThreshold       % use auto thresholding
-            Level = graythresh(subtractedImage) + parameters.CorrectFactor;
-            Level = max(min(Level,1) ,0);
+        if parameters.PlottingRawImage
+            active_tracks = PlotFrame(WTFigH, curImage, Tracks, frame_index, LEDPowers(frame_index), all_deleted_tracks);
         else
-            Level = parameters.ManualSetLevel;
-        end
-        % Convert frame to a binary image 
-        NUM = parameters.MaxObjects + 1;
-        while (NUM > parameters.MaxObjects)
-            if parameters.DarkObjects
-                BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
+            subtractedImage = curImage - uint8(medianProj) - mask; %subtract median projection  - imageBackground
+            if parameters.AutoThreshold       % use auto thresholding
+                Level = graythresh(subtractedImage) + parameters.CorrectFactor;
+                Level = max(min(Level,1) ,0);
             else
-                BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
+                Level = parameters.ManualSetLevel;
+            end
+            % Convert frame to a binary image 
+            NUM = parameters.MaxObjects + 1;
+            while (NUM > parameters.MaxObjects)
+                if parameters.DarkObjects
+                    BW = ~im2bw(subtractedImage, Level);  % For tracking dark objects on a bright background
+                else
+                    BW = im2bw(subtractedImage, Level);  % For tracking bright objects on a dark background
+                end
+
+                % Identify all objects
+                [~,NUM] = bwlabel(BW);
+                Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
             end
 
-            % Identify all objects
-            [~,NUM] = bwlabel(BW);
-            Level = Level + (1/255); %raise the threshold until we get below the maximum number of objects allowed
+    %         active_tracks = PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDPowers(frame_index));
+            active_tracks =  PlotFrame(WTFigH, subtractedImage, Tracks, frame_index, LEDPowers(frame_index), all_deleted_tracks);
         end
-
-%         active_tracks = PlotFrame(WTFigH, double(BW), Tracks, frame_index, LEDPowers(frame_index));
-      active_tracks =  PlotFrame(WTFigH, subtractedImage, Tracks, frame_index, LEDPowers(frame_index));
 %         if ~isempty(active_tracks)
 %             %draw inset video
 %             figure(WTFigH);

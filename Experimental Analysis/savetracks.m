@@ -1,5 +1,10 @@
 function [] = savetracks(Tracks, folder_name, overwrite, fields_to_save)
 %save the tracks as individual variables given folders
+    if isempty(Tracks)
+        warning('Saving Empty Tracks')
+        return
+    end
+
     if strcmp(folder_name(end), filesep)
         savePath = [folder_name, 'analysis'];
     else

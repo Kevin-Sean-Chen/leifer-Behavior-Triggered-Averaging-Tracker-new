@@ -94,6 +94,7 @@ function success = auto_resolve_problems(folder_name)
     if ~isempty(Modifications)
         % there are modifications to be done
         newTracks = [];
+        deleted_tracks = [];
         modification_track_indecies = [Modifications.TrackIndex];
         current_track_index = 1;
         current_end_index = length(Tracks);
@@ -113,6 +114,9 @@ function success = auto_resolve_problems(folder_name)
                         rename_individual_worm_images(folder_name,current_track_index+1,current_end_index,-1);
                     end
                     current_end_index = current_end_index - 1;
+                    
+                    %remember deleted tracks
+                    deleted_tracks = [deleted_tracks, Track];
                 else
                     %there are one or many split commands
                     split_tracks = [];
@@ -162,6 +166,16 @@ function success = auto_resolve_problems(folder_name)
 
         % save the resolved tracks
         savetracks(newTracks, folder_name, true);
+        
+        % save the deleted tracks
+        if parameters.TrackingDebugMode && ~isempty(deleted_tracks)
+            fields_to_keep = {'Path','Size','Frames'};
+            track_field_names = fieldnames(deleted_tracks);
+            fields_for_removal = setdiff(track_field_names,fields_to_keep);
+            deleted_tracks = rmfield(deleted_tracks,fields_for_removal);
+            saveFileName = [folder_name, filesep, 'centerline_deleted_tracks.mat'];
+            save(saveFileName, 'deleted_tracks', '-v7.3');
+        end
     end
     success = true;
 

@@ -30,7 +30,7 @@ function [] = plot_worm_frame(I, center_lines, centerline_color, eccentricity, d
         %plot(center_lines(1,2), center_lines(1,1), '.g','markersize',50)
 
         %uncertain tips
-        if ~isempty(UncertainTips.Tips)
+        if ~isempty(UncertainTips) && ~isempty(UncertainTips.Tips)
             plot(UncertainTips.Tips(:,2), UncertainTips.Tips(:,1), 'oy')
         end
     %     %tail

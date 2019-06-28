@@ -1,4 +1,4 @@
-function active_track_indecies = PlotFrame(FigH, Frame, Tracks, frame_index, LEDPower)
+function active_track_indecies = PlotFrame(FigH, Frame, Tracks, frame_index, LEDPower, all_deleted_tracks)
 
 figure(FigH)
 clf;
@@ -37,7 +37,7 @@ else
                 %active track found
                 in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
                 plot(Tracks(track_index).Path(1:in_track_index,1), Tracks(track_index).Path(1:in_track_index,2), 'Color', myColors(currentActiveTrack,:));
-%                plot(Tracks(track_index).Path(in_track_index,1), Tracks(track_index).Path(in_track_index,2),'x' , 'Color', myColors(currentActiveTrack,:));
+                plot(Tracks(track_index).Path(in_track_index,1), Tracks(track_index).Path(in_track_index,2),'x' , 'Color', myColors(currentActiveTrack,:));
 %                 text(Tracks(track_index).Path(in_track_index,1)+10, Tracks(track_index).Path(in_track_index,2)+10, num2str(track_index), 'Color', myColors(currentActiveTrack,:));
                 currentActiveTrack = currentActiveTrack + 1;
                 active_track_indecies = [active_track_indecies, track_index];
@@ -45,6 +45,31 @@ else
             frameSum = frameSum + length(Tracks(track_index).Frames);
         end
     end
+    
+    %deleted tracks plotting
+    if ~isempty(all_deleted_tracks)
+        track_indecies_in_frame = find([all_deleted_tracks.Frames] == frame_index);
+        frameSum = 0;
+        currentActiveTrack = 1; %keeps the index of the track_indecies_in_frame
+        myColors = autumn(length(track_indecies_in_frame));
+        for track_index = 1:length(all_deleted_tracks)
+            if currentActiveTrack > length(track_indecies_in_frame)
+                %all active tracks found
+                break;
+            end
+            if track_indecies_in_frame(currentActiveTrack) - frameSum <= length(all_deleted_tracks(track_index).Frames) 
+                %active track found
+                in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
+                plot(all_deleted_tracks(track_index).Path(1:in_track_index,1), all_deleted_tracks(track_index).Path(1:in_track_index,2), 'Color', myColors(currentActiveTrack,:));
+                plot(all_deleted_tracks(track_index).Path(in_track_index,1), all_deleted_tracks(track_index).Path(in_track_index,2),'o' , 'Color', myColors(currentActiveTrack,:));
+                text(all_deleted_tracks(track_index).Path(in_track_index,1)+10, all_deleted_tracks(track_index).Path(in_track_index,2)+10, all_deleted_tracks(track_index).DeletionReason, 'Color', myColors(currentActiveTrack,:));
+                currentActiveTrack = currentActiveTrack + 1;
+                active_track_indecies = [active_track_indecies, track_index];
+            end
+            frameSum = frameSum + length(all_deleted_tracks(track_index).Frames);
+        end
+    end
+    
     if nargin > 4
         %LEDVoltage specified, plot it
         [frame_h, frame_w] = size(Frame);

@@ -155,7 +155,7 @@ for relative_frame_index = 1:frames_before+frames_after+1
                 
             subplot_tight(N_rows,N_columns,subplot_index,0);
             plot_worm_frame(required_worm_images(subplot_index).worm_images(:,:,worm_frame_index), squeeze(selected_tracks(subplot_index).Centerlines(:,:,relative_frame_index)), ...
-            current_color, [], [], [], [], 0);
+            current_color, [], [], [], [], [], 0);
             if subplot_index == N-floor(N_columns/2)
                 time_text = [datestr(abs(time_series(relative_frame_index))/24/3600/fps,'SS.FFF'), ' s'];
                 if time_series(relative_frame_index) < 0

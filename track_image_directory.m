@@ -222,10 +222,13 @@ function success = track_image_directory(folder_name, analysis_mode)
         end
     end
     
-    %% STEP 6: Post-Track Filtering to get rid of invalid tracks %%
-    DeleteTracks = [];
+    %% STEP 6: Post-Track Filtering to get rid of invalid tracks, and collect statistics %%
+    DeleteTracks = false(1,length(Tracks));
     first_frames = zeros(1,length(Tracks));
     last_frames = zeros(1,length(Tracks));
+    if ~isempty(Tracks)
+        Tracks(1).DeletionReason = [];
+    end
     for i = 1:length(Tracks)
         first_frames(i) = Tracks(i).Frames(1);
         last_frames(i) = Tracks(i).Frames(end);
@@ -233,17 +236,20 @@ function success = track_image_directory(folder_name, analysis_mode)
     for i = 1:length(Tracks)
         if length(Tracks(i).Frames) < parameters.MinTrackLength
             %get rid of tracks that are too short
-            DeleteTracks = [DeleteTracks, i];
+            Tracks(i).DeletionReason = [Tracks(i).DeletionReason, 'Short Track length '];
+            DeleteTracks(i) = true;
         elseif mean(Tracks(i).Size) < parameters.MinAverageWormArea
             %get rid of worms that are too small
-            DeleteTracks = [DeleteTracks, i];
+            Tracks(i).DeletionReason = [Tracks(i).DeletionReason, 'Small Worm Size '];
+            DeleteTracks(i) = true;
         else
             %find the maximum displacement from the first time point.
             %correct for dirts that don't move
             position_relative_to_start = transpose(Tracks(i).Path - repmat(Tracks(i).Path(1,:),size(Tracks(i).Path,1),1));
             euclideian_distances_relative_to_start = sqrt(sum(position_relative_to_start.^2,1)); %# The two-norm of each column
             if max(euclideian_distances_relative_to_start) < parameters.MinDisplacement
-                DeleteTracks = [DeleteTracks, i];
+                Tracks(i).DeletionReason = [Tracks(i).DeletionReason, 'Short Displacement '];
+                DeleteTracks(i) = true;
             end
         end
         if Tracks(i).Active == -1
@@ -258,7 +264,8 @@ function success = track_image_directory(folder_name, analysis_mode)
                             %this track is a result of increased blob size,
                             %assume it is invalid because it is likely a
                             %worm bumping into another worm or gunk
-                            DeleteTracks = [DeleteTracks, current_track_index];
+                            DeleteTracks(current_track_index) = true;
+                            Tracks(i).DeletionReason = [Tracks(i).DeletionReason, 'Unexpected Enlargement '];
                             break
                         end
                     end
@@ -285,12 +292,29 @@ function success = track_image_directory(folder_name, analysis_mode)
                 closest_track_index_2 = sorted_distance_indecies(2);
                 averaged_centroid = (starting_positions(closest_track_index_1,:) + starting_positions(closest_track_index_2,:)) ./ 2;
                 if pdist2(ending_position, averaged_centroid) < parameters.MaxDistance
-                    DeleteTracks = [DeleteTracks, i];
+                    Tracks(i).DeletionReason = [Tracks(i).DeletionReason, 'Unexpected Size Decrease '];
+                    DeleteTracks(i) = true;
                 end
             end
         end
     end
-    Tracks(unique(DeleteTracks)) = [];
+    
+    %process and save deleted tracks
+    if parameters.TrackingDebugMode
+        deleted_tracks = Tracks(DeleteTracks);
+        if ~isempty(deleted_tracks)
+            fields_to_keep = {'Path','Size','Frames','DeletionReason'};
+            track_field_names = fieldnames(deleted_tracks);
+            fields_for_removal = setdiff(track_field_names,fields_to_keep);
+            deleted_tracks = rmfield(deleted_tracks,fields_for_removal);
+            saveFileName = [folder_name, filesep, 'tracking_deleted_tracks.mat'];
+            save(saveFileName, 'deleted_tracks', '-v7.3');
+        end
+    end
+    
+    Tracks(DeleteTracks) = [];
+    Tracks = rmfield(Tracks,'DeletionReason');        
+
     
     %% STEP 7: Go through all the tracks and analyze them %% 
     
