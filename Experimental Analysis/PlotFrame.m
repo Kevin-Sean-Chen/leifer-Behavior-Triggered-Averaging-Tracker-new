@@ -62,7 +62,9 @@ else
                 in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
                 plot(all_deleted_tracks(track_index).Path(1:in_track_index,1), all_deleted_tracks(track_index).Path(1:in_track_index,2), 'Color', myColors(currentActiveTrack,:));
                 plot(all_deleted_tracks(track_index).Path(in_track_index,1), all_deleted_tracks(track_index).Path(in_track_index,2),'o' , 'Color', myColors(currentActiveTrack,:));
-                text(all_deleted_tracks(track_index).Path(in_track_index,1)+10, all_deleted_tracks(track_index).Path(in_track_index,2)+10, all_deleted_tracks(track_index).DeletionReason, 'Color', myColors(currentActiveTrack,:));
+                if ~isempty(all_deleted_tracks(track_index).DeletionReason)
+                    text(all_deleted_tracks(track_index).Path(in_track_index,1)+10, all_deleted_tracks(track_index).Path(in_track_index,2)+10, all_deleted_tracks(track_index).DeletionReason, 'Color', myColors(currentActiveTrack,:));
+                end
                 currentActiveTrack = currentActiveTrack + 1;
                 active_track_indecies = [active_track_indecies, track_index];
             end

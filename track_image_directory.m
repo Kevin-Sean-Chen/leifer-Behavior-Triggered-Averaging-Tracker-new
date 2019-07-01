@@ -264,8 +264,8 @@ function success = track_image_directory(folder_name, analysis_mode)
                             %this track is a result of increased blob size,
                             %assume it is invalid because it is likely a
                             %worm bumping into another worm or gunk
+                            Tracks(current_track_index).DeletionReason = [Tracks(current_track_index).DeletionReason, 'Unexpected Enlargement '];
                             DeleteTracks(current_track_index) = true;
-                            Tracks(i).DeletionReason = [Tracks(i).DeletionReason, 'Unexpected Enlargement '];
                             break
                         end
                     end

@@ -60,7 +60,7 @@ for track_index = 1:length(allTracks)
     delta_veolocities = boxcar_velocity((time_window_before+time_window_after+1):end) - boxcar_velocity(1:end-(time_window_before+time_window_after));
     all_delta_velocities = [all_delta_velocities, delta_veolocities];
 end
-thresh_velocity = prctile(all_delta_velocities, percentile_cutoff);
+thresh_velocity = prctile(all_delta_velocities, top_percentile_cutoff);
 
 
 for condition_index = 1:length(conditions)
