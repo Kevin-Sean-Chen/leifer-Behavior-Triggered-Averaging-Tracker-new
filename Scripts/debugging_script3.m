@@ -1,5 +1,3 @@
-% Setup figure for plotting tracker results
-% -----------------------------------------
 WTFigH = findobj('Tag', 'WTFIG');
 if isempty(WTFigH)
     WTFigH = figure('Name', 'Tracking Results', ...
@@ -9,14 +7,15 @@ else
     figure(WTFigH);
 end
 
-% outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'MPEG-4');
-% outputVideo.FrameRate = fps;
-% open(outputVideo)
+outputVideo = VideoWriter(fullfile([video_folder_name, filesep, 'processed']),'MPEG-4');
+outputVideo.FrameRate = fps;
+outputVideo.Quality = 100;
+open(outputVideo)
 
 
 current_index = 1;
 transition_classification = {};
-while current_index < output_number_of_tracks
+while ~isempty(possible_taps_to_sample) && current_index < output_number_of_tracks
     %keep sampling until we are done
     sample_index = unidrnd(length(possible_taps_to_sample));
     sampled_folder_name = possible_taps_to_sample(sample_index).folder;
@@ -37,6 +36,7 @@ while current_index < output_number_of_tracks
     velocities_after = [];
     Tracks = FilterTracksByTime(Tracks, sampled_tap_frame-time_window_before-1, sampled_tap_frame+time_window_after, true);
     if isempty(Tracks)
+       %skip if there's no actual tracks here
        continue 
     end
     for track_index = 1:length(Tracks)
@@ -80,6 +80,17 @@ while current_index < output_number_of_tracks
         curImage = imread([sampled_folder_name, filesep, image_files(frame_index).name]);
         imshow(curImage,'InitialMagnification',100, 'Border','tight');
         hold on;
+        % add text
+        relative_frame_index = frame_index - sampled_tap_frame;
+        tap_time_text = [datestr(abs(relative_frame_index)/24/3600/fps,'SS.FFF'), ' s'];
+        if relative_frame_index < 0
+            tap_time_text = ['-', tap_time_text];
+        else
+            tap_time_text = [' ', tap_time_text];
+        end
+        video_time_text = datestr(abs(frame_index)/24/3600/fps,'MM:SS.FFF');
+        text(50, 50, ['Folder: ', sampled_folder_name, ', Stimulus Time: ', tap_time_text, ', Video Time: ', video_time_text], 'Color', [1 1 1], 'FontSize', 15, 'VerticalAlignment','top','HorizontalAlignment','left');
+        
         if ~isempty(Tracks)
             track_indecies_in_frame = find([Tracks.Frames] == frame_index);
             frameSum = 0;
@@ -94,8 +105,8 @@ while current_index < output_number_of_tracks
                     %active track found
                     in_track_index = track_indecies_in_frame(currentActiveTrack) - frameSum;
                     plot(Tracks(track_index).Path(1:in_track_index,1), Tracks(track_index).Path(1:in_track_index,2), 'Color', myColors(currentActiveTrack,:));
-                    plot(Tracks(track_index).Path(in_track_index,1), Tracks(track_index).Path(in_track_index,2),'s','MarkerSize',30, 'Color', myColors(currentActiveTrack,:));
-                    text(Tracks(track_index).Path(in_track_index,1)+20, Tracks(track_index).Path(in_track_index,2)+20, num2str(Tracks(track_index).videoindex), 'Color', myColors(currentActiveTrack,:));
+                    plot(Tracks(track_index).Path(in_track_index,1), Tracks(track_index).Path(in_track_index,2),'s','MarkerSize',50, 'Color', myColors(currentActiveTrack,:));
+                    text(Tracks(track_index).Path(in_track_index,1)+60, Tracks(track_index).Path(in_track_index,2)-60, num2str(Tracks(track_index).videoindex), 'Color', myColors(currentActiveTrack,:), 'FontSize', 20);
                     currentActiveTrack = currentActiveTrack + 1;
                 end
                 frameSum = frameSum + length(Tracks(track_index).Frames);
@@ -106,11 +117,11 @@ while current_index < output_number_of_tracks
         hold off;    % So not to see movie replay
         FigureName = ['Tracking Results for Frame ', num2str(frame_index)];
         set(WTFigH, 'Name', FigureName);
-        pause
-%         writeVideo(outputVideo, getframe(WTFigH));
+        writeVideo(outputVideo, getframe(WTFigH));
         
     end
-%     close(outputVideo) 
-%     close(WTFigH)
-    
 end
+close(outputVideo) 
+close(WTFigH)
+
+%save behavioral calls
