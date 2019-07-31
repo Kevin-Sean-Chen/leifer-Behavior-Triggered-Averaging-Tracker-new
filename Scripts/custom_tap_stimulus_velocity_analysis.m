@@ -1,24 +1,25 @@
 
-% %load tracks
-% relevant_track_fields = {'Frames', 'Velocity'};
-% 
-% %select folders
-% folders_platetap = getfoldersGUI();
-% 
-% %load stimuli.txt from the first experiment
-% num_stimuli = 1;
-% fps = 14;
-% normalized_stimuli = 1; %delta function
-% window_size = 2*fps;
-% time_window_before = window_size;
-% time_window_after = window_size;
-% 
-% n_bins = 20;
-% edges = linspace(-0.3,0.3,n_bins);
-% 
-% conditions = {'Tap', 'Control'};
-% top_percentile_cutoff = 95;
-% boxcar_window = ones(1,time_window_before+time_window_after+1) ./ (time_window_before+time_window_after+1);
+%load tracks
+relevant_track_fields = {'Frames', 'Velocity'};
+
+%select folders
+folders_platetap = getfoldersGUI();
+save_folder_name = uigetdir([],'Table Output Folder');
+
+%load stimuli.txt from the first experiment
+num_stimuli = 1;
+fps = 14;
+normalized_stimuli = 1; %delta function
+window_size = 2*fps;
+time_window_before = window_size;
+time_window_after = window_size;
+
+n_bins = 20;
+edges = linspace(-0.3,0.3,n_bins);
+
+conditions = {'Tap', 'Control'};
+top_percentile_cutoff = 95;
+boxcar_window = ones(1,time_window_before+time_window_after+1) ./ (time_window_before+time_window_after+1);
 
 %% plot 2d velocity histogram and pi charts
 for condition_index = 1:length(conditions)
@@ -95,10 +96,13 @@ for condition_index = 1:length(conditions)
     yL = get(gca,'YLim');
     xL = get(gca,'XLim');
     line(xL,[0 0],'Color','r','linewidth',2);
-    line([0 0],yL,'Color','r','linewidth',2);
-    line([0 xL(2)],[0, yL(2)],'Color','r','linewidth',2);
-    line([0 xL(2)-thresh_velocity],[thresh_velocity, yL(2)],'Color','r','linewidth',1);
-    line([thresh_velocity xL(2)],[0, yL(2)-thresh_velocity],'Color','r','linewidth',1);
+    line([0, 0],yL,'Color','r','linewidth',2);
+    line(xL,yL,'Color','r','linewidth',2);
+    line([0, xL(2)-thresh_velocity],[thresh_velocity, yL(2)],'Color','r','linewidth',1);
+    line([thresh_velocity, xL(2)],[0, yL(2)-thresh_velocity],'Color','r','linewidth',1);
+    line([xL(1), -thresh_velocity],[yL(1)+thresh_velocity, 0],'Color','r','linewidth',1);
+    line([xL(1)+thresh_velocity, 0],[yL(1), -thresh_velocity],'Color','r','linewidth',1);
+    
     
     axis square;
     colorbar
@@ -160,6 +164,10 @@ for condition_index = 1:length(conditions)
     pie(behavior_counts, explode, pie_labels);
     title(conditions{condition_index})
 
+    %export tables
+    
+    T = table(behavior_types',behavior_counts',round(behavior_counts/total_count*100)','VariableNames',{'Transition', 'RawCount', 'Percentage'});
+    writetable(T,[save_folder_name, filesep, conditions{condition_index}, '_behavioral_table.csv'])
 
 end
    

@@ -105,6 +105,7 @@ function success = plot_image_directory(folder_name)
     %save subtracted avi
 %    outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'MPEG-4');
     outputVideo = VideoWriter(fullfile([folder_name, filesep, 'processed']),'Motion JPEG AVI');
+%     outputVideo.Quality = 100;
     outputVideo.FrameRate = parameters.PlottingFrameRate;
     open(outputVideo)
     

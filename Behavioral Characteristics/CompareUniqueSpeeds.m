@@ -1,25 +1,26 @@
 fps = 14;
-strains = {'N2 Agar Plate', 'GCaMP6 Agar Plate', 'GCaMP6 Whole-Brain'};
+% strains = {'N2 Agar Plate', 'GCaMP6 Agar Plate', 'GCaMP6 Whole-Brain'};
 % strains = {'N2 6/08', 'N2 6/18', 'N2 7/13'};
+strains = {'N2', 'AML341', 'AML342', 'AML32'};
+relevant_fields = {'Frames', 'Speed'};
+
 grouping = {};
 distribution = [];
-folder_name = [];
+
+all_folders = {};
 for strain_index = 1:length(strains)
+    disp(['select folders for ' strains{strain_index}])
+    folders = getfoldersGUI();
+    all_folders{strain_index} = folders;
+end
+
+for strain_index = 1:length(strains)
+    folders = all_folders{strain_index};
     allTracks = [];
-    while true
-        if isempty(folder_name)
-            start_path = '';
-        else
-            start_path = fileparts(fullfile(folder_name, '..', 'tracks.mat')); %display the parent folder
-        end
-        folder_name = uigetdir(start_path)
-        if folder_name == 0
-            break
-        else
-            cd(folder_name) %open the directory of image sequence
-            load('tracks.mat')
-            allTracks = [allTracks, FilterUniqueTracks(Tracks)];
-        end
+    for folder_index = 1:length(folders)
+        folder_name = folders{folder_index};
+        Tracks = load_single_folder(folder_name, relevant_fields);
+        allTracks = [allTracks, FilterUniqueTracks(Tracks)];
     end
     
     averageSpeed = SpeedDistribution(allTracks);
@@ -32,14 +33,15 @@ for strain_index = 1:length(strains)
     grouping = [grouping, repmat(strains(strain_index),1,length(distribution))'];
 end
 
-grouping{1,3} = 'Worm 1';
-grouping{2,3} = 'Worm 2';
-grouping{3,3} = 'Worm 5';
-grouping{4,3} = 'Worm 6';
+% grouping{1,3} = 'Worm 1';
+% grouping{2,3} = 'Worm 2';
+% grouping{3,3} = 'Worm 5';
+% grouping{4,3} = 'Worm 6';
 
 figure
-plotSpread(distribution, 'xNames', strains, 'categoryIdx', grouping, 'categoryMarkers', {'x','x','+','o','*','^','x'}, 'categoryColor', {'b','b','g','k','c','m','b'}, 'showMM', 5)
+% plotSpread(distribution, 'xNames', strains, 'categoryIdx', grouping, 'categoryMarkers', {'x','x','+','o','*','^','x'}, 'categoryColor', {'b','b','g','k','c','m','b'}, 'showMM', 5)
+plotSpread(distribution, 'xNames', strains, 'categoryIdx', grouping, 'categoryMarkers', {'x','x','x','x'}, 'categoryColor', {'b','b','b','b'}, 'showMM', 5)
 % xlabel('Strains')
 ylabel('Average Speed (mm/s)')
-axis([0.5 3.5 0 0.3])
+axis([0.5 4.5 0 0.4])
 set(gcf, 'Position', [100, 100, 800, 500]);
