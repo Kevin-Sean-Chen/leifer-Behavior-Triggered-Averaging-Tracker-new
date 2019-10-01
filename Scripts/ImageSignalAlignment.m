@@ -19,7 +19,7 @@ LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','
 fclose(fid);
 if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
     %reshape LEDVoltages in multistim mode
-    LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
+    LEDVoltages = reshape(LEDVoltages,[length(image_files),length(LEDVoltages)/length(image_files)])';
 end
 
 %normalize

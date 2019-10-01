@@ -54,7 +54,7 @@ function success = plot_image_directory(folder_name)
         fclose(fid);
         if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
             %reshape LEDVoltages in multistim mode
-            LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
+            LEDVoltages = reshape(LEDVoltages,[length(image_files),length(LEDVoltages)/length(image_files)])';
         end
     else
         LEDVoltages = zeros(1,length(image_files)-1);
