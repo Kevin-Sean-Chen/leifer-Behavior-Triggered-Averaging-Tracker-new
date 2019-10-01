@@ -11,9 +11,12 @@ function success = tap_preprocessing(folder_name)
     
     % Load Voltages
     fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
-    LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+    LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t','EndOfLine','\r\n'))); % Read data skipping header
     fclose(fid);
-    
+    if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
+        %reshape LEDVoltages in multistim mode
+        LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
+    end
     if length(image_files)-1 > length(LEDVoltages)
         %there are more frames than there are stimulus
         success = false;
@@ -25,12 +28,13 @@ function success = tap_preprocessing(folder_name)
         mkdir(savePath)
     end
     
-    tap_indecies = find(LEDVoltages > 0);
+    tap_LEDVoltage = LEDVoltages(end,:);
+    tap_indecies = find(tap_LEDVoltage > 0);
     
     for tap_index = length(tap_indecies):-1:1
         %loop through every time the tapper actuates from the last to first
         blurred_image_index = tap_indecies(tap_index)+shift; %apply shift
-        if blurred_image_index > 2 && blurred_image_index < length(LEDVoltages)
+        if blurred_image_index > 2 && blurred_image_index < length(tap_LEDVoltage)
             %ignore if the experiment begins with a tap or ends with a tap
             filename = [folder_name, filesep, image_files(blurred_image_index).name];
             if ~strcmp(filename(end-4),'s')

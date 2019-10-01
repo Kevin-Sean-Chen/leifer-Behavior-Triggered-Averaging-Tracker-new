@@ -17,6 +17,10 @@ end
 fid = fopen('LEDVoltages.txt');
 LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
 fclose(fid);
+if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
+    %reshape LEDVoltages in multistim mode
+    LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
+end
 
 %normalize
 intensity = transpose(intensity);

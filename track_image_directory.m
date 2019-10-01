@@ -56,6 +56,10 @@ function success = track_image_directory(folder_name, analysis_mode)
         fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
         LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
+        if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
+            %reshape LEDVoltages in multistim mode
+            LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
+        end
     elseif exist([folder_name, filesep, 'PWM.txt'], 'file') == 2
         %vibrations
         fid = fopen([folder_name, filesep, 'PWM.txt']);

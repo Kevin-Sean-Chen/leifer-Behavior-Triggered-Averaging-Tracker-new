@@ -52,11 +52,16 @@ function success = plot_image_directory(folder_name)
         fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
         LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
+        if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
+            %reshape LEDVoltages in multistim mode
+            LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
+        end
     else
         LEDVoltages = zeros(1,length(image_files)-1);
     end
     
-    LEDPowers = LEDVoltages ./ 5 .* parameters.avgPower500;
+    
+    LEDPowers = LEDVoltages(1,:) ./ 5 .* parameters.avgPower500; %only thake the first power for plotting
     
     % Load deleted tracks if we are debugging mode
     all_deleted_tracks = [];
