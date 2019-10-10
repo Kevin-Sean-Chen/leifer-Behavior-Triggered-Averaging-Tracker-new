@@ -6,7 +6,7 @@ load('reference_embedding.mat')
 relevant_track_fields = {'BehavioralTransition','Frames', 'Size'};
 
 %select folders
-folders_platetap = getfoldersGUI();
+% folders_platetap = getfoldersGUI();
 
 %load stimuli.txt from the first experiment
 num_stimuli = 1;
@@ -40,6 +40,8 @@ end
 %for each experiment, search for the occurance of each stimulus after
 %normalizing to 1
 LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt']);
+LEDVoltages(1,:)=[]; %remove the first row, which is LED voltage
+
 %LEDVoltages = LEDVoltages(randperm(length(LEDVoltages))); %optional, randomly permuate the taps
 %LEDVoltages(LEDVoltages>0) = 1; %optional, make the stimulus on/off binary
 
@@ -92,6 +94,8 @@ for critical_frame_index = 1:length(critical_frames)
         current_frame = critical_frames(critical_frame_index) + frame_shift;
         if current_frame <= length(LEDVoltages) && current_frame >= 1
             %make sure the current frame is in range
+            
+            % Extract the tracks only at that frame
             tracks_on_critical_frame = FilterTracksByTime(allTracks,current_frame, current_frame);
             if ~isempty(tracks_on_critical_frame)
                 behavior_transitions_for_frame{frame_shift+time_window_before+1} = [behavior_transitions_for_frame{frame_shift+time_window_before+1}, tracks_on_critical_frame.Behaviors];
