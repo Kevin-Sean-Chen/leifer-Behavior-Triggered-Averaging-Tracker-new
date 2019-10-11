@@ -41,10 +41,6 @@ for condition_index = 1:length(conditions)
         %for each experiment, search for the occurance of each stimulus after
         %normalizing to 1
         LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt']);
-        while size(LEDVoltages,1)>1 % in the case of LEDVOltages contains both tap and light voltages
-             LEDVoltages(1,:)=[];  
-        end
-       
         %LEDVoltages = LEDVoltages(randperm(length(LEDVoltages))); %optional, randomly permuate the taps
         LEDVoltages(LEDVoltages>0) = 1; %optional, make the stimulus on/off binary
         % LEDVoltages(LEDVoltages == max(LEDVoltages(:))) = 1; %optional, make the most intense stimulus on/off binary
