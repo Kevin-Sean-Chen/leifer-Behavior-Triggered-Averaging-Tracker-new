@@ -58,7 +58,7 @@ function success = track_image_directory(folder_name, analysis_mode)
         fclose(fid);
         if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
             %reshape LEDVoltages in multistim mode
-            LEDVoltages = reshape(LEDVoltages,[length(image_files),length(LEDVoltages)/length(image_files)])';
+            LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
         end
     elseif exist([folder_name, filesep, 'PWM.txt'], 'file') == 2
         %vibrations
