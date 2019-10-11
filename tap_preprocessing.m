@@ -15,7 +15,7 @@ function success = tap_preprocessing(folder_name)
     fclose(fid);
     if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
         %reshape LEDVoltages in multistim mode
-        LEDVoltages = reshape(LEDVoltages,[length(image_files),length(LEDVoltages)/length(image_files)])';
+        LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
     end
     if length(image_files)-1 > length(LEDVoltages)
         %there are more frames than there are stimulus
