@@ -10,7 +10,11 @@ function success = tap_preprocessing(folder_name)
     end
     
     % Load Voltages
-    fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
+    if exist([folder_name, filesep, 'TapVoltages.txt'],'file')==2
+        fid = fopen([folder_name, filesep, 'TapVoltages.txt']);
+    else
+        fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
+    end
     LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t','EndOfLine','\r\n'))); % Read data skipping header
     fclose(fid);
     if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0

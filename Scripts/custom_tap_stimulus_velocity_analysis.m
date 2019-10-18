@@ -40,7 +40,12 @@ for condition_index = 1:length(conditions)
 
         %for each experiment, search for the occurance of each stimulus after
         %normalizing to 1
-        LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt']);
+        if exist([folders_platetap{folder_index}, filesep, 'TapVoltages.txt'],'file')==2
+            LEDVoltages = load([folders_platetap{folder_index}, filesep, 'TapVoltages.txt']);
+        else
+            LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt']);
+        end
+        
         %LEDVoltages = LEDVoltages(randperm(length(LEDVoltages))); %optional, randomly permuate the taps
         LEDVoltages(LEDVoltages>0) = 1; %optional, make the stimulus on/off binary
         % LEDVoltages(LEDVoltages == max(LEDVoltages(:))) = 1; %optional, make the most intense stimulus on/off binary
@@ -58,8 +63,8 @@ for condition_index = 1:length(conditions)
         [~, control_frames] = findpeaks(xcorr_ledvoltages_stimulus, 'MinPeakHeight', peak_thresh,'MinPeakDistance',14);
 
         %(rails experimentls only) keep only the tap frames with the top intensity
-        LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt']);
-        tap_frames = tap_frames(LEDVoltages(tap_frames) == max(LEDVoltages(tap_frames)));
+%         LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt']);
+%         tap_frames = tap_frames(LEDVoltages(tap_frames) == max(LEDVoltages(tap_frames)));
 
         if strcmp(conditions{condition_index},'Tap')
             critical_frames = tap_frames;
