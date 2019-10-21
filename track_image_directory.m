@@ -15,7 +15,7 @@ function success = track_image_directory(folder_name, analysis_mode)
     relevant_track_fields = {'Active','Path','LastCoordinates','Frames','Size', ...
         'LastSize','FilledArea','Eccentricity','WormIndex','Time','NumFrames', ...
         'SmoothX','SmoothY','Direction','Speed','SmoothSpeed','AngSpeed', ...
-        'BackwardAcc','Pirouettes','LEDVoltages','Pauses','OmegaTurns','Runs','MergedBlobIndex'};
+        'BackwardAcc','Pirouettes','LEDVoltages','TapVoltages','Pauses','OmegaTurns','Runs','MergedBlobIndex'};
     
 
     %% STEP 2: See if a track file exists, if it does, there are some options that use them %%
@@ -49,8 +49,19 @@ function success = track_image_directory(folder_name, analysis_mode)
     end
     
     LEDVoltages = zeros(1,length(image_files)-1);
+    TapVoltages = zeros(1,length(image_files)-1);
     PWM = zeros(1,length(image_files)-1);
     frequencies = zeros(1,length(image_files)-1);
+    %Load Tap voltages
+    if exist([folder_name, filesep, 'TapVoltages.txt'], 'file') == 2
+        fid = fopen([folder_name, filesep, 'TapVoltages.txt']);
+        TapVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
+        fclose(fid);
+        if length(TapVoltages) > length(image_files) && mod(length(TapVoltages),length(image_files)) == 0
+            %reshape TapVoltages in multistim mode
+            TapVoltages = reshape(TapVoltages,[length(TapVoltages)/length(image_files),length(image_files)]);
+        end
+    end
     % Load Voltages if it exists, otherwise, look for vibrations
     if exist([folder_name, filesep, 'LEDVoltages.txt'], 'file') == 2
         fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
@@ -60,6 +71,7 @@ function success = track_image_directory(folder_name, analysis_mode)
             %reshape LEDVoltages in multistim mode
             LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
         end
+   
     elseif exist([folder_name, filesep, 'PWM.txt'], 'file') == 2
         %vibrations
         fid = fopen([folder_name, filesep, 'PWM.txt']);
@@ -76,7 +88,7 @@ function success = track_image_directory(folder_name, analysis_mode)
         end
     end
     
-    if length(image_files)-1 > length(LEDVoltages)
+    if length(image_files)-1 > length(LEDVoltages) 
         %there are more frames than there are stimulus
         success = false;
         return
@@ -365,6 +377,8 @@ function success = track_image_directory(folder_name, analysis_mode)
         Tracks(track_index).Runs = IdentifyRuns(Tracks(track_index), parameters);
         %Save the LED Voltages for this track
         Tracks(track_index).LEDVoltages = LEDVoltages(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
+         %Save the Tap Voltages for this track
+        Tracks(track_index).TapVoltages = TapVoltages(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
         %Save the PWM duty cycles and frequencies too
         Tracks(track_index).PWM = PWM(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
         Tracks(track_index).frequencies = frequencies(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
