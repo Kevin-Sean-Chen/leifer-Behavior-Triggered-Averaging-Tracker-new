@@ -37,7 +37,7 @@ function success = track_image_directory(folder_name, analysis_mode)
     
     %% STEP 3: Load images and other properties from the directory %%
     % Get all the tif file names (probably jpgs)
-    %tap correct
+    % tap correct
     if parameters.TapCorrection 
         %debugging tapping mode
         tap_preprocessing(folder_name);
@@ -377,7 +377,7 @@ function success = track_image_directory(folder_name, analysis_mode)
         Tracks(track_index).Runs = IdentifyRuns(Tracks(track_index), parameters);
         %Save the LED Voltages for this track
         Tracks(track_index).LEDVoltages = LEDVoltages(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
-         %Save the Tap Voltages for this track
+        %Save the Tap Voltages for this track
         Tracks(track_index).TapVoltages = TapVoltages(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));
         %Save the PWM duty cycles and frequencies too
         Tracks(track_index).PWM = PWM(:, min(Tracks(track_index).Frames):max(Tracks(track_index).Frames));

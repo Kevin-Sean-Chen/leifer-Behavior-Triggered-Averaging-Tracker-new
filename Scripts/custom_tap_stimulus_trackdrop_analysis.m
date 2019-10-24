@@ -31,7 +31,7 @@ end
 
 %for each experiment, search for the occurance of each stimulus after
 %normalizing to 1
-LEDVoltages = load([folders_platetap{folder_index}, filesep, 'LEDVoltages.txt']);
+LEDVoltages = load([folders_platetap{folder_index}, filesep, 'TapVoltages.txt']);
 %LEDVoltages = LEDVoltages(randperm(length(LEDVoltages))); %optional, randomly permuate the taps
 %LEDVoltages(LEDVoltages>0) = 1; %optional, make the stimulus on/off binary
 
