@@ -1,7 +1,7 @@
+% plot behavior profiles under different LED intensities
+
 load('reference_embedding.mat')
-%load tracks
-% relevant_track_fields = {'BehavioralTransition','Path','Frames','LEDPower','LEDVoltages','Embeddings','Velocity', 'LEDVoltage2Power'};
-relevant_track_fields = {'BehavioralTransition','Frames'};
+relevant_track_fields = {'BehavioralTransition','Frames','TapVoltages','LEDVoltages'};
 
 %select folders
 folders_optotap = getfoldersGUI();
@@ -19,14 +19,18 @@ number_of_behaviors = max(L(:)-1);
 stimulus_intensities = [];
 all_behavior_transitions_for_frame = {};
 all_behavior_annotations_for_frame = {};
-
 %% behavioral rate compare
 for folder_index = 1:length(folders_optotap)
     %load the tracks for this folder
-    [current_tracks, folder_indecies_revstim_ret, track_indecies_revstim_ret] = loadtracks(folders_optotap{folder_index},relevant_track_fields);
-    current_tracks = BehavioralTransitionToBehavioralAnnotation(current_tracks);
+    [folder_tracks, folder_indecies_revstim_ret, track_indecies_revstim_ret] = loadtracks(folders_optotap{folder_index},relevant_track_fields);
+    folder_tracks = BehavioralTransitionToBehavioralAnnotation(folder_tracks);
     %generate the Behavior matricies
-    current_tracks = get_behavior_triggers(current_tracks);
+    folder_tracks = get_behavior_triggers(folder_tracks);
+    
+    % separate the tracks based on stimuli conditions
+    [sti_tracks,TAPonly_tracks,LEDonly_tracks]=get_tracks_with_sti(folder_tracks);
+    %specify which conditions to analyze
+    current_tracks=sti_tracks;
 
     current_param = load_parameters(folders_optotap{folder_index});
     LEDVoltages = load([folders_optotap{folder_index}, filesep, 'LEDVoltages.txt']);
@@ -53,10 +57,15 @@ for folder_index = 1:length(folders_optotap)
             all_behavior_annotations_for_frame{current_stim_index} = cell(1,total_window_frames);
         end
         
+        
+        % delete the tracks with no taps, based on the fact that the peaks
+        % are when the LED is triggered, and the tap is delivered 2 seconds
+        % after
+        
         %for every time a stimulus is delivered, look at a certain range of
         %frames
         for frame_shift = -time_window_before:time_window_after
-            current_frame = peak_locations(peak_index) + frame_shift;
+            current_frame = peak_locations(peak_index) +28 +frame_shift;
             if current_frame <= length(LEDPowers) && current_frame >= 1
                 %make sure the current frame is in range
                 tracks_on_critical_frame = FilterTracksByTime(current_tracks,current_frame, current_frame);
@@ -74,36 +83,37 @@ end
 all_behavior_transitions_for_frame = all_behavior_transitions_for_frame(sort_index);
 all_behavior_annotations_for_frame= all_behavior_annotations_for_frame(sort_index);
 
-%% 1 plot the transition rates as a function of time
-for stimulus_index = 1:length(stimulus_intensities)
-    % plot the transition rates centered on stim delivery
-    transition_counts_for_frame = zeros(number_of_behaviors,total_window_frames);
-    transition_rate_for_frame = zeros(number_of_behaviors,total_window_frames);
-    transition_std_for_frame = zeros(number_of_behaviors,total_window_frames);
-    for frame_index = 1:total_window_frames
-        transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
-        transition_counts_for_frame(:,frame_index) = sum(transitions_for_frame,2);
-        transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
-        transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
-    end
-
-    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
-    my_colors = behavior_colors;
-    figure
-    hold on
-    for behavior_index = 1:number_of_behaviors
-        transition_n = sum(transition_counts_for_frame(behavior_index,:));
-        plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',[behavior_names{behavior_index}, ' (', num2str(transition_n),' transitions)']);
-    end
-    hold off
-    xlabel('Time (s)') % x-axis label
-    ylabel('Transition Rate (transitions/min)') % y-axis label
-    title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index)), ' (n = ', num2str(track_n), ' tracks)']);
-    legend('show');
-    ax = gca;
-    ax.FontSize = 10;
-    axis([-10 10 0 35])
-end
+% %% 1 plot the transition rates as a function of time
+% for stimulus_index = 1:length(stimulus_intensities)
+%     % plot the transition rates centered on stim delivery
+%     transition_counts_for_frame = zeros(number_of_behaviors,total_window_frames);
+%     transition_rate_for_frame = zeros(number_of_behaviors,total_window_frames);
+%     transition_std_for_frame = zeros(number_of_behaviors,total_window_frames);
+%     for frame_index = 1:total_window_frames
+%         transitions_for_frame = all_behavior_transitions_for_frame{stimulus_index}{frame_index};
+%         transition_counts_for_frame(:,frame_index) = sum(transitions_for_frame,2);
+%         transition_rate_for_frame(:,frame_index) = sum(transitions_for_frame,2)./size(transitions_for_frame,2).*fps.*60;
+%         transition_std_for_frame(:,frame_index) = sqrt(sum(transitions_for_frame,2))./size(transitions_for_frame,2).*fps.*60;
+%     end
+% 
+%     track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{stimulus_index}])));
+%     my_colors = behavior_colors;
+%    
+%     figure
+%     hold on
+%     for behavior_index = 1:number_of_behaviors
+%         transition_n = sum(transition_counts_for_frame(behavior_index,:));
+%         plot(-time_window_before/fps:1/fps:time_window_after/fps, transition_rate_for_frame(behavior_index,:), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',[behavior_names{behavior_index}, ' (', num2str(transition_n),' transitions)']);
+%     end
+%     hold off
+%     xlabel('Time (s)') % x-axis label
+%     ylabel('Transition Rate (transitions/min)') % y-axis label
+%     title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index)), ' (n = ', num2str(track_n), ' tracks)']);
+%     legend('show');
+%     ax = gca;
+%     ax.FontSize = 10;
+%     axis([-10 10 0 35])
+% end
 %% 2 plot the behavioral ratios as a function of time
 behavior_counts_for_frame = zeros(number_of_behaviors,length(stimulus_intensities),total_window_frames);
 behavior_ratios_for_frame = zeros(number_of_behaviors,length(stimulus_intensities),total_window_frames);
