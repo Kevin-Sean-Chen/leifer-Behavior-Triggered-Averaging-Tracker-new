@@ -1,5 +1,5 @@
 %calibrate box
-power_reading = 4.97; %in mW
+power_reading = 2.36; %in mW
 power_per_mm = power_reading*1000./71; %in uW/mm^2
 
 
