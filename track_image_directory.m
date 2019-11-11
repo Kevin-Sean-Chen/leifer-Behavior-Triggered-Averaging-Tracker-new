@@ -57,19 +57,22 @@ function success = track_image_directory(folder_name, analysis_mode)
         fid = fopen([folder_name, filesep, 'TapVoltages.txt']);
         TapVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
-        if length(TapVoltages) > length(image_files) && mod(length(TapVoltages),length(image_files)) == 0
-            %reshape TapVoltages in multistim mode
-            TapVoltages = reshape(TapVoltages,[length(TapVoltages)/length(image_files),length(image_files)]);
-        end
     end
     % Load Voltages if it exists, otherwise, look for vibrations
     if exist([folder_name, filesep, 'LEDVoltages.txt'], 'file') == 2
         fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
+        LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t','EndOfLine','\r\n'))); % Read data skipping header
+        fclose(fid);
+        
+        fid = fopen('LEDVoltages.txt');
         LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
         if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
             %reshape LEDVoltages in multistim mode
+            % the last line is Tap voltages
             LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
+            TapVoltages = LEDVoltages(end,:);
+            LEDVoltages = LEDVoltages(1,:);
         end
    
     elseif exist([folder_name, filesep, 'PWM.txt'], 'file') == 2

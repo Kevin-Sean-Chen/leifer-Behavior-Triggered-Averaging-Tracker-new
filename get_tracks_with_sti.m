@@ -18,8 +18,8 @@ for i=1:n_track
     LED_on=current_track.LEDVoltages>0;
     Tap_on=current_track.TapVoltages>0;    
     both_on=LED_on&Tap_on;
-    Tap_span=Tap_on;
-    sti_frames=current_track.Frames(LED_on&Tap_on);  
+    
+    sti_frames=current_track.Frames(both_on);  
     for tap=sti_frames
         frame0=current_track.Frames(1)-1;
         % Tap occur on the 29th frame of LED_on
@@ -31,7 +31,7 @@ for i=1:n_track
     Tap_only_frames=current_track.Frames(Tap_on&(~LED_on));
     
     for trial_frame = sti_frames
-        start_frame=trial_frame-(fps*time_before-1);
+        start_frame=trial_frame-(fps*time_before);
         end_frame=trial_frame+fps*time_after;
         this_track= FilterTracksByTime(current_track, start_frame, end_frame);
         % apply this if align tap to be frame=0
@@ -40,7 +40,7 @@ for i=1:n_track
     end
     
     for trial_frame = Tap_only_frames
-        start_frame=trial_frame-(fps*time_before-1);
+        start_frame=trial_frame-(fps*time_before);
         end_frame=trial_frame+fps*time_after;
         this_track= FilterTracksByTime(current_track, start_frame, end_frame);
         %this_track.Frames=this_track.Frames-trial_frame;
@@ -49,7 +49,7 @@ for i=1:n_track
     last_frame=0;
     for trial_frame = LED_only_frames
         if abs(last_frame-trial_frame)>LED_on_duration
-            start_frame=trial_frame-(fps*time_before-1);
+            start_frame=trial_frame-(fps*time_before);
             end_frame=trial_frame+fps*time_after;
             this_track= FilterTracksByTime(current_track, start_frame, end_frame);
             %this_track.Frames=this_track.Frames-trial_frame-28;
