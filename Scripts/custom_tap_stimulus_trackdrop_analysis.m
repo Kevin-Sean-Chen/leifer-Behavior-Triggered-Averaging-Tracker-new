@@ -12,8 +12,6 @@ time_window_before = 140;
 time_window_after = 140;
 fps = 14;
 rows_per_page = 9;
-
-
 %% behavioral rate compare
 
 allTracks = [];
