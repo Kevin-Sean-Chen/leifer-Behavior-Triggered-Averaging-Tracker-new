@@ -60,11 +60,11 @@ function success = track_image_directory(folder_name, analysis_mode)
     end
     % Load Voltages if it exists, otherwise, look for vibrations
     if exist([folder_name, filesep, 'LEDVoltages.txt'], 'file') == 2
-        fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
-        LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t','EndOfLine','\r\n'))); % Read data skipping header
-        fclose(fid);
-        
-        fid = fopen('LEDVoltages.txt');
+         fid = fopen([folder_name, filesep, 'LEDVoltages.txt']);
+%         LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t','EndOfLine','\r\n'))); % Read data skipping header
+%         fclose(fid);
+%         
+%         fid = fopen('LEDVoltages.txt');
         LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
         if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
