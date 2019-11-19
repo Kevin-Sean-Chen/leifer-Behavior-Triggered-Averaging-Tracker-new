@@ -10,6 +10,10 @@ LED_and_Tap=1;
 LED_only=0;
 Tap_only=0;
 
+%Global calibration uses parameters.csv for power conversion
+%otherwise uses the "parameters.txt" in each folder
+global_calibration=1;
+
 %load stimuli.txt from the first experiment
 num_stimuli = 1;
 normalized_stimuli = 1; %delta function
@@ -40,16 +44,17 @@ for folder_index = 1:length(folders_optotap)
     current_param = load_parameters(folders_optotap{folder_index});
     LEDVoltages = load([folders_optotap{folder_index}, filesep, 'LEDVoltages.txt']);
     TapVoltages = load([folders_optotap{folder_index}, filesep, 'TapVoltages.txt']);
-    %convert LEDVoltages to power
-    % uses the parameter.csv data
-    %LEDPowers = round(LEDVoltages .* current_param.avgPower500 ./ 5);
     
-    % Use the parameters.txt (LabView input data)
-    folder_paras=readtable([folders_optotap{folder_index}, filesep, 'parameters.txt'],'Delimiter','\t');
-    LEDPowers = round(LEDVoltages.*folder_paras.VoltageToPower);
-    LEDPowers(end)=0; % correct for the last peak, otherwise undetected
-    %find when each stimuli is played back by convolving the time
-    %reversed stimulus (cross-correlation)
+    %convert LEDVoltages to power using global calibration
+    if global_calibration
+        LEDPowers = round(LEDVoltages .* current_param.avgPower500 ./ 5);
+    else % Use the parameters.txt (LabView input data) in each folder
+        folder_paras=readtable([folders_optotap{folder_index}, filesep, 'parameters.txt'],'Delimiter','\t');
+        LEDPowers = round(LEDVoltages.*folder_paras.VoltageToPower);
+        LEDPowers(end)=0; % correct for the last peak, otherwise undetected
+        %find when each stimuli is played back by convolving the time
+        %reversed stimulus (cross-correlation)
+    end
     xcorr_ledvoltages_stimulus = padded_conv(LEDPowers, normalized_stimuli);
     [~, LED_peaks] = findpeaks(xcorr_ledvoltages_stimulus, 'MinPeakDistance',14);
     
@@ -158,7 +163,7 @@ for stimulus_index = 1:length(stimulus_intensities)
     track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
     my_colors = behavior_colors;
     figure
-    hold on
+    hold on;grid on
     for behavior_index = 1:number_of_behaviors
         plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(behavior_index,:),'Linewidth', 3,'DisplayName',behavior_names{behavior_index});
     end
@@ -166,8 +171,8 @@ for stimulus_index = 1:length(stimulus_intensities)
     xlabel('Time (s)') % x-axis label
     ylabel('Behavioral Ratio') % y-axis label
     title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index)), ' (n = ', num2str(track_n), ' tracks)']);
-    
-    legend('show');
+    xline(-2,'b--','DisplayName','LED on');xline(2,'b-.','DisplayName','LED off');
+    legend('show','Location','northwest');
     ax = gca;
     ax.FontSize = 10;
 end
@@ -177,17 +182,18 @@ axis([-time_window_before/fps time_window_after/fps 0 0.7])
 for behavior_index = [3,8,9] %fast forward3; fast reverse; turns
     my_colors = lines(length(stimulus_intensities));
     figure
-    hold on
+    hold on; grid on
     for stimulus_index = 1:length(stimulus_intensities)
         track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
-        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,'DisplayName',[num2str(stimulus_intensities(stimulus_index)), 'uW/mm2 (n = ', num2str(track_n),' tracks)']);
+        plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,...
+            'DisplayName',[num2str(stimulus_intensities(stimulus_index)), 'uW/mm2 (n = ', num2str(track_n),' tracks)']);
     end
     hold off
     xlabel('Time (s)') % x-axis label
     ylabel('Behavioral Ratio') % y-axis label
     title(behavior_names{behavior_index});
-    
     legend('show','Location','northwest');
+    xline(-2,'b--','DisplayName','LED on');xline(2,'b-.','DisplayName','LED off');
     ax = gca;
     ax.FontSize = 10;
 end
@@ -203,7 +209,6 @@ err_boot=zeros(1,length(x));
 sem=zeros(1,length(x));
 % find the max ratio within the time window
 [y2,mi]= max(behavior_ratios_for_frame(behavior_index,:,:),[],3);
-
 for stimulus_index = 1:length(stimulus_intensities)
     % create binary data at the frame when the ratio of behavior is max
     binary_data=(all_behavior_annotations_for_frame{stimulus_index}{mi(stimulus_index)}==behavior_index);
@@ -213,9 +218,9 @@ for stimulus_index = 1:length(stimulus_intensities)
     % mathematical formula of standard error of the mean
     sem(stimulus_index)=std(binary_data)/sqrt(length(binary_data));
 end
-
 figure('Position',[100,100,800,600])
 errorbar(x, y2,sem, 'bo-', 'LineWidth',2,'Markersize',10)
+grid on
 for stimulus_index = 1:length(stimulus_intensities)
     track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
     text(x(stimulus_index), y2(stimulus_index), ['   n=', num2str(track_n)]);

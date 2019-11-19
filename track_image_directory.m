@@ -64,6 +64,7 @@ function success = track_image_directory(folder_name, analysis_mode)
         LEDVoltages = transpose(cell2mat(textscan(fid,'%f','HeaderLines',0,'Delimiter','\t'))); % Read data skipping header
         fclose(fid);
         if length(LEDVoltages) > length(image_files) && mod(length(LEDVoltages),length(image_files)) == 0
+            %this LEDVoltages contains both LED and Tap voltages
             %reshape LEDVoltages in multistim mode
             % the last line is Tap voltages
             LEDVoltages = reshape(LEDVoltages,[length(LEDVoltages)/length(image_files),length(image_files)]);
