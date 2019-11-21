@@ -12,7 +12,7 @@ Tap_only=0;
 
 %Global calibration uses parameters.csv for power conversion
 %otherwise uses the "parameters.txt" in each folder
-global_calibration=1;
+global_calibration=0;
 
 %load stimuli.txt from the first experiment
 num_stimuli = 1;
@@ -75,6 +75,7 @@ for folder_index = 1:length(folders_optotap)
     for peak_index = 1:length(peak_locations)
         if Tap_only
             stimulus_intensities=0;
+            current_stim_index=1;
             all_behavior_transitions_for_frame{1} = cell(1,total_window_frames);
             all_behavior_annotations_for_frame{1} = cell(1,total_window_frames);
             
@@ -144,11 +145,11 @@ all_behavior_annotations_for_frame= all_behavior_annotations_for_frame(sort_inde
 %     ax.FontSize = 10;
 %     axis([-10 10 0 35])
 % end
+n_sti=length(stimulus_intensities);
+behavior_counts_for_frame = zeros(number_of_behaviors,n_sti,total_window_frames);
+behavior_ratios_for_frame = zeros(number_of_behaviors,n_sti,total_window_frames);
 
-behavior_counts_for_frame = zeros(number_of_behaviors,length(stimulus_intensities),total_window_frames);
-behavior_ratios_for_frame = zeros(number_of_behaviors,length(stimulus_intensities),total_window_frames);
-
-for stimulus_index = 1:length(stimulus_intensities)
+for stimulus_index = 1:n_sti
     % plot the transition rates centered on stim delivery
     total_counts_for_frame = zeros(1,total_window_frames);
     for frame_index = 1:total_window_frames
@@ -159,8 +160,9 @@ for stimulus_index = 1:length(stimulus_intensities)
     end
 end
 %% 2 plot the behavioral ratios as a function of time
-for stimulus_index = 1:length(stimulus_intensities)
-    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
+n_tracks=zeros(1,n_sti); %number of tracks in each sti intensities
+for stimulus_index = 1:n_sti
+    n_tracks(stimulus_index) = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
     my_colors = behavior_colors;
     figure
     hold on;grid on
@@ -170,7 +172,7 @@ for stimulus_index = 1:length(stimulus_intensities)
     hold off
     xlabel('Time (s)') % x-axis label
     ylabel('Behavioral Ratio') % y-axis label
-    title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index)), ' (n = ', num2str(track_n), ' tracks)']);
+    title(['Stimulus Intensity = ', num2str(stimulus_intensities(stimulus_index)), ' (n = ', num2str(n_tracks(stimulus_index)), ' tracks)']);
     xline(-2,'b--','DisplayName','LED on');xline(2,'b-.','DisplayName','LED off');
     legend('show','Location','northwest');
     ax = gca;
@@ -180,13 +182,13 @@ axis([-time_window_before/fps time_window_after/fps 0 0.7])
 %
 %% plot the behavioral ratios for various intensities on the same plot
 for behavior_index = [3,8,9] %fast forward3; fast reverse; turns
-    my_colors = lines(length(stimulus_intensities));
+    my_colors = lines(n_sti);
     figure
     hold on; grid on
-    for stimulus_index = 1:length(stimulus_intensities)
-        track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
+    for stimulus_index = 1:n_sti
+        %track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
         plot(-time_window_before/fps:1/fps:time_window_after/fps, squeeze(behavior_ratios_for_frame(behavior_index,stimulus_index,:)), '-', 'color', my_colors(stimulus_index,:),'Linewidth', 3,...
-            'DisplayName',[num2str(stimulus_intensities(stimulus_index)), 'uW/mm2 (n = ', num2str(track_n),' tracks)']);
+            'DisplayName',[num2str(stimulus_intensities(stimulus_index)), 'uW/mm2 (n = ', num2str(n_tracks(stimulus_index)),' tracks)']);
     end
     hold off
     xlabel('Time (s)') % x-axis label
@@ -209,7 +211,7 @@ err_boot=zeros(1,length(x));
 sem=zeros(1,length(x));
 % find the max ratio within the time window
 [y2,mi]= max(behavior_ratios_for_frame(behavior_index,:,:),[],3);
-for stimulus_index = 1:length(stimulus_intensities)
+for stimulus_index = 1:n_sti
     % create binary data at the frame when the ratio of behavior is max
     binary_data=(all_behavior_annotations_for_frame{stimulus_index}{mi(stimulus_index)}==behavior_index);
     % get standard error from bootstraped data
@@ -221,9 +223,9 @@ end
 figure('Position',[100,100,800,600])
 errorbar(x, y2,sem, 'bo-', 'LineWidth',2,'Markersize',10)
 grid on
-for stimulus_index = 1:length(stimulus_intensities)
-    track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
-    text(x(stimulus_index), y2(stimulus_index), ['   n=', num2str(track_n)]);
+for stimulus_index = 1:n_sti
+    %track_n = round(mean(arrayfun(@(x) size(x{1},2), [all_behavior_transitions_for_frame{1,stimulus_index}])));
+    text(x(stimulus_index), y2(stimulus_index), ['   n=', num2str(n_tracks(stimulus_index))]);
 end
 ax = gca;
 ax.XTick = stimulus_intensities;

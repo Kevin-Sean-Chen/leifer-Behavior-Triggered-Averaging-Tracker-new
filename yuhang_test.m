@@ -83,3 +83,42 @@ for i=1:length(TAPonly_tracks)
     ss=ss+sum(current_track.LEDVoltages);
 end
 ss
+
+%% save noR data
+x_nor=x;
+y_nor=y2;
+sem_nor=sem;
+n_tracks_nor=n_tracks;
+n_sti_nor=length(x_nor);
+save('nor_data.mat','x_nor','y_nor','sem_nor','n_tracks_nor','n_sti_nor');
+whos('-file','nor_data.mat')
+%% save ret data
+x_ret=x;
+y_ret=y2;
+sem_ret=sem;
+n_tracks_ret=n_tracks;
+n_sti_ret=length(x_ret);
+save('ret_data.mat','x_ret','y_ret','sem_ret','n_tracks_ret','n_sti_ret');
+whos('-file','ret_data.mat')
+%% overlay ret and noR plots
+load('ret_data.mat');load('nor_data.mat');
+figure('Position',[100,100,800,600])
+errorbar(x_nor, y_nor,sem_nor, 'ko-', 'LineWidth',2,'Markersize',10)
+hold on
+errorbar(x_ret, y_ret,sem_ret, 'bo-', 'LineWidth',2,'Markersize',10)
+grid on
+for stimulus_index = 1:n_sti_nor
+    text(x_nor(stimulus_index), y_nor(stimulus_index), ['   n=', num2str(n_tracks_nor(stimulus_index))]);
+end
+for stimulus_index = 1:n_sti_ret
+    text(x_ret(stimulus_index), y_ret(stimulus_index), ['   n=', num2str(n_tracks_ret(stimulus_index))]);
+end
+ax = gca;
+ax.XTick = stimulus_intensities;
+% ax.YTick = [0 0.3 0.6];
+ax.FontSize = 20;
+xlabel('Stimulus Intensity (uW/mm2)') % x-axis label
+ylabel('Fast Reverse Behavioral Ratio') % y-axis label
+title('Behavior Responses vs Light Intensities');
+ylim([0.25,0.7]);
+legend('No Retinal','Retinal')
