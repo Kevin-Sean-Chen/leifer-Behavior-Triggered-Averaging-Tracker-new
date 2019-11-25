@@ -49,7 +49,7 @@ function success = find_centerlines(folder_name)
     end
     
     %% Extract Centerlines and eigenworms
-     parfor track_index = 1:track_count
+     for track_index = 1:100%track_count
 %    for track_index = 2:2
          % loop through all the tracks to get centerlines
 %         track_index
@@ -59,6 +59,12 @@ function success = find_centerlines(folder_name)
             % remove the track
             loaded_file = load([folder_name, filesep, 'individual_worm_imgs', filesep, 'worm_', num2str(track_index), '.mat']);
             worm_images = loaded_file.worm_images;
+            
+            %%% Kevin's hack %%%
+            fun = @(A,n) repelem(A,n,n);
+            worm_images = bsxfun(fun, worm_images, 2);  %repeat all element 2 (making it 2X2 bigger)
+            %%%%%%%%%%%%%%%%%%%%
+            
             Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), parameters, track_index); %get the centerlines
             [angles, Tracks(track_index).MeanAngle] = centerlines_to_angles(Tracks(track_index).Centerlines); %get the angles
             Tracks(track_index).Angles = angles - (diag(parameters.MeanAngles)*ones(size(angles))); %mean center

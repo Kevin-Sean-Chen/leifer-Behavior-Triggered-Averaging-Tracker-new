@@ -3,7 +3,7 @@ function Track = initial_sweep(image_stack, Track, parameters, plot_index)
     
     %% STEP 1: define parameters %%
 
-    nPoints = 20; % Numbers of points in the contour
+    nPoints = 20; %20 Numbers of points in the contour
     gamma = 15;    %Iteration time step
     ConCrit = .1; %Convergence criteria
     kappa = 50;     % Weight of the image force as a whole
@@ -12,10 +12,10 @@ function Track = initial_sweep(image_stack, Track, parameters, plot_index)
     beta = 2; %how local the deformation is
     nu = 30;  %spring force
     mu = 2.5; %repel force
-    cd = 3; %cutoff distance for repel force
+    cd = 3; %3 cutoff distance for repel force
     xi = 2; %the attraction to the found tips
-    l0 = 40; %the expected length of the worm
-    sample_size = 10; %how many straight worm images we are measuring for initialization
+    l0 = 40; %40 the expected length of the worm
+    sample_size = 10; %10 how many straight worm images we are measuring for initialization
 
     image_stack = double(image_stack) ./ 255;
     number_of_images = size(image_stack,3);
