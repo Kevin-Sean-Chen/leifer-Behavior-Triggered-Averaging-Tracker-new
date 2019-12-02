@@ -385,7 +385,10 @@ function success = track_image_directory(folder_name, analysis_mode)
     end
     
 %% STEP 8: Calculate LED Power %%
-    Tracks = LEDVoltage2Power(Tracks, parameters.power500);
+    %%%%%Tracks = LEDVoltage2Power(Tracks, parameters.power500);
+    %%% remove this for now as I am still trying out different number of
+    %%% pixels in the new camera setup and error would occur due to
+    %%% out-of-range indexing compare to the spatial correction
     
 %% STEP 9: Save the tracks %%
     savetracks(Tracks,folder_name);
