@@ -2,7 +2,7 @@
 %%% this code is to analyze the deleted tracks to figure out main reasons
 %%% tracking fails...
 
-load('Z:\Kevin\20191127_GWN_N2_naive\Data20191127_152927\tracking_deleted_tracks.mat')
+load('Z:\Kevin\20191213_GWN_N2_test\Data20191213_181914\tracking_deleted_tracks.mat')
 %% read in the deleted tracks and c
 all_reasons = extractfield(deleted_tracks,'DeletionReason');
 all_possible_errors = unique(all_reasons);  %{'Short Displacement ', 'Short Track length '};
