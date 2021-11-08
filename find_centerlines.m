@@ -50,7 +50,7 @@ function success = find_centerlines(folder_name)
     
     %% Extract Centerlines and eigenworms
      for track_index = 1:track_count
-%    for track_index = 2:2
+%    ID = 20; for track_index = ID
          % loop through all the tracks to get centerlines
 %         track_index
 %         tic
@@ -61,8 +61,8 @@ function success = find_centerlines(folder_name)
             worm_images = loaded_file.worm_images;
             
             %%% Kevin's hack %%%
-%             fun = @(A,n) repelem(A,n,n);
-%             worm_images = bsxfun(fun, worm_images, 2);  %repeat all element 2 (making it 2X2 bigger)
+            fun = @(A,n) repelem(A,n,n);
+            worm_images = bsxfun(fun, worm_images, 2);  %repeat all element 2 (making it 2X2 bigger)
             %%%%%%%%%%%%%%%%%%%%
             
             Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), parameters, track_index); %get the centerlines
@@ -82,3 +82,17 @@ function success = find_centerlines(folder_name)
     savetracks(Tracks, folder_name);
     success = true;
 end
+
+%% for debugging
+% figure()
+% CLs = Tracks(ID).Centerlines;
+% for ii = 1:size(CLs, 3)
+%     imagesc(worm_images(:,:,ii))
+%     hold on
+%     temp = CLs(:,:,ii);
+%     if isempty(temp)~=1;
+%         plot(temp(:,2),temp(:,1)); 
+%     end
+%     pause()
+%     hold off
+% end
