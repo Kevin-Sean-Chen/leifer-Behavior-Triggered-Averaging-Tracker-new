@@ -61,8 +61,8 @@ function success = find_centerlines(folder_name)
             worm_images = loaded_file.worm_images;
             
             %%% Kevin's hack %%%
-            fun = @(A,n) repelem(A,n,n);
-            worm_images = bsxfun(fun, worm_images, 2);  %repeat all element 2 (making it 2X2 bigger)
+%             fun = @(A,n) repelem(A,n,n);
+%             worm_images = bsxfun(fun, worm_images, 2);  %repeat all element 2 (making it 2X2 bigger)
             %%%%%%%%%%%%%%%%%%%%
             
             Tracks(track_index) = initial_sweep(worm_images, Tracks(track_index), parameters, track_index); %get the centerlines
