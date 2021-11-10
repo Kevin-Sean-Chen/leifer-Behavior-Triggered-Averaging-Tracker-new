@@ -50,7 +50,7 @@ function success = find_centerlines(folder_name)
     
     %% Extract Centerlines and eigenworms
      for track_index = 1:track_count
-%    ID = 20; for track_index = ID
+%    ID = 30; for track_index = ID
          % loop through all the tracks to get centerlines
 %         track_index
 %         tic
