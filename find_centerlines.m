@@ -50,7 +50,7 @@ function success = find_centerlines(folder_name)
     
     %% Extract Centerlines and eigenworms
      for track_index = 1:track_count
-%    ID = 277; for track_index = ID
+%    ID = 100; for track_index = ID
          % loop through all the tracks to get centerlines
 %         track_index
 %         tic
@@ -84,7 +84,7 @@ function success = find_centerlines(folder_name)
 end
 
 %% for debugging
-% figure()
+% figure();
 % CLs = Tracks(ID).Centerlines;
 % for ii = 1:size(CLs, 3)
 %     imagesc(worm_images(:,:,ii))
