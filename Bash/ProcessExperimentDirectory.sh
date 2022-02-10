@@ -84,7 +84,7 @@ script_name=find_centerlines
 script_order=$(ScriptToOrdering.sh $script_name)
 if [ "$step_to_start" -lt "$script_order" ]; then
 	#submit job to cluster
-	PROCESS_ID=$(sbatch -N1 -n16 --mem-per-cpu=32000M -t143:59:00 RunMatlabJVM.sh $folder_name $script_name) # 	PROCESS_ID=$(sbatch -N1 -n4 --mem-per-cpu=3000M -t143:59:00 RunMatlabJVM.sh $folder_name $script_name)
+	PROCESS_ID=$(sbatch -N1 -n16 --mem-per-cpu=32000M -t95:59:00 RunMatlabJVM.sh $folder_name $script_name) # 	PROCESS_ID=$(sbatch -N1 -n4 --mem-per-cpu=3000M -t143:59:00 RunMatlabJVM.sh $folder_name $script_name)
 	UpdateLog.sh $folder_name $script_name ${PROCESS_ID##* } SUBMIT Awaiting_Resources #update the log
 	while squeue -u $user_name | grep -q -w ${PROCESS_ID##* }; do sleep 10; done #wait until job finishes
 	#check if the operation completed succesfully
