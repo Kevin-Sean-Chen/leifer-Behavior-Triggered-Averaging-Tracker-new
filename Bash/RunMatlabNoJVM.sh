@@ -6,4 +6,4 @@ cd ~/github/leifer-Behavior-Triggered-Averaging-Tracker
 
 echo 'running '$script_name
 
-/usr/licensed/bin/matlab-R2019b -nodisplay -nosplash -nojvm -r "call_function('$script_name;$folder_name'); exit;"
+/usr/licensed/bin/matlab-R2016a -nodisplay -nosplash -nojvm -r "call_function('$script_name;$folder_name'); exit;"
