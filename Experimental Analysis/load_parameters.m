@@ -19,12 +19,14 @@ function parameters = load_parameters(folder_name)
     parameters = load('EigenVectors.mat'); %load eigenvectors for eigenworms
     parameters.SaveIndividualImages = SaveIndividualImages;
     
+%     param_table = cell2table(readcell('parameters.csv'));
     param_table = readtable('parameters.csv','ReadVariableNames',false);
 
     %load the default parameters first
     for tag_index = 3:size(param_table,2)
         current_tags = param_table{1,tag_index}{1,1};
         current_tags = strsplit(current_tags,';');
+%         current_tags = 'DESKTOP-QAMI4J2';
         if tag_index == 3 || all(ismember(current_tags, tags)) 
             %load the default and the correct tags
             for parameter_index = 2:size(param_table,1)
