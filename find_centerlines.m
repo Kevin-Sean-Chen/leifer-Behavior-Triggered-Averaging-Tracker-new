@@ -38,18 +38,22 @@ function success = find_centerlines(folder_name)
     Tracks(track_count).Angles = [];
     Tracks(track_count).ProjectedEigenValues = [];
     Tracks(track_count).Velocity = [];
+    Tracks(track_count).PhaseVelocity = [];
     
-    try
-        parpool(feature('numcores'))
-    catch
-        %sometimes matlab attempts to write to the same temp file. wait and
-        %restart
-        pause(randi(60));
-        parpool(feature('numcores'))
-    end
+    %%% commented out to fix problems with parpool on della
+%     try
+%         parpool(feature('numcores'))
+%     catch
+%         %sometimes matlab attempts to write to the same temp file. wait and
+%         %restart
+%         pause(randi(60));
+%         parpool(feature('numcores'))
+%     end
     
     %% Extract Centerlines and eigenworms
-     for track_index = 1:track_count
+    %%% updated with parfor loop
+    parfor track_index = 1:track_count
+%      for track_index = 1:track_count
 %    ID = 100; for track_index = ID
          % loop through all the tracks to get centerlines
 %         track_index
@@ -70,6 +74,8 @@ function success = find_centerlines(folder_name)
             Tracks(track_index).Angles = angles - (diag(parameters.MeanAngles)*ones(size(angles))); %mean center
             Tracks(track_index).ProjectedEigenValues = parameters.EigenVectors\Tracks(track_index).Angles; %project into PCA space
             Tracks(track_index).Velocity = find_velocity(Tracks(track_index).Speed, Tracks(track_index).Direction, Tracks(track_index).Centerlines, parameters.ImageSize);
+            Tracks(track_index).PhaseVelocity = worm_phase_velocity(Tracks(track_index).ProjectedEigenValues, parameters);
+            
         catch
             % error in centerline finding. get rid of it in error
             % resolution
@@ -78,11 +84,13 @@ function success = find_centerlines(folder_name)
 %         toc
     end
     
+    delete(gcp('nocreate'))
+    
     %% save the results
     savetracks(Tracks, folder_name);
     success = true;
 end
-
+    
 %% for debugging
 % figure();
 % CLs = Tracks(ID).Centerlines;
