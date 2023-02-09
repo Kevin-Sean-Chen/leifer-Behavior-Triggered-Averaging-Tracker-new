@@ -84,7 +84,7 @@ function success = find_centerlines(folder_name)
 %         toc
     end
     
-    delete(gcp('nocreate'))
+%     delete(gcp('nocreate'))
     
     %% save the results
     savetracks(Tracks, folder_name);
