@@ -18,14 +18,14 @@ function success = calculate_spectra(folder_name)
         error('Empty Tracks');
     end
 
-    try
-        parpool(feature('numcores'))
-    catch
-        %sometimes matlab attempts to write to the same temp file. wait and
-        %restart
-        pause(randi(60));
-        parpool(feature('numcores'))
-    end
+%     try
+%         parpool(feature('numcores'))
+%     catch
+%         %sometimes matlab attempts to write to the same temp file. wait and
+%         %restart
+%         pause(randi(60));
+%         parpool(feature('numcores'))
+%     end
 
     %% get the spectra
     [Spectra, ~, ~, Amps, ~] = generate_spectra({Tracks.ProjectedEigenValues}, {Tracks.Velocity}, parameters);

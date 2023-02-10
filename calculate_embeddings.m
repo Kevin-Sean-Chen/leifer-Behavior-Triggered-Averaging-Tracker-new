@@ -18,14 +18,14 @@ function success = calculate_embeddings(folder_name)
         error('Empty Tracks');
     end
 
-    try
-        parpool(feature('numcores'))
-    catch
-        %sometimes matlab attempts to write to the same temp file. wait and
-        %restart
-        pause(randi(60));
-        parpool(feature('numcores'))
-    end
+%     try
+%         parpool(feature('numcores'))
+%     catch
+%         %sometimes matlab attempts to write to the same temp file. wait and
+%         %restart
+%         pause(randi(60));
+%         parpool(feature('numcores'))
+%     end
 
 
     data = vertcat(Tracks.Spectra);
